@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import api from '../api/axios';
 import { User, Mail, Shield, Lock, Eye, EyeOff, RefreshCw, Smartphone, CheckCircle2, Gift } from 'lucide-react';
-import API_URL from '../api/config';
 
 const Profile = () => {
     const { user } = useAuth();
@@ -10,8 +10,6 @@ const Profile = () => {
     const [loading, setLoading] = useState({ profile: false, password: false });
     const [message, setMessage] = useState({ type: '', text: '' });
     const [showPass, setShowPass] = useState(false);
-    const token = localStorage.getItem('token');
-    const headers = { Authorization: `Bearer ${token}` };
 
     const rows = [
         { icon: <User size={18} />, label: 'Full Name', value: user?.name },
@@ -26,7 +24,7 @@ const Profile = () => {
         setLoading({ ...loading, profile: true });
         setMessage({ type: '', text: '' });
         try {
-            await axios.post(`${API_URL}/user/update-profile`, profileForm, { headers });
+            await api.post('/user/update-profile', profileForm);
             setMessage({ type: 'success', text: 'Profile updated successfully!' });
             // Refresh would be good here or state update
             window.location.reload(); 
@@ -45,7 +43,7 @@ const Profile = () => {
         setLoading({ ...loading, password: true });
         setMessage({ type: '', text: '' });
         try {
-            const res = await axios.post(`${API_URL}/user/change-password`, passwordForm, { headers });
+            const res = await api.post('/user/change-password', passwordForm);
             setMessage({ type: 'success', text: res.data.message });
             setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
         } catch (err) {

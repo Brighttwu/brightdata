@@ -1,15 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import {
     Store, TrendingUp, DollarSign, ShoppingBag, Settings, AlertCircle,
     CheckCircle2, ChevronRight, Plus, Edit3, Wifi, ExternalLink, Copy, RefreshCw
 } from 'lucide-react';
-
-import API_URL from '../api/config';
-
-const API = `${API_URL}/agent`;
 
 const AgentPage = () => {
     const { user, updateBalance } = useAuth();
@@ -26,9 +22,7 @@ const AgentPage = () => {
     const [upgrading, setUpgrading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
     const [copiedLink, setCopiedLink] = useState(false);
-
-    const token = localStorage.getItem('token');
-    const headers = { Authorization: `Bearer ${token}` };
+    
     const [justUpgraded, setJustUpgraded] = useState(false);
     
     const isAgent = user?.role === 'admin' || user?.role === 'agent' || user?.role === 'store' || justUpgraded;
@@ -36,7 +30,7 @@ const AgentPage = () => {
     const fetchDashboard = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await axios.get(`${API}/dashboard`, { headers });
+            const res = await api.get('/agent/dashboard');
             setDashboard(res.data);
             if (res.data.store) {
                 setStoreForm({
@@ -55,14 +49,14 @@ const AgentPage = () => {
                 setCustomPrices(priceMap);
             }
         } catch (err) { console.error(err); } finally { setLoading(false); }
-    }, [token]);
+    }, []);
 
     const fetchWithdrawals = useCallback(async () => {
         try {
-            const res = await axios.get(`${API}/my-withdrawals`, { headers });
+            const res = await api.get('/agent/my-withdrawals');
             setWithdrawals(res.data);
         } catch (err) { console.error(err); }
-    }, [token]);
+    }, []);
 
     const submitWithdrawal = async () => {
         if (!withdrawForm.amount || !withdrawForm.phone) return;
@@ -71,7 +65,7 @@ const AgentPage = () => {
         setSaving(true);
         try {
             const combined = `${withdrawForm.network.toUpperCase()}: ${withdrawForm.phone}`;
-            const res = await axios.post(`${API}/request-withdrawal`, { ...withdrawForm, paymentDetails: combined }, { headers });
+            const res = await api.post('/agent/request-withdrawal', { ...withdrawForm, paymentDetails: combined });
             setMessage({ type: 'success', text: res.data.message });
             setWithdrawForm({ amount: '', phone: '', network: 'mtn' });
             fetchWithdrawals();
@@ -83,7 +77,7 @@ const AgentPage = () => {
 
     const fetchPackages = useCallback(async () => {
         try {
-            const res = await axios.get(`${API_URL}/data/packages/${selectedNetwork}`, { headers });
+            const res = await api.get(`/data/packages/${selectedNetwork}`);
             const raw = res.data.packages || res.data || [];
             setPackages(Array.isArray(raw) ? raw.map(p => ({
                 key: p.package_key || p.key || p.id || '',
@@ -91,7 +85,7 @@ const AgentPage = () => {
                 platformCost: Number(p.price)
             })).sort((a, b) => a.platformCost - b.platformCost) : []);
         } catch (err) { setPackages([]); }
-    }, [selectedNetwork, token]);
+    }, [selectedNetwork]);
 
     useEffect(() => { if (isAgent) fetchDashboard(); else setLoading(false); }, [isAgent, fetchDashboard]);
     useEffect(() => { if (tab === 'pricing' && isAgent) fetchPackages(); }, [tab, fetchPackages, isAgent]);
@@ -101,7 +95,7 @@ const AgentPage = () => {
         if (!window.confirm(`₵40 will be deducted from your wallet balance. Continue?`)) return;
         setUpgrading(true);
         try {
-            const res = await axios.post(`${API}/upgrade`, {}, { headers });
+            const res = await api.post('/agent/upgrade', {});
             updateBalance(res.data.user.balance);
             setJustUpgraded(true);
             setMessage({ type: 'success', text: '🎉 Agent account activated!' });
@@ -125,7 +119,7 @@ const AgentPage = () => {
         if (!storeForm.slug || !storeForm.name) return setMessage({ type: 'error', text: 'Store name and URL are required.' });
         setSaving(true);
         try {
-            await axios.post(`${API}/store`, storeForm, { headers });
+            await api.post('/agent/store', storeForm);
             setMessage({ type: 'success', text: 'Store saved!' });
             fetchDashboard();
         } catch (err) { setMessage({ type: 'error', text: err.response?.data?.message || 'Error saving store' }); } finally { setSaving(false); }
@@ -146,7 +140,7 @@ const AgentPage = () => {
             return { network: selectedNetwork, packageKey: pkg.key, packageName: pkg.name, price };
         }).filter(Boolean);
         try {
-            await axios.post(`${API}/store/prices`, { customPrices: priceArr }, { headers });
+            await api.post('/agent/store/prices', { customPrices: priceArr });
             setMessage({ type: 'success', text: 'Prices updated!' });
         } catch (err) { setMessage({ type: 'error', text: 'Error saving prices' }); } finally { setSaving(false); }
     };

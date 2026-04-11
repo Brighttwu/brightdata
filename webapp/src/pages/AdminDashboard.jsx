@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axios';
 import { Users, ShoppingBag, DollarSign, Wallet, ShieldAlert, Ban, PlusCircle, MinusCircle } from 'lucide-react';
-import API_CONFIG from '../api/config';
 
 const AdminDashboard = () => {
     const [searchParams] = useSearchParams();
@@ -20,33 +19,27 @@ const AdminDashboard = () => {
     const [editModal, setEditModal] = useState(null); 
     const [modalInputs, setModalInputs] = useState({ normal: '', retail: '' });
 
-    const API_URL = `${API_CONFIG}/admin`;
-    const DATA_URL = `${API_CONFIG}/data`;
-    const token = localStorage.getItem('token');
-
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
-            const headers = { Authorization: `Bearer ${token}` };
-            
             // Statistics
             if (tab === 'stats') {
-                const res = await axios.get(`${API_URL}/stats`, { headers });
+                const res = await api.get('/admin/stats');
                 setStats(res.data);
             } 
             // Users
             else if (tab === 'users') {
-                const res = await axios.get(`${API_URL}/users`, { headers });
+                const res = await api.get('/admin/users');
                 setUsers(res.data);
             } 
             // Pricing Logic
             else if (tab === 'pricing') {
                 // Get saved rules
-                const rulesRes = await axios.get(`${API_URL}/pricing`, { headers });
+                const rulesRes = await api.get('/admin/pricing');
                 setPricingRules(rulesRes.data);
                 
                 // Get live packages for selected network
-                const pkgRes = await axios.get(`${DATA_URL}/packages/${selectedNetwork}`, { headers });
+                const pkgRes = await api.get(`/data/packages/${selectedNetwork}`);
                 const raw = pkgRes.data.packages || pkgRes.data || [];
                 const mapped = raw.map(p => ({
                     key: (p.package_key || p.key || p.id || '').toString().trim(),
@@ -57,20 +50,20 @@ const AdminDashboard = () => {
             } 
             // Transactions
             else if (tab === 'transactions') {
-                const res = await axios.get(`${API_URL}/transactions`, { headers });
+                const res = await api.get('/admin/transactions');
                 setTransactions(res.data);
             } 
             // Orders
             else if (tab === 'orders') {
-                const res = await axios.get(`${API_URL}/orders`, { headers });
+                const res = await api.get('/admin/orders');
                 setOrders(res.data);
             }
             else if (tab === 'reports') {
-                const res = await axios.get(`${API_URL}/reported-orders`, { headers });
+                const res = await api.get('/admin/reported-orders');
                 setReportedOrders(res.data);
             }
             else if (tab === 'withdrawals') {
-                const res = await axios.get(`${API_URL}/withdrawals`, { headers });
+                const res = await api.get('/admin/withdrawals');
                 setWithdrawals(res.data);
             }
         } catch (err) {
@@ -78,7 +71,7 @@ const AdminDashboard = () => {
         } finally {
             setLoading(false);
         }
-    }, [tab, selectedNetwork, token]);
+    }, [tab, selectedNetwork]);
 
     useEffect(() => {
         fetchData();
@@ -86,7 +79,7 @@ const AdminDashboard = () => {
 
     const handleBlock = async (id) => {
         try {
-            await axios.post(`${API_URL}/user-block/${id}`, {}, { headers: { Authorization: `Bearer ${token}` } });
+            await api.post(`/admin/user-block/${id}`, {});
             fetchData();
         } catch (err) { alert('Action failed'); }
     };
@@ -95,14 +88,14 @@ const AdminDashboard = () => {
         const amount = prompt(`Amount to ${action}:`);
         if (!amount || isNaN(amount)) return;
         try {
-            await axios.post(`${API_URL}/user-balance/${id}`, { amount, action }, { headers: { Authorization: `Bearer ${token}` } });
+            await api.post(`/admin/user-balance/${id}`, { amount, action });
             fetchData();
         } catch (err) { alert('Action failed'); }
     };
 
     const handleRoleChange = async (id, role) => {
         try {
-            await axios.post(`${API_URL}/user-role/${id}`, { role }, { headers: { Authorization: `Bearer ${token}` } });
+            await api.post(`/admin/user-role/${id}`, { role });
             fetchData();
         } catch (err) { alert('Action failed'); }
     };
@@ -110,7 +103,7 @@ const AdminDashboard = () => {
     const handleResolveWithdrawal = async (id, action) => {
         const note = prompt(`Optional note for ${action}:`);
         try {
-            await axios.post(`${API_URL}/resolve-withdrawal/${id}`, { action, note }, { headers: { Authorization: `Bearer ${token}` } });
+            await api.post(`/admin/resolve-withdrawal/${id}`, { action, note });
             fetchData();
         } catch (err) { alert('Action failed'); }
     };
@@ -131,12 +124,12 @@ const AdminDashboard = () => {
     const savePrice = async () => {
         if (!editModal || !editModal.key) return;
         try {
-            await axios.post(`${API_URL}/pricing`, { 
+            await api.post('/admin/pricing', { 
                 network: selectedNetwork, 
                 packageKey: editModal.key.toString().trim(), 
                 normalPrice: Number(modalInputs.normal), 
                 retailPrice: Number(modalInputs.retail)
-            }, { headers: { Authorization: `Bearer ${token}` } });
+            });
             
             setEditModal(null);
             alert('Pricing updated successfully!');

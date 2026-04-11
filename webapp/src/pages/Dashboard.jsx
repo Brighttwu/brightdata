@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { Wifi, Wallet, Plus, RefreshCw, Search, CheckCircle2, XCircle, ChevronRight, Zap, ShoppingCart } from 'lucide-react';
-import API_URL from '../api/config';
 
 const Dashboard = () => {
     const { user, updateBalance } = useAuth();
@@ -17,16 +16,11 @@ const Dashboard = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchParams, setSearchParams] = useSearchParams();
 
-    const API_BASE = `${API_URL}/data`;
-    const token = localStorage.getItem('token');
-
     const fetchPackages = useCallback(async () => {
         setLoading(true);
         setSelectedPackage(null);
         try {
-            const res = await axios.get(`${API_BASE}/packages/${network}`, {
-                headers: { Authorization: token ? `Bearer ${token}` : '' }
-            });
+            const res = await api.get(`/data/packages/${network}`);
             const raw = res.data.packages || res.data || [];
             const mapped = Array.isArray(raw) ? raw.map(p => ({
                 key: p.package_key || p.key || p.id || '',
@@ -40,7 +34,7 @@ const Dashboard = () => {
         } finally {
             setLoading(false);
         }
-    }, [network, token]);
+    }, [network]);
 
     useEffect(() => {
         fetchPackages();
@@ -52,9 +46,7 @@ const Dashboard = () => {
             const verify = async () => {
                 setLoading(true);
                 try {
-                    await axios.get(`${API_BASE}/buy-paystack-verify/${reference}`, {
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
+                    await api.get(`/data/buy-paystack-verify/${reference}`);
                     setMessage({ type: 'success', text: 'Payment verified! Data is being processed.' });
                     setSearchParams({});
                 } catch (err) {
@@ -66,7 +58,7 @@ const Dashboard = () => {
             };
             verify();
         }
-    }, [searchParams, token, setSearchParams]);
+    }, [searchParams, setSearchParams]);
 
     const handleBuy = async (method) => {
         if (!selectedPackage || phone.replace(/\s/g, '').length < 10) return;
@@ -74,23 +66,23 @@ const Dashboard = () => {
         setMessage({ type: '', text: '' });
         try {
             if (method === 'wallet') {
-                const res = await axios.post(`${API_BASE}/buy`, {
+                const res = await api.post('/data/buy', {
                     network,
                     package_key: selectedPackage.key,
                     package_name: selectedPackage.name,
                     recipient_phone: phone.replace(/\s/g, '')
-                }, { headers: { Authorization: `Bearer ${token}` } });
+                });
                 updateBalance(res.data.balance);
                 setMessage({ type: 'success', text: `${selectedPackage.name} data sent to ${phone} successfully!` });
                 setPhone('');
                 setSelectedPackage(null);
             } else if (method === 'paystack') {
-                const res = await axios.post(`${API_BASE}/buy-paystack-init`, {
+                const res = await api.post('/data/buy-paystack-init', {
                     network,
                     package_key: selectedPackage.key,
                     package_name: selectedPackage.name,
                     recipient_phone: phone.replace(/\s/g, '')
-                }, { headers: { Authorization: `Bearer ${token}` } });
+                });
                 window.location.href = res.data.authorization_url;
             }
         } catch (err) {

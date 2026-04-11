@@ -1,7 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import axios from 'axios';
-
-import API_URL from '../api/config';
+import api from '../api/axios';
 
 const AuthContext = createContext();
 
@@ -12,32 +10,37 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            axios.get(`${API_URL}/user/profile`, {
-                headers: { Authorization: `Bearer ${token}` }
-            })
-            .then(res => setUser(res.data))
-            .catch((err) => {
-                if (err.response && err.response.status === 401) {
-                    localStorage.removeItem('token');
-                }
-            })
-            .finally(() => setLoading(false));
-        } else {
-            setLoading(false);
-        }
+        const initializeAuth = async () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setLoading(false);
+                return;
+            }
+
+            try {
+                // The token is automatically added by the axios interceptor
+                const res = await api.get('/user/profile');
+                setUser(res.data);
+            } catch (err) {
+                console.error('Session restoration failed:', err.message);
+                // Token is removed by interceptor on 401
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        initializeAuth();
     }, []);
 
     const login = async (email, password) => {
-        const res = await axios.post(`${API_URL}/auth/login`, { email, password });
+        const res = await api.post('/auth/login', { email, password });
         localStorage.setItem('token', res.data.token);
         setUser(res.data.user);
         return res.data;
     };
 
     const register = async (name, email, password, referralCode = '', momoNumber = '') => {
-        const res = await axios.post(`${API_URL}/auth/register`, { name, email, password, referralCode, momoNumber });
+        const res = await api.post('/auth/register', { name, email, password, referralCode, momoNumber });
         localStorage.setItem('token', res.data.token);
         setUser(res.data.user);
         return res.data;

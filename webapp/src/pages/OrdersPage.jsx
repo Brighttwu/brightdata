@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axios';
 import { RefreshCw, AlertCircle, CheckCircle2, Clock, XCircle, Search, FileText, ShieldAlert, ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import API_URL from '../api/config';
 
 const STATUS_CONFIG = {
     completed:        { label: 'Completed',    bg: '#dcfce7', color: '#16a34a', icon: <CheckCircle2 size={14} /> },
@@ -37,10 +36,7 @@ const OrdersPage = () => {
     const fetchOrders = useCallback(async () => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get(`${API_URL}/data/orders`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await api.get('/data/orders');
             setOrders(res.data);
         } catch (err) {
             setMessage({ type: 'error', text: 'Failed to load your orders.' });
@@ -55,10 +51,7 @@ const OrdersPage = () => {
         setActionLoadingId(order._id);
         setMessage({ type: '', text: '' });
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get(`${API_URL}/data/order-status/${order._id}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await api.get(`/data/order-status/${order._id}`);
             const newStatus = res.data.order?.status;
             setOrders(prev => prev.map(o => o._id === order._id ? { ...o, status: newStatus || o.status } : o));
             setMessage({ type: 'success', text: `Status updated: ${STATUS_CONFIG[newStatus]?.label || newStatus}` });
@@ -74,10 +67,7 @@ const OrdersPage = () => {
         if (!reason || !reason.trim()) return;
         setActionLoadingId(order._id);
         try {
-            const token = localStorage.getItem('token');
-            await axios.post(`${API_URL}/data/report-order/${order._id}`, { reason }, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await api.post(`/data/report-order/${order._id}`, { reason });
             setOrders(prev => prev.map(o => o._id === order._id ? { ...o, isReported: true, reportReason: reason } : o));
             setMessage({ type: 'success', text: 'Issue reported. Admin has been notified.' });
         } catch (err) {

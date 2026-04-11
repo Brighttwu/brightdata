@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useSearchParams } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axios';
 import { Wallet, Plus, ArrowDownLeft, ArrowUpRight, CheckCircle2, XCircle, Clock, AlertCircle } from 'lucide-react';
-
-import API_URL from '../api/config';
 
 const WalletPage = () => {
     const { user, updateBalance } = useAuth();
@@ -23,10 +21,7 @@ const WalletPage = () => {
         if (reference) {
             const verify = async () => {
                 try {
-                    const token = localStorage.getItem('token');
-                    const res = await axios.get(`${API_URL}/payment/verify/${reference}`, {
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
+                    const res = await api.get(`/payment/verify/${reference}`);
                     updateBalance(res.data.balance);
                     setMessage({ type: 'success', text: 'Payment verified! Your wallet has been credited.' });
                 } catch (err) {
@@ -41,10 +36,7 @@ const WalletPage = () => {
     useEffect(() => {
         const fetchTx = async () => {
             try {
-                const token = localStorage.getItem('token');
-                const res = await axios.get(`${API_URL}/payment/transactions`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const res = await api.get('/payment/transactions');
                 setTransactions(res.data);
             } catch (err) {
                 console.error(err);
@@ -61,10 +53,7 @@ const WalletPage = () => {
         setLoading(true);
         setMessage({ type: '', text: '' });
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.post(`${API_URL}/payment/initialize`, { amount: val }, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await api.post('/payment/initialize', { amount: val });
             window.location.href = res.data.authorization_url;
         } catch (err) {
             setMessage({ type: 'error', text: err.response?.data?.message || 'Failed to start payment' });

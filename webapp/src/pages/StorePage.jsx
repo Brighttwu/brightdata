@@ -1,11 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axios';
 import { Wifi, RefreshCw, CheckCircle2, XCircle, MessageCircle, ShieldCheck, PartyPopper, Users2, Phone } from 'lucide-react';
-
-import API_URL from '../api/config';
-
-const API = `${API_URL}/agent`;
 
 const StorePage = () => {
     const { slug } = useParams();
@@ -28,7 +24,7 @@ const StorePage = () => {
     useEffect(() => {
         const fetchStore = async () => {
             try {
-                const res = await axios.get(`${API}/public/${slug}`);
+                const res = await api.get(`/agent/public/${slug}`);
                 setStore(res.data);
             } catch {
                 setNotFound(true);
@@ -45,7 +41,7 @@ const StorePage = () => {
         const reference = searchParams.get('reference');
         if (!reference || !slug) return;
         setVerifying(true);
-        axios.get(`${API}/public/verify/${reference}`)
+        api.get(`/agent/public/verify/${reference}`)
             .then(res => {
                 setOrderSuccess({ message: res.data.message, profit: res.data.profit });
                 setSearchParams({});
@@ -62,7 +58,7 @@ const StorePage = () => {
         setPkgLoading(true);
         setSelectedPkg(null);
         try {
-            const res = await axios.get(`${API}/public/${slug}/packages/${network}`);
+            const res = await api.get(`/agent/public/${slug}/packages/${network}`);
             setPackages(res.data.packages || []);
         } catch {
             setPackages([]);
@@ -78,7 +74,7 @@ const StorePage = () => {
         setBuying(true);
         setMessage({ type: '', text: '' });
         try {
-            const res = await axios.post(`${API}/public/${slug}/buy-init`, {
+            const res = await api.post(`/agent/public/${slug}/buy-init`, {
                 network,
                 package_key: selectedPkg.package_key,
                 recipient_phone: phone.replace(/\s/g, ''),

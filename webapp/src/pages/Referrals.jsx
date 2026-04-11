@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { Users, Link as LinkIcon, Copy, Gift, Wallet, ArrowUpRight, CheckCircle2, AlertCircle, RefreshCw, Smartphone } from 'lucide-react';
-
-import API_URL from '../api/config';
 
 const Referrals = () => {
     const { user } = useAuth();
@@ -13,12 +11,10 @@ const Referrals = () => {
     const [amount, setAmount] = useState('');
     const [message, setMessage] = useState({ type: '', text: '' });
     const [copied, setCopied] = useState(false);
-    const token = localStorage.getItem('token');
-    const headers = { Authorization: `Bearer ${token}` };
 
     const fetchStats = async () => {
         try {
-            const res = await axios.get(`${API_URL}/agent/referral-stats`, { headers });
+            const res = await api.get('/agent/referral-stats');
             setStats(res.data);
         } catch (err) {
             console.error('Error fetching referral stats:', err);
@@ -45,7 +41,7 @@ const Referrals = () => {
         setWithdrawLoading(true);
         setMessage({ type: '', text: '' });
         try {
-            const res = await axios.post(`${API_URL}/agent/request-referral-withdrawal`, { amount: Number(amount) }, { headers });
+            const res = await api.post('/agent/request-referral-withdrawal', { amount: Number(amount) });
             setMessage({ type: 'success', text: res.data.message });
             setAmount('');
             fetchStats();
