@@ -145,10 +145,25 @@ router.get('/api-balance', async (req, res) => {
 });
 
 // Create Order (Buy Data)
-router.post('/buy', auth, async (req, res) => {
+router.post('/buy', (req, res, next) => {
+    // INLINE AUTH FOR STABILITY
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    if (!token) return res.status(401).json({ message: 'No token' });
     try {
+        const jwt = require('jsonwebtoken');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        User.findById(decoded.id).then(user => {
+            if (!user) return res.status(401).json({ message: 'User not found' });
+            req.user = user;
+            next();
+        }).catch(err => res.status(500).json({ message: 'Auth DB Error' }));
+    } catch(e) { res.status(401).json({ message: 'Invalid token' }); }
+}, async (req, res) => {
+    try {
+        console.log(`[BUY REQUEST START] User: ${req.user?.email}, Network: ${req.body.network}`);
         const { network, package_key, recipient_phone, package_name } = req.body;
         const user = req.user;
+        if (!user) return res.status(401).json({ message: 'Not authenticated' });
 
         // SERVER-SIDE PRICE VALIDATION (Security)
         const net = network.toString().toLowerCase();
@@ -157,10 +172,6 @@ router.post('/buy', auth, async (req, res) => {
         const pricing = pricings.find(x => (x.packageKey || '').toString().trim().toLowerCase() === pkgKey);
         
         let finalAmount = 0;
-        // We need a fallback if no pricing rule is found - we'll have to fetch from Bossu API to know the base price
-        // BUT the frontend already fetched it. For security, we should ideally fetch again or have a 'Default Markup'.
-        // For now, if no local rule, we MUST at least use the body amount but log it.
-        // Actually, let's fetch the package list again to get the RAW API price.
         const pkgParams = new URLSearchParams();
         pkgParams.append('action', 'packages');
         pkgParams.append('network', net);
