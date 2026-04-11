@@ -11,23 +11,26 @@ const API_KEY = process.env.BOSSU_API_KEY;
 const API_URL = process.env.BOSSU_API_URL;
 
 // Middleware for private routes
-const auth = async (req, res, next) => {
+const auth = (req, res, next) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     if (!token) return res.status(401).json({ message: 'No token, authorization denied' });
     try {
         const jwt = require('jsonwebtoken');
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const user = await User.findById(decoded.id);
-        if (user && user.isBlocked) return res.status(403).json({ message: 'Account blocked' });
-        req.user = user;
-        next();
+        User.findById(decoded.id).then(user => {
+            if (user && user.isBlocked) return res.status(403).json({ message: 'Account blocked' });
+            req.user = user;
+            next();
+        }).catch(() => {
+            res.status(401).json({ message: 'Token is not valid' });
+        });
     } catch (err) {
         res.status(401).json({ message: 'Token is not valid' });
     }
 };
 
 // Optional Auth Middleware to get Role for pricing
-const optionalAuth = async (req, res, next) => {
+const optionalAuth = (req, res, next) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     if (!token) {
         req.userRole = 'user';
@@ -36,13 +39,18 @@ const optionalAuth = async (req, res, next) => {
     try {
         const jwt = require('jsonwebtoken');
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const user = await User.findById(decoded.id);
-        req.userRole = user ? user.role : 'user';
-        req.user = user; // Set user for identifying admins
+        User.findById(decoded.id).then(user => {
+            req.userRole = user ? user.role : 'user';
+            req.user = user; // Set user for identifying admins
+            next();
+        }).catch(() => {
+            req.userRole = 'user';
+            next();
+        });
     } catch {
         req.userRole = 'user';
+        next();
     }
-    next();
 };
 
 // Get Packages

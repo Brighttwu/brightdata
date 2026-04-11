@@ -7,16 +7,19 @@ const Pricing = require('../models/Pricing');
 const axios = require('axios');
 
 // Admin Auth Middleware
-const adminAuth = async (req, res, next) => {
+const adminAuth = (req, res, next) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     if (!token) return res.status(401).json({ message: 'No token' });
     try {
         const jwt = require('jsonwebtoken');
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const user = await User.findById(decoded.id);
-        if (!user || user.role !== 'admin') return res.status(403).json({ message: 'Admin access denied' });
-        req.user = user;
-        next();
+        User.findById(decoded.id).then(user => {
+            if (!user || user.role !== 'admin') return res.status(403).json({ message: 'Admin access denied' });
+            req.user = user;
+            next();
+        }).catch(() => {
+            res.status(401).json({ message: 'Token is not valid' });
+        });
     } catch (err) {
         res.status(401).json({ message: 'Token is not valid' });
     }

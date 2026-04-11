@@ -3,16 +3,19 @@ const router = express.Router();
 const User = require('../models/User');
 
 // Middleware for private routes
-const auth = async (req, res, next) => {
+const auth = (req, res, next) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     if (!token) return res.status(401).json({ message: 'No token, authorization denied' });
     try {
         const jwt = require('jsonwebtoken');
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const user = await User.findById(decoded.id);
-        if (!user) return res.status(401).json({ message: 'User not found in database. Session invalid.' });
-        req.user = user;
-        next();
+        User.findById(decoded.id).then(user => {
+            if (!user) return res.status(401).json({ message: 'User not found' });
+            req.user = user;
+            next();
+        }).catch(() => {
+            res.status(401).json({ message: 'Token is not valid' });
+        });
     } catch (err) {
         res.status(401).json({ message: 'Token is not valid' });
     }
