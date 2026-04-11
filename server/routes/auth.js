@@ -24,7 +24,7 @@ router.post('/register', async (req, res) => {
             token, 
             user: { 
                 id: user._id, name: user.name, email: user.email, 
-                balance: user.balance, referralCode: user.referralCode,
+                balance: user.balance, role: user.role, referralCode: user.referralCode,
                 momoNumber: user.momoNumber
             } 
         });
@@ -52,6 +52,7 @@ router.post('/login', async (req, res) => {
                 name: user.name, 
                 email: user.email, 
                 balance: user.balance,
+                role: user.role,
                 referralCode: user.referralCode,
                 momoNumber: user.momoNumber
             } 

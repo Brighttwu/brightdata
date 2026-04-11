@@ -70,7 +70,7 @@ const Navbar = () => {
                             {isAdminMode ? <ShieldAlert size={22} color="#fff" /> : <Smartphone size={22} color="#fff" />}
                         </div>
                         <span style={{ fontSize: 20, fontWeight: 900, color: '#0f172a' }}>
-                            Bossu{isAdminMode ? <span style={{ color: '#ef4444' }}>Admin</span> : <span style={{ color: '#4f46e5' }}>Hub</span>}
+                            bright{isAdminMode ? <span style={{ color: '#ef4444' }}>Admin</span> : <span style={{ color: '#4f46e5' }}>data</span>}
                         </span>
                     </Link>
 
