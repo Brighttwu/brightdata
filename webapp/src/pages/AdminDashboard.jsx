@@ -351,6 +351,24 @@ const AdminDashboard = () => {
                 {/* Orders Management */}
                 {tab === 'orders' && !loading && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: '#64748b' }}>Manage all customer orders</div>
+                            <button 
+                                onClick={async () => {
+                                    if (window.confirm('Sync all pending orders with Bossu API?')) {
+                                        setLoading(true);
+                                        try {
+                                            const res = await api.post('/admin/sync-orders');
+                                            alert(res.data.message);
+                                            fetchData();
+                                        } catch (e) { alert('Sync failed'); setLoading(false); }
+                                    }
+                                }}
+                                style={{ background: '#0f172a', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 13 }}
+                            >
+                                Sync with Bossu
+                            </button>
+                        </div>
                         {orders.map(o => (
                             <div key={o._id} style={{ ...cardStyle }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
