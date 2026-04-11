@@ -322,9 +322,10 @@ router.post('/buy-paystack-init', auth, async (req, res) => {
         });
         await order.save();
 
+        const paystackAmount = Math.ceil(amount * 1.0195 * 100);
         const response = await axios.post('https://api.paystack.co/transaction/initialize', {
             email: user.email,
-            amount: Math.round(amount * 100),
+            amount: paystackAmount,
             reference,
             callback_url: 'http://localhost:5173/dashboard'
         }, {

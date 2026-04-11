@@ -30,10 +30,11 @@ router.post('/initialize', auth, async (req, res) => {
         if (!amount || amount < 1) return res.status(400).json({ message: 'Minimum amount is GH₵1' });
 
         const reference = `BH_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+        const paystackAmount = Math.ceil(amount * 1.0195 * 100);
 
         const response = await axios.post('https://api.paystack.co/transaction/initialize', {
             email: req.user.email,
-            amount: Math.round(amount * 100), // Paystack uses pesewas
+            amount: paystackAmount,
             reference,
             currency: 'GHS',
             callback_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/wallet`
@@ -84,9 +85,8 @@ router.get('/verify/:reference', auth, async (req, res) => {
             if (!transaction) return res.status(404).json({ message: 'Transaction not found' });
             if (transaction.status === 'success') return res.json({ message: 'Already verified', balance: req.user.balance });
 
-            const amount = data.amount / 100;
             const balanceBefore = req.user.balance;
-            req.user.balance += amount;
+            req.user.balance += transaction.amount;
             await req.user.save();
 
             transaction.status = 'success';
