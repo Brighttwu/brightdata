@@ -9,7 +9,7 @@
     "build:server": "cd server && npm install",
     "build:webapp": "cd webapp && npm install && npm run build",
     "install:all": "npm install && cd server && npm install && cd ../webapp && npm install",
-    "push": "git add .; git commit -m 'update'; git push"
+    "push": "git add . && git commit -m \"update\" && git push"
   },
   "repository": {
     "type": "git",
