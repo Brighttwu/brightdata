@@ -112,7 +112,10 @@ router.post('/store/prices', auth, async (req, res) => {
                 platformCost = rule.normalPrice;
             } else {
                 // Fetch from API if no rule
-                const response = await axios.get(`${API_URL}?action=get_packages&network=${net}`, { headers: { 'X-API-Key': API_KEY } });
+                const pkgParams = new URLSearchParams();
+                pkgParams.append('action', 'packages');
+                pkgParams.append('network', net);
+                const response = await axios.post(API_URL, pkgParams, { headers: { 'X-API-Key': API_KEY, 'Content-Type': 'application/x-www-form-urlencoded' } });
                 const rawPackages = response.data.data || response.data.packages || [];
                 const basePkg = rawPackages.find(p => (p.package_key || p.key || p.id || '').toString().trim().toLowerCase() === pKey);
                 platformCost = basePkg ? Number(basePkg.price) : 0;

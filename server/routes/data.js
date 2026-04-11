@@ -140,8 +140,12 @@ router.post('/buy', auth, async (req, res) => {
         // BUT the frontend already fetched it. For security, we should ideally fetch again or have a 'Default Markup'.
         // For now, if no local rule, we MUST at least use the body amount but log it.
         // Actually, let's fetch the package list again to get the RAW API price.
-        const responsePkg = await axios.get(`${API_URL}?action=get_packages&network=${net}`, {
-            headers: { 'X-API-Key': API_KEY }
+        const pkgParams = new URLSearchParams();
+        pkgParams.append('action', 'packages');
+        pkgParams.append('network', net);
+
+        const responsePkg = await axios.post(API_URL, pkgParams, {
+            headers: { 'X-API-Key': API_KEY, 'Content-Type': 'application/x-www-form-urlencoded' }
         });
         const rawPackages = responsePkg.data.data || responsePkg.data.packages || [];
         const basePkg = rawPackages.find(p => (p.package_key || p.key || p.id || '').toString().trim().toLowerCase() === pkgKey);
@@ -247,8 +251,12 @@ router.post('/buy-paystack-init', auth, async (req, res) => {
         const pricing = pricings.find(x => (x.packageKey || '').toString().trim().toLowerCase() === pkgKey);
         
         let finalAmount = 0;
-        const responsePkg = await axios.get(`${API_URL}?action=get_packages&network=${net}`, {
-            headers: { 'X-API-Key': API_KEY }
+        const pkgParams = new URLSearchParams();
+        pkgParams.append('action', 'packages');
+        pkgParams.append('network', net);
+
+        const responsePkg = await axios.post(API_URL, pkgParams, {
+            headers: { 'X-API-Key': API_KEY, 'Content-Type': 'application/x-www-form-urlencoded' }
         });
         const rawPackages = responsePkg.data.data || responsePkg.data.packages || [];
         const basePkg = rawPackages.find(p => (p.package_key || p.key || p.id || '').toString().trim().toLowerCase() === pkgKey);
