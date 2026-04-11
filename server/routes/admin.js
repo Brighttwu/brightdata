@@ -28,13 +28,45 @@ const adminAuth = (req, res, next) => {
 // Get Dashboard Stats
 router.get('/stats', adminAuth, async (req, res) => {
     try {
+        const { days } = req.query;
+        const timeframe = days ? Number(days) : 1; // Default to 1 day (24h)
+        const dateLimit = new Date();
+        dateLimit.setDate(dateLimit.getDate() - timeframe);
+
         const totalUsers = await User.countDocuments();
+        const totalAgents = await User.countDocuments({ role: 'agent' });
         const totalOrders = await Order.countDocuments();
         
-        // Calculate earnings (sum of all purchase transactions)
+        // Sum of all user balances
+        const walletTotals = await User.aggregate([
+            { $group: { _id: null, total: { $sum: '$balance' } } }
+        ]);
+
+        // Calculate earnings (sum of all successful purchase transactions) within timeframe
         const earnings = await Transaction.aggregate([
-            { $match: { type: 'purchase', status: 'success' } },
+            { $match: { type: 'purchase', status: 'success', createdAt: { $gte: dateLimit } } },
             { $group: { _id: null, total: { $sum: '$amount' } } }
+        ]);
+
+        // Calculate Admin Profit: Revenue - Cost (only for successful data orders)
+        const adminProfitData = await Order.aggregate([
+            { $match: { 
+                status: { $in: ['completed', 'pending'] }, 
+                createdAt: { $gte: dateLimit } 
+            } },
+            { $group: { 
+                _id: null, 
+                revenue: { $sum: '$amount' },
+                cost: { $sum: '$cost' }
+            } }
+        ]);
+        const adminProfit = (adminProfitData[0]?.revenue || 0) - (adminProfitData[0]?.cost || 0);
+
+        // Calculate Agent Profit: Sum of all profits in the Profit model within timeframe
+        const ProfitModel = require('../models/Profit');
+        const agentProfits = await ProfitModel.aggregate([
+            { $match: { createdAt: { $gte: dateLimit } } },
+            { $group: { _id: null, total: { $sum: '$profit' } } }
         ]);
 
         // Get Bossu API balance
@@ -54,18 +86,23 @@ router.get('/stats', adminAuth, async (req, res) => {
                          apiRes.data.wallet_balance || 
                          apiRes.data.data?.wallet_balance || 
                          apiRes.data.user_balance || 0;
-            console.log('Admin: Fetched API Balance:', apiBalance);
         } catch (e) {
             console.error('API Balance fetch failed', e.message);
         }
 
         res.json({
             totalUsers,
+            totalAgents,
             totalOrders,
-            totalEarnings: earnings[0]?.total || 0,
-            apiBalance
+            totalWalletBalance: walletTotals[0]?.total || 0,
+            totalEarnings: earnings[0]?.total || 0, // Revenue in timeframe
+            adminProfit: Number(adminProfit.toFixed(2)),
+            agentProfit: agentProfits[0]?.total || 0,
+            apiBalance,
+            timeframe
         });
     } catch (err) {
+        console.error('Stats Error:', err);
         res.status(500).json({ message: 'Error fetching stats' });
     }
 });

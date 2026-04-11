@@ -7,6 +7,7 @@ const OrderSchema = new mongoose.Schema({
     packageName: { type: String },
     phoneNumber: { type: String, required: true },
     amount: { type: Number, required: true },
+    cost: { type: Number, default: 0 }, // Wholesale cost from Bossu API
     status: { type: String, enum: ['pending_payment', 'pending', 'completed', 'failed', 'cancelled'], default: 'pending' },
     externalReference: { type: String, required: true, unique: true },
     orderId: { type: String }, // From Bossu API

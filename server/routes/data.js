@@ -230,6 +230,7 @@ router.post('/buy', (req, res, next) => {
             packageName: package_name,
             phoneNumber: recipient_phone,
             amount: amount,
+            cost: apiPrice, // Save the cost we pay to Bossu
             externalReference: external_reference,
             orderId: apiData.order_id,
             apiResponse: response.data,
@@ -315,6 +316,7 @@ router.post('/buy-paystack-init', auth, async (req, res) => {
             packageName: package_name,
             phoneNumber: recipient_phone,
             amount: amount,
+            cost: apiPrice,
             externalReference: reference,
             status: 'pending_payment'
         });

@@ -6,8 +6,13 @@ import { Users, ShoppingBag, DollarSign, Wallet, ShieldAlert, Ban, PlusCircle, M
 const AdminDashboard = () => {
     const [searchParams] = useSearchParams();
     const tab = searchParams.get('tab') || 'stats';
-    const [stats, setStats] = useState({ totalUsers: 0, totalOrders: 0, totalEarnings: 0, apiBalance: 0 });
+    const [stats, setStats] = useState({ 
+        totalUsers: 0, totalAgents: 0, totalOrders: 0, totalEarnings: 0, 
+        totalWalletBalance: 0, adminProfit: 0, agentProfit: 0, apiBalance: 0 
+    });
+    const [statsDays, setStatsDays] = useState(1);
     const [users, setUsers] = useState([]);
+    // ... rest of state
     const [pricingRules, setPricingRules] = useState([]);
     const [transactions, setTransactions] = useState([]);
     const [orders, setOrders] = useState([]);
@@ -24,7 +29,7 @@ const AdminDashboard = () => {
         try {
             // Statistics
             if (tab === 'stats') {
-                const res = await api.get('/admin/stats');
+                const res = await api.get(`/admin/stats?days=${statsDays}`);
                 setStats(res.data);
             } 
             // Users
@@ -32,13 +37,10 @@ const AdminDashboard = () => {
                 const res = await api.get('/admin/users');
                 setUsers(res.data);
             } 
-            // Pricing Logic
+            // ... (rest of fetchData logic is same, just ensure dependencies include statsDays)
             else if (tab === 'pricing') {
-                // Get saved rules
                 const rulesRes = await api.get('/admin/pricing');
                 setPricingRules(rulesRes.data);
-                
-                // Get live packages for selected network
                 const pkgRes = await api.get(`/data/packages/${selectedNetwork}`);
                 const raw = pkgRes.data.packages || pkgRes.data || [];
                 const mapped = raw.map(p => ({
@@ -48,12 +50,10 @@ const AdminDashboard = () => {
                 })).sort((a,b) => a.apiPrice - b.apiPrice);
                 setPackages(mapped);
             } 
-            // Transactions
             else if (tab === 'transactions') {
                 const res = await api.get('/admin/transactions');
                 setTransactions(res.data);
             } 
-            // Orders
             else if (tab === 'orders') {
                 const res = await api.get('/admin/orders');
                 setOrders(res.data);
@@ -71,7 +71,7 @@ const AdminDashboard = () => {
         } finally {
             setLoading(false);
         }
-    }, [tab, selectedNetwork]);
+    }, [tab, selectedNetwork, statsDays]);
 
     useEffect(() => {
         fetchData();
@@ -192,34 +192,62 @@ const AdminDashboard = () => {
             )}
 
             <div style={{ maxWidth: 1000, margin: '0 auto' }}>
-                <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', gap: 8, fontSize: 24, fontWeight: 900, color: '#0f172a' }}>
-                    Admin Controls • <span style={{ color: '#4f46e5', textTransform: 'capitalize' }}>{tab}</span>
+                <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 24, fontWeight: 900, color: '#0f172a' }}>
+                        Admin Controls • <span style={{ color: '#4f46e5', textTransform: 'capitalize' }}>{tab}</span>
+                    </div>
+                    {tab === 'stats' && (
+                        <select 
+                            value={statsDays} 
+                            onChange={(e) => setStatsDays(Number(e.target.value))}
+                            style={{ padding: '8px 16px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#fff', fontWeight: 700, fontSize: 14 }}
+                        >
+                            <option value={1}>Last 24 Hours</option>
+                            <option value={7}>Last 7 Days</option>
+                            <option value={30}>Last 30 Days</option>
+                            <option value={90}>Last quarter</option>
+                            <option value={365}>Last year</option>
+                        </select>
+                    )}
                 </div>
 
                 {/* Statistics */}
                 {tab === 'stats' && !loading && (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
-                        <div style={cardStyle}>
-                            <Users size={24} color="#6366f1" />
-                            <div style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', marginTop: 12 }}>Total Users</div>
-                            <div style={{ fontSize: 28, fontWeight: 900, color: '#0f172a' }}>{stats.totalUsers}</div>
+                    <>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 24 }}>
+                            <div style={cardStyle}>
+                                <Users size={24} color="#6366f1" />
+                                <div style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', marginTop: 12 }}>Total Users / Agents</div>
+                                <div style={{ fontSize: 28, fontWeight: 900, color: '#0f172a' }}>{stats.totalUsers} <span style={{ fontSize: 16, color: '#6366f1' }}>/ {stats.totalAgents}</span></div>
+                            </div>
+                            <div style={cardStyle}>
+                                <Wallet size={24} color="#ec4899" />
+                                <div style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', marginTop: 12 }}>User Wallet Totals</div>
+                                <div style={{ fontSize: 28, fontWeight: 900, color: '#0f172a' }}>₵{(stats.totalWalletBalance || 0).toFixed(2)}</div>
+                            </div>
+                            <div style={{ ...cardStyle, background: '#0f172a', color: '#fff' }}>
+                                <ShieldAlert size={24} color="#4f46e5" />
+                                <div style={{ fontSize: 13, fontWeight: 700, opacity: 0.6, marginTop: 12 }}>Provider API balance</div>
+                                <div style={{ fontSize: 28, fontWeight: 900 }}>₵{(stats.apiBalance || 0).toFixed(2)}</div>
+                            </div>
                         </div>
-                        <div style={cardStyle}>
-                            <ShoppingBag size={24} color="#10b981" />
-                            <div style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', marginTop: 12 }}>Total Orders</div>
-                            <div style={{ fontSize: 28, fontWeight: 900, color: '#0f172a' }}>{stats.totalOrders}</div>
+
+                        <div style={{ fontSize: 12, fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 16, letterSpacing: '0.05em' }}>Profit Analytics ({statsDays === 1 ? '24h' : `${statsDays} days`})</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+                            <div style={cardStyle}>
+                                <ShoppingBag size={24} color="#10b981" />
+                                <div style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', marginTop: 12 }}>Admin Profit</div>
+                                <div style={{ fontSize: 28, fontWeight: 900, color: '#10b981' }}>₵{(stats.adminProfit || 0).toFixed(2)}</div>
+                                <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>Revenue: ₵{(stats.totalEarnings || 0).toFixed(2)}</div>
+                            </div>
+                            <div style={cardStyle}>
+                                <DollarSign size={24} color="#f59e0b" />
+                                <div style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', marginTop: 12 }}>Agents Profit</div>
+                                <div style={{ fontSize: 28, fontWeight: 900, color: '#f59e0b' }}>₵{(stats.agentProfit || 0).toFixed(2)}</div>
+                                <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>Total agent commissions</div>
+                            </div>
                         </div>
-                        <div style={cardStyle}>
-                            <DollarSign size={24} color="#f59e0b" />
-                            <div style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', marginTop: 12 }}>Total Revenue</div>
-                            <div style={{ fontSize: 28, fontWeight: 900, color: '#0f172a' }}>₵{(stats.totalEarnings || 0).toFixed(2)}</div>
-                        </div>
-                        <div style={{ ...cardStyle, background: '#0f172a', color: '#fff' }}>
-                            <Wallet size={24} color="#4f46e5" />
-                            <div style={{ fontSize: 13, fontWeight: 700, opacity: 0.6, marginTop: 12 }}>API Hub Balance</div>
-                            <div style={{ fontSize: 28, fontWeight: 900 }}>₵{(stats.apiBalance || 0).toFixed(2)}</div>
-                        </div>
-                    </div>
+                    </>
                 )}
 
                 {/* Users Management */}
