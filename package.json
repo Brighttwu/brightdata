@@ -1,0 +1,27 @@
+{
+  "name": "brightdata",
+  "version": "1.0.0",
+  "description": "A premium data reselling platform integrated with Bossu Data Hub API.",
+  "main": "index.js",
+  "scripts": {
+    "start": "cd server && npm start",
+    "dev": "concurrently \"cd server && npx nodemon index.js\" \"cd webapp && npm run dev\"",
+    "install:all": "cd server && npm install; cd ../webapp && npm install",
+    "push": "git add .; git commit -m 'update'; git push"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Brighttwu/brightdata.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Brighttwu/brightdata/issues"
+  },
+  "homepage": "https://github.com/Brighttwu/brightdata#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

@@ -31,7 +31,7 @@ router.post('/initialize', auth, async (req, res) => {
             amount: Math.round(amount * 100), // Paystack uses pesewas
             reference,
             currency: 'GHS',
-            callback_url: 'http://localhost:3000/wallet'
+            callback_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/wallet`
         }, {
             headers: {
                 Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
