@@ -25,6 +25,7 @@ const AgentPage = () => {
     const [saving, setSaving] = useState(false);
     const [upgrading, setUpgrading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
+    const [copiedLink, setCopiedLink] = useState(false);
 
     const token = localStorage.getItem('token');
     const headers = { Authorization: `Bearer ${token}` };
@@ -139,6 +140,13 @@ const AgentPage = () => {
     };
 
     const storeUrl = `${window.location.origin}/store/${dashboard.store?.slug}`;
+
+    const copyStoreLink = () => {
+        if (!dashboard.store?.slug) return;
+        navigator.clipboard.writeText(storeUrl);
+        setCopiedLink(true);
+        setTimeout(() => setCopiedLink(false), 2000);
+    };
     const networks = ['mtn', 'telecel', 'at'];
 
     const tabStyle = (t) => ({
@@ -185,7 +193,21 @@ const AgentPage = () => {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
                     <div>
                         <h1 style={{ fontSize: 26, fontWeight: 900, color: '#0f172a', margin: 0 }}>Agent Dashboard</h1>
-                        {dashboard.store && <p style={{ fontSize: 14, color: '#94a3b8', fontWeight: 600, margin: '4px 0 0' }}>Store: <a href={storeUrl} target="_blank" rel="noreferrer" style={{ color: '#4f46e5' }}>{storeUrl}</a></p>}
+                        {dashboard.store && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8 }}>
+                                <p style={{ fontSize: 13, color: '#64748b', fontWeight: 600, margin: 0 }}>
+                                    Store: <a href={storeUrl} target="_blank" rel="noreferrer" style={{ color: '#4f46e5', textDecoration: 'none', borderBottom: '1.5px solid #4f46e5' }}>{storeUrl}</a>
+                                </p>
+                                <button onClick={copyStoreLink} style={{ 
+                                    padding: '4px 10px', borderRadius: 8, border: '1.5px solid #e2e8f0', 
+                                    background: copiedLink ? '#10b981' : '#fff', color: copiedLink ? '#fff' : '#64748b',
+                                    fontSize: 11, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, transition: 'all 0.2s'
+                                }}>
+                                    {copiedLink ? <CheckCircle2 size={12} /> : <Copy size={12} />}
+                                    {copiedLink ? 'Copied' : 'Copy'}
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
 

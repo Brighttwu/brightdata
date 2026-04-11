@@ -14,11 +14,18 @@ const allowedOrigins = [
     process.env.ADMIN_URL ? process.env.ADMIN_URL.replace(/\/$/, '') : null
 ].filter(Boolean);
 
+// Middleware
 app.use(cors({
     origin: true,
     credentials: true
 }));
 app.use(express.json());
+
+// Request Logging Middleware (Must be before routes)
+app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    next();
+});
 
 // Database Connection
 if (!process.env.MONGODB_URI) {
@@ -30,15 +37,13 @@ mongoose.connect(process.env.MONGODB_URI)
     .catch(err => {
         console.error('CRITICAL: MongoDB Connection Failed!');
         console.error('Error Details:', err.message);
-        console.log('TIP: Check if MONGODB_URI starts with mongodb+srv:// and ensure your IP is whitelisted in Atlas.');
     });
 
 // Health & Status Route
 app.get('/api/health', (req, res) => {
     res.json({
         status: 'online',
-        database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-        environment: process.env.NODE_ENV || 'development'
+        database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
     });
 });
 
@@ -51,6 +56,15 @@ app.use('/api/admin', require('./routes/admin'));
 app.use('/api/agent', require('./routes/agent'));
 
 app.get('/', (req, res) => res.send('brightdata API Running'));
+
+// Global Error Handler (Must be after routes)
+app.use((err, req, res, next) => {
+    console.error('SERVER ERROR:', err.stack || err);
+    res.status(500).json({ 
+        message: err.message || 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? err : undefined
+    });
+});
 
 // Start Server
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
