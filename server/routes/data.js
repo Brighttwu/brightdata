@@ -226,8 +226,11 @@ router.post('/buy', auth, async (req, res) => {
 
         res.json({ order, balance: user.balance });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Error creating order' });
+        console.error('Data Order Catch Error:', err.response?.data || err.message);
+        res.status(500).json({ 
+            message: err.response?.data?.message || err.response?.data?.error || err.message || 'Error creating order',
+            details: err.response?.data 
+        });
     }
 });
 
