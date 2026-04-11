@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
@@ -34,9 +34,12 @@ const ProtectedRoute = ({ children }) => {
 };
 
 function AppContent() {
+    const location = useLocation();
+    const isStore = location.pathname.startsWith('/store/');
+    
     return (
         <div style={{ minHeight: '100vh', background: '#fff' }}>
-            <Navbar />
+            {!isStore && <Navbar />}
             <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
