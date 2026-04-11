@@ -148,7 +148,7 @@ router.get('/dashboard', auth, async (req, res) => {
 // ─── PUBLIC: GET STORE INFO ───────────────────────────────────────────────────
 router.get('/public/:slug', async (req, res) => {
     try {
-        const store = await Store.findOne({ slug: req.params.slug.toLowerCase(), isActive: true });
+        const store = await Store.findOne({ slug: req.params.slug.toLowerCase(), isActive: { $ne: false } });
         if (!store) return res.status(404).json({ message: 'Store not found' });
         res.json(store);
     } catch (err) {
@@ -159,7 +159,7 @@ router.get('/public/:slug', async (req, res) => {
 // ─── PUBLIC: GET STORE PACKAGES ───────────────────────────────────────────────
 router.get('/public/:slug/packages/:network', async (req, res) => {
     try {
-        const store = await Store.findOne({ slug: req.params.slug.toLowerCase(), isActive: true });
+        const store = await Store.findOne({ slug: req.params.slug.toLowerCase(), isActive: { $ne: false } });
         if (!store) return res.status(404).json({ message: 'Store not found' });
         const net = req.params.network.toLowerCase();
         const body = new URLSearchParams({ action: 'packages', network: net });
@@ -204,7 +204,7 @@ router.get('/public/:slug/packages/:network', async (req, res) => {
 // Customer pays agent's selling price → Platform uses Bossu API to fulfill → Agent earns commission
 router.post('/public/:slug/buy-init', async (req, res) => {
     try {
-        const store = await Store.findOne({ slug: req.params.slug.toLowerCase(), isActive: true }).populate('agent');
+        const store = await Store.findOne({ slug: req.params.slug.toLowerCase(), isActive: { $ne: false } }).populate('agent');
         if (!store) return res.status(404).json({ message: 'Store not found' });
 
         const { network, package_key, recipient_phone, customer_email } = req.body;
