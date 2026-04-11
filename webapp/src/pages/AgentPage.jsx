@@ -241,11 +241,11 @@ const AgentPage = () => {
                     <div style={cardStyle}>
                         <div style={{ fontWeight: 900, fontSize: 18, marginBottom: 20 }}>Store Settings</div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
                                 <input value={storeForm.name} onChange={e => setStoreForm(p => ({ ...p, name: e.target.value }))} placeholder="Store Name" style={{ padding: 14, borderRadius: 12, border: '2px solid #f1f5f9', outline: 'none', fontWeight: 700 }} />
                                 <input value={storeForm.slug} onChange={e => setStoreForm(p => ({ ...p, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') }))} placeholder="store-url" style={{ padding: 14, borderRadius: 12, border: '2px solid #f1f5f9', outline: 'none', fontWeight: 700 }} />
                             </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
                                 <input value={storeForm.whatsapp} onChange={e => setStoreForm(p => ({ ...p, whatsapp: e.target.value }))} placeholder="Support WhatsApp (e.g. 233...)" style={{ padding: 14, borderRadius: 12, border: '2px solid #f1f5f9', outline: 'none', fontWeight: 700 }} />
                                 <input value={storeForm.groupLink} onChange={e => setStoreForm(p => ({ ...p, groupLink: e.target.value }))} placeholder="WhatsApp Community Group Link" style={{ padding: 14, borderRadius: 12, border: '2px solid #f1f5f9', outline: 'none', fontWeight: 700 }} />
                             </div>

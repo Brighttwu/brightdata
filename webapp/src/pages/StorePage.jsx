@@ -439,10 +439,7 @@ const StorePage = () => {
                     </div>
                 </div>
 
-                {/* Footer */}
-                <div style={{ textAlign: 'center', fontSize: 14, color: theme.muted, fontWeight: 700, marginTop: 12 }}>
-                    Powered by <strong style={{ color: theme.accent, textDecoration: 'underline' }}>BossData</strong>
-                </div>
+
             </div>
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
