@@ -109,6 +109,18 @@ const AgentPage = () => {
         } catch (err) { setMessage({ type: 'error', text: err.response?.data?.message || 'Upgrade failed' }); } finally { setUpgrading(false); }
     };
 
+    const handleLogoUpload = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (file.size > 2 * 1024 * 1024) return setMessage({ type: 'error', text: 'Logo must be under 2MB' });
+        
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setStoreForm(prev => ({ ...prev, logo: reader.result }));
+        };
+        reader.readAsDataURL(file);
+    };
+
     const saveStore = async () => {
         if (!storeForm.slug || !storeForm.name) return setMessage({ type: 'error', text: 'Store name and URL are required.' });
         setSaving(true);
@@ -272,6 +284,20 @@ const AgentPage = () => {
                                 <input value={storeForm.groupLink} onChange={e => setStoreForm(p => ({ ...p, groupLink: e.target.value }))} placeholder="WhatsApp Community Group Link" style={{ padding: 14, borderRadius: 12, border: '2px solid #f1f5f9', outline: 'none', fontWeight: 700 }} />
                             </div>
                             <textarea value={storeForm.description} onChange={e => setStoreForm(p => ({ ...p, description: e.target.value }))} placeholder="Description..." rows={3} style={{ padding: 14, borderRadius: 12, border: '2px solid #f1f5f9', outline: 'none', fontWeight: 600 }} />
+                            
+                            <div style={{ marginTop: 10 }}>
+                                <label style={{ display: 'block', fontSize: 13, fontWeight: 800, color: '#64748b', marginBottom: 12, textTransform: 'uppercase' }}>Store Logo</label>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 20, background: '#f8fafc', padding: 20, borderRadius: 16, border: '2px dashed #e2e8f0' }}>
+                                    <div style={{ width: 80, height: 80, borderRadius: 16, background: '#fff', border: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                                        {storeForm.logo ? <img src={storeForm.logo} alt="logo preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Store size={32} color="#94a3b8" />}
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <input type="file" accept="image/*" onChange={handleLogoUpload} style={{ display: 'none' }} id="logo-upload" />
+                                        <label htmlFor="logo-upload" style={{ display: 'inline-block', padding: '10px 20px', background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 10, fontSize: 13, fontWeight: 800, color: '#0f172a', cursor: 'pointer' }}>Choose Image</label>
+                                        <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 8 }}>Square image, max 2MB</div>
+                                    </div>
+                                </div>
+                            </div>
                             
                             <div style={{ marginTop: 10 }}>
                                 <label style={{ display: 'block', fontSize: 13, fontWeight: 800, color: '#64748b', marginBottom: 12, textTransform: 'uppercase' }}>Store Theme</label>
