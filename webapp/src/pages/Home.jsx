@@ -1,8 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Zap, Shield, Globe, ArrowRight, Wifi, CheckCircle2, Store, Users, Wallet, Smartphone } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const Home = () => {
+    const { user } = useAuth();
     return (
         <div style={{ background: '#f8fafc', minHeight: '100vh', color: '#1e293b', fontFamily: "'Outfit', 'Inter', sans-serif", overflowX: 'hidden' }}>
             
@@ -73,36 +75,58 @@ const Home = () => {
                     justifyContent: 'center',
                     marginBottom: 80
                 }}>
-                    <Link to="/register" style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 12,
-                        padding: '24px 60px',
-                        background: '#4f46e5',
-                        color: '#fff',
-                        borderRadius: 24,
-                        fontWeight: 900,
-                        fontSize: 20,
-                        textDecoration: 'none',
-                        boxShadow: '0 20px 40px rgba(79,70,229,0.3)',
-                        transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
-                    }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-6px) scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0) scale(1)'}>
-                        Create Free Account <ArrowRight size={22} />
-                    </Link>
-                    <Link to="/login" style={{
-                        padding: '20px 48px',
-                        background: '#fff',
-                        color: '#475569',
-                        borderRadius: 24,
-                        fontWeight: 800,
-                        fontSize: 18,
-                        textDecoration: 'none',
-                        border: '2px solid #f1f5f9',
-                        transition: 'all 0.3s'
-                    }} onMouseOver={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.borderColor = '#e2e8f0'; }} onMouseOut={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#f1f5f9'; }}>
-                        Agent Login
-                    </Link>
+                    {user ? (
+                        <Link to="/dashboard" style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 12,
+                            padding: '24px 60px',
+                            background: '#4f46e5',
+                            color: '#fff',
+                            borderRadius: 24,
+                            fontWeight: 900,
+                            fontSize: 20,
+                            textDecoration: 'none',
+                            boxShadow: '0 20px 40px rgba(79,70,229,0.3)',
+                            transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                        }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-6px) scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0) scale(1)'}>
+                            Go to Dashboard <ArrowRight size={22} />
+                        </Link>
+                    ) : (
+                        <>
+                            <Link to="/register" style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: 12,
+                                padding: '24px 60px',
+                                background: '#4f46e5',
+                                color: '#fff',
+                                borderRadius: 24,
+                                fontWeight: 900,
+                                fontSize: 20,
+                                textDecoration: 'none',
+                                boxShadow: '0 20px 40px rgba(79,70,229,0.3)',
+                                transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                            }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-6px) scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0) scale(1)'}>
+                                Create Free Account <ArrowRight size={22} />
+                            </Link>
+                            <Link to="/login" style={{
+                                padding: '20px 48px',
+                                background: '#fff',
+                                color: '#475569',
+                                borderRadius: 24,
+                                fontWeight: 800,
+                                fontSize: 18,
+                                textDecoration: 'none',
+                                border: '2px solid #f1f5f9',
+                                transition: 'all 0.3s'
+                            }} onMouseOver={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.borderColor = '#e2e8f0'; }} onMouseOut={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#f1f5f9'; }}>
+                                Agent Login
+                            </Link>
+                        </>
+                    )}
                 </div>
 
                 {/* TRUST */}
