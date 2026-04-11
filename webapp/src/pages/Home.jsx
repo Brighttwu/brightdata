@@ -61,7 +61,7 @@ const Home = () => {
                     margin: '0 auto 56px',
                     fontWeight: 500
                 }}>
-                    <strong>Bright Data</strong> empowers entrepreneurs across Ghana with instant data fulfillment, 
+                    <strong>brightdata</strong> empowers entrepreneurs across Ghana with instant data fulfillment, 
                     custom white-label stores, and industry-leading profit margins.
                 </p>
 
@@ -192,10 +192,10 @@ const Home = () => {
 
             {/* FOOTER */}
             <footer style={{ padding: '80px 24px', textAlign: 'center', background: '#fff', borderTop: '2px solid #f1f5f9' }}>
-                <div style={{ fontSize: 32, fontWeight: 950, color: '#0f172a', marginBottom: 16, letterSpacing: '-0.04em' }}>
-                    BRIGHT <span style={{ color: '#4f46e5' }}>DATA</span>
+                <div style={{ fontSize: 32, fontWeight: 950, color: '#0f172a', marginBottom: 16, letterSpacing: '-0.04em', textTransform: 'lowercase' }}>
+                    brightdata<span style={{ color: '#4f46e5' }}>.</span>
                 </div>
-                <div style={{ color: '#64748b', fontSize: 15, fontWeight: 500 }}>© 2026 Bright Data Hub. Premium Infrastructure for Data Resellers.</div>
+                <div style={{ color: '#64748b', fontSize: 15, fontWeight: 500 }}>© 2026 brightdata hub. Premium Infrastructure for Data Resellers.</div>
             </footer>
         </div>
     );
