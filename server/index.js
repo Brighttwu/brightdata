@@ -27,9 +27,26 @@ app.use(cors({
 app.use(express.json());
 
 // Database Connection
+if (!process.env.MONGODB_URI) {
+    console.error('FATAL ERROR: MONGODB_URI is not defined in environment variables!');
+}
+
 mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log('MongoDB Connected'))
-    .catch(err => console.log('MongoDB Connection Error:', err));
+    .then(() => console.log('Successfully connected to MongoDB Atlas'))
+    .catch(err => {
+        console.error('CRITICAL: MongoDB Connection Failed!');
+        console.error('Error Details:', err.message);
+        console.log('TIP: Check if MONGODB_URI starts with mongodb+srv:// and ensure your IP is whitelisted in Atlas.');
+    });
+
+// Health & Status Route
+app.get('/api/health', (req, res) => {
+    res.json({
+        status: 'online',
+        database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+        environment: process.env.NODE_ENV || 'development'
+    });
+});
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
@@ -39,7 +56,7 @@ app.use('/api/payment', require('./routes/payment'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/agent', require('./routes/agent'));
 
-app.get('/', (req, res) => res.send('Bossu Data Reselling API Running'));
+app.get('/', (req, res) => res.send('brightdata API Running'));
 
 // Start Server
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
