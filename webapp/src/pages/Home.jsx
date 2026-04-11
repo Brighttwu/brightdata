@@ -1,10 +1,14 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { Zap, Shield, Globe, ArrowRight, Wifi, CheckCircle2, Store, Users, Wallet, Smartphone } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Home = () => {
-    const { user } = useAuth();
+    const { user, loading } = useAuth();
+
+    // If logged in, go straight to dashboard
+    if (!loading && user) {
+        return <Navigate to="/dashboard" replace />;
+    }
     return (
         <div style={{ background: '#f8fafc', minHeight: '100vh', color: '#1e293b', fontFamily: "'Outfit', 'Inter', sans-serif", overflowX: 'hidden' }}>
             
