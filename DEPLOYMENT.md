@@ -4,8 +4,8 @@ This platform is ready for deployment on **Render.com**. Follow these steps to s
 
 ## 1. Backend Deployment (Node.js Service)
 - **Service Type**: Web Service
-- **Root Directory**: `server`
-- **Build Command**: `npm install`
+- **Root Directory**: `.` (leave as default)
+- **Build Command**: `npm run build:server`
 - **Start Command**: `npm start`
 - **Environment Variables**:
   - `MONGODB_URI`: Your MongoDB Compass/Atlas connection string.
@@ -18,9 +18,9 @@ This platform is ready for deployment on **Render.com**. Follow these steps to s
 
 ## 2. Frontend Deployment (Static Site)
 - **Service Type**: Static Site
-- **Root Directory**: `webapp`
-- **Build Command**: `npm install && npm run build`
-- **Publish Directory**: `dist`
+- **Root Directory**: `.` (leave as default)
+- **Build Command**: `npm run build:webapp`
+- **Publish Directory**: `webapp/dist`
 - **Environment Variables**:
   - `VITE_API_URL`: The URL of your deployed **Backend Service** (e.g., `https://bossdata-api.onrender.com/api`).
 
