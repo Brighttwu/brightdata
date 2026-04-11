@@ -12,19 +12,32 @@ const API_URL = process.env.BOSSU_API_URL;
 
 // Middleware for private routes
 const auth = (req, res, next) => {
+    console.log(`[AUTH] Checking token for ${req.method} ${req.url}. next is: ${typeof next}`);
     const token = req.header('Authorization')?.replace('Bearer ', '');
-    if (!token) return res.status(401).json({ message: 'No token, authorization denied' });
+    if (!token) {
+        console.log('[AUTH] No token provided');
+        return res.status(401).json({ message: 'No token, authorization denied' });
+    }
     try {
         const jwt = require('jsonwebtoken');
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         User.findById(decoded.id).then(user => {
-            if (user && user.isBlocked) return res.status(403).json({ message: 'Account blocked' });
+            if (user && user.isBlocked) {
+                console.log(`[AUTH] User ${decoded.id} is blocked`);
+                return res.status(403).json({ message: 'Account blocked' });
+            }
             req.user = user;
+            if (typeof next !== 'function') {
+                console.error('[AUTH ERROR] next is not a function!', typeof next);
+                return res.status(500).json({ message: 'Internal Server Error: next is not a function' });
+            }
             next();
-        }).catch(() => {
-            res.status(401).json({ message: 'Token is not valid' });
+        }).catch((err) => {
+            console.error('[AUTH DB ERROR]', err.message);
+            res.status(401).json({ message: 'Session invalid' });
         });
     } catch (err) {
+        console.log('[AUTH JWT ERROR]', err.message);
         res.status(401).json({ message: 'Token is not valid' });
     }
 };

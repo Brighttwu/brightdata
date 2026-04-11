@@ -17,11 +17,10 @@ const UserSchema = new mongoose.Schema({
 });
 
 // Generate Referral Code on creation if not exists
-UserSchema.pre('validate', function(next) {
+UserSchema.pre('validate', async function() {
     if (!this.referralCode) {
         this.referralCode = Math.random().toString(36).substring(2, 8).toUpperCase();
     }
-    next();
 });
 
 UserSchema.pre('save', async function() {
