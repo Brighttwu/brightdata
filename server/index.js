@@ -57,6 +57,16 @@ app.use('/api/agent', require('./routes/agent'));
 
 app.get('/', (req, res) => res.send('brightdata API Running'));
 
+// Background Task: Auto-Sync Orders every 20 seconds
+const { syncAllPendingOrders } = require('./utils/orderSyncer');
+setInterval(async () => {
+    try {
+        await syncAllPendingOrders();
+    } catch (e) {
+        console.error('Background Sync Error:', e.message);
+    }
+}, 20000); // 20 seconds
+
 // Global Error Handler (Must be after routes)
 app.use((err, req, res, next) => {
     console.error('SERVER ERROR:', err.stack || err);
@@ -67,4 +77,7 @@ app.use((err, req, res, next) => {
 });
 
 // Start Server
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log('--- Automated Order Sync Active (Every 20s) ---');
+});
