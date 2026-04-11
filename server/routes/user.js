@@ -9,7 +9,9 @@ const auth = async (req, res, next) => {
     try {
         const jwt = require('jsonwebtoken');
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = await User.findById(decoded.id);
+        const user = await User.findById(decoded.id);
+        if (!user) return res.status(401).json({ message: 'User not found in database. Session invalid.' });
+        req.user = user;
         next();
     } catch (err) {
         res.status(401).json({ message: 'Token is not valid' });
