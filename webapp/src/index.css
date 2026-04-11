@@ -1,0 +1,142 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&family=Inter:wght@400;500;700&display=swap');
+
+:root {
+  --brand: #4f46e5;
+  --brand-light: #818cf8;
+  --brand-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --border-light: #f3f4f6;
+  --shadow-premium: 0 10px 40px -10px rgba(0,0,0,0.1);
+  --radius: 24px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.max-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* Premium Card Styles */
+.premium-card {
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  padding: 40px;
+  box-shadow: var(--shadow-premium);
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+}
+
+.premium-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 60px -20px rgba(0,0,0,0.15);
+}
+
+/* Button & UI Components */
+.btn-modern {
+  background: var(--brand-gradient);
+  color: white;
+  padding: 18px 36px;
+  border-radius: 100px;
+  font-weight: 700;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.4);
+  text-decoration: none;
+}
+
+.btn-modern:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px -5px rgba(79, 70, 229, 0.6);
+  filter: brightness(1.1);
+}
+
+.btn-modern:active {
+  transform: scale(0.96);
+}
+
+.input-modern {
+  width: 100%;
+  background: var(--bg-secondary);
+  border: 2px solid transparent;
+  padding: 16px 20px;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.input-modern:focus {
+  background: white;
+  border-color: var(--brand-light);
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+}
+
+/* Feature Badges */
+.badge {
+  background: #eff6ff;
+  color: #2563eb;
+  padding: 6px 16px;
+  border-radius: 100px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-block;
+}
+
+/* Section Backgrounds */
+.section-split {
+  background: linear-gradient(to bottom, #ffffff, #f9fafb);
+}
+
+/* Responsive Overrides */
+@media (max-width: 768px) {
+  .hero-h1 {
+    font-size: 42px !important;
+  }
+  .max-container {
+    padding: 0 20px;
+  }
+  .btn-modern {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Animations */
+@keyframes slideUpReveal {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.reveal {
+  animation: slideUpReveal 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
