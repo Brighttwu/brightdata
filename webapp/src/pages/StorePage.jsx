@@ -99,49 +99,6 @@ const StorePage = () => {
     const currentNet = networks.find(n => n.id === network);
     const canBuy = selectedPkg && phone.replace(/\s/g,'').length >= 10 && email && !buying;
 
-    if (loading || verifying) return (
-        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0f2f8', flexDirection: 'column', gap: 16 }}>
-            <RefreshCw size={32} color={theme?.accent || "#4f46e5"} style={{ animation: 'spin 1s linear infinite' }} />
-            <div style={{ fontWeight: 700, color: theme?.muted || '#64748b' }}>{verifying ? 'Verifying your payment...' : 'Loading store...'}</div>
-            <style>{`@keyframes spin { to { transform: rotate(360deg);} }`}</style>
-        </div>
-    );
-
-    if (notFound) return (
-        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0f2f8', flexDirection: 'column' }}>
-            <div style={{ fontSize: 64, marginBottom: 16 }}>🏪</div>
-            <div style={{ fontSize: 24, fontWeight: 900, color: '#0f172a' }}>Store Not Found</div>
-            <div style={{ fontSize: 15, color: '#64748b', marginTop: 8 }}>This store doesn't exist or has been deactivated.</div>
-        </div>
-    );
-
-    if (orderSuccess) return (
-        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0f2f8', padding: 24, fontFamily: "'Inter', sans-serif" }}>
-            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
-            <div style={{ background: '#fff', borderRadius: 28, padding: '48px 40px', maxWidth: 480, width: '100%', textAlign: 'center', boxShadow: '0 8px 40px rgba(0,0,0,0.08)' }}>
-                <div style={{ width: 80, height: 80, background: '#f0fdf4', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
-                    <CheckCircle2 size={44} color="#16a34a" />
-                </div>
-                <h2 style={{ fontSize: 26, fontWeight: 900, color: '#0f172a', margin: '0 0 10px' }}>Payment Successful! 🎉</h2>
-                <p style={{ fontSize: 15, color: '#64748b', margin: '0 0 28px', lineHeight: 1.6 }}>Your data bundle is being processed and will be delivered shortly.</p>
-                <div style={{ background: '#f8fafc', borderRadius: 16, padding: '20px 24px', marginBottom: 28, border: '1px solid #e2e8f0' }}>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 4 }}>Purchased at</div>
-                    <div style={{ fontSize: 20, fontWeight: 900, color: '#0f172a' }}>{store?.name}</div>
-                </div>
-                {store?.whatsapp && (
-                    <a href={`https://wa.me/${store.whatsapp}`} target="_blank" rel="noreferrer"
-                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '16px', background: '#25D366', color: '#fff', borderRadius: 14, fontWeight: 800, textDecoration: 'none', fontSize: 15, marginBottom: 16 }}>
-                        <MessageCircle size={18} /> Contact Store on WhatsApp
-                    </a>
-                )}
-                <button onClick={() => setOrderSuccess(null)} style={{ width: '100%', padding: '14px', background: '#f1f5f9', border: 'none', borderRadius: 14, fontWeight: 800, color: '#64748b', cursor: 'pointer', fontSize: 14 }}>
-                    Buy More Data
-                </button>
-            </div>
-            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        </div>
-    );
-
     const themes = {
         classic: {
             id: 'classic',
@@ -243,6 +200,42 @@ const StorePage = () => {
             border: '2px solid #d4af37'
         }
     };
+
+    if (notFound) return (
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0f2f8', flexDirection: 'column' }}>
+            <div style={{ fontSize: 64, marginBottom: 16 }}>🏪</div>
+            <div style={{ fontSize: 24, fontWeight: 900, color: '#0f172a' }}>Store Not Found</div>
+            <div style={{ fontSize: 15, color: '#64748b', marginTop: 8 }}>This store doesn't exist or has been deactivated.</div>
+        </div>
+    );
+
+    if (orderSuccess) return (
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0f2f8', padding: 24, fontFamily: "'Inter', sans-serif" }}>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+            <div style={{ background: '#fff', borderRadius: 28, padding: '48px 40px', maxWidth: 480, width: '100%', textAlign: 'center', boxShadow: '0 8px 40px rgba(0,0,0,0.08)' }}>
+                <div style={{ width: 80, height: 80, background: '#f0fdf4', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+                    <CheckCircle2 size={44} color="#16a34a" />
+                </div>
+                <h2 style={{ fontSize: 26, fontWeight: 900, color: '#0f172a', margin: '0 0 10px' }}>Payment Successful! 🎉</h2>
+                <p style={{ fontSize: 15, color: '#64748b', margin: '0 0 28px', lineHeight: 1.6 }}>Your data bundle is being processed and will be delivered shortly.</p>
+                <div style={{ background: '#f8fafc', borderRadius: 16, padding: '20px 24px', marginBottom: 28, border: '1px solid #e2e8f0' }}>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 4 }}>Purchased at</div>
+                    <div style={{ fontSize: 20, fontWeight: 900, color: '#0f172a' }}>{store?.name}</div>
+                </div>
+                {store?.whatsapp && (
+                    <a href={`https://wa.me/${store.whatsapp}`} target="_blank" rel="noreferrer"
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '16px', background: '#25D366', color: '#fff', borderRadius: 14, fontWeight: 800, textDecoration: 'none', fontSize: 15, marginBottom: 16 }}>
+                        <MessageCircle size={18} /> Contact Store on WhatsApp
+                    </a>
+                )}
+                <button onClick={() => setOrderSuccess(null)} style={{ width: '100%', padding: '14px', background: '#f1f5f9', border: 'none', borderRadius: 14, fontWeight: 800, color: '#64748b', cursor: 'pointer', fontSize: 14 }}>
+                    Buy More Data
+                </button>
+            </div>
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
+    );
+
     const theme = themes[store?.theme] || themes.classic;
 
     return (
