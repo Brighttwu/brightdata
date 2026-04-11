@@ -18,7 +18,11 @@ export const AuthProvider = ({ children }) => {
                 headers: { Authorization: `Bearer ${token}` }
             })
             .then(res => setUser(res.data))
-            .catch(() => localStorage.removeItem('token'))
+            .catch((err) => {
+                if (err.response && err.response.status === 401) {
+                    localStorage.removeItem('token');
+                }
+            })
             .finally(() => setLoading(false));
         } else {
             setLoading(false);
