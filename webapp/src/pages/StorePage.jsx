@@ -36,22 +36,30 @@ const StorePage = () => {
         else { setNotFound(true); setLoading(false); }
     }, [slug]);
 
-    // Handle Paystack redirect back with ?reference=xxx
+    const [verifyState, setVerifyState] = useState('idle'); // idle | verifying | success | error
+    const [verifyMsg, setVerifyMsg] = useState('');
+
+    // Handle Paystack redirect back with ?reference=xxx — runs once on mount
     useEffect(() => {
         const reference = searchParams.get('reference');
         if (!reference || !slug) return;
-        setVerifying(true);
+
+        // Clear URL immediately so refreshing won't re-trigger
+        window.history.replaceState({}, document.title, window.location.pathname);
+
+        setVerifyState('verifying');
         api.get(`/agent/public/verify/${reference}`)
             .then(res => {
+                setVerifyState('success');
+                setVerifyMsg(res.data.message || 'Your data bundle is being processed!');
                 setOrderSuccess({ message: res.data.message, profit: res.data.profit });
-                setSearchParams({});
             })
             .catch(err => {
+                setVerifyState('error');
+                setVerifyMsg(err.response?.data?.message || 'Payment verification failed. Contact the store owner.');
                 setMessage({ type: 'error', text: err.response?.data?.message || 'Payment verification failed.' });
-                setSearchParams({});
-            })
-            .finally(() => setVerifying(false));
-    }, [searchParams, slug, setSearchParams]);
+            });
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const fetchPackages = useCallback(async () => {
         if (!slug) return;
@@ -251,8 +259,8 @@ const StorePage = () => {
         <div style={{ minHeight: '100vh', background: theme.pageBg, fontFamily: theme.font, color: theme.text, paddingBottom: 100 }}>
             <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Outfit:wght@400;700;900&family=Playfair+Display:wght@400;700;900&family=Work+Sans:wght@400;700;900&family=Nunito:wght@400;700;900&family=Quicksand:wght@400;700&display=swap" rel="stylesheet" />
             
-            {/* Verification Overlay */}
-            {verifying && (
+            {/* Verification Overlay — Verifying */}
+            {verifyState === 'verifying' && (
                 <div style={{
                     position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
                     background: 'rgba(255,255,255,0.95)', zIndex: 9999,
@@ -265,6 +273,55 @@ const StorePage = () => {
                     }}></div>
                     <div style={{ fontSize: 22, fontWeight: 900, color: theme.text }}>Completing Your Purchase...</div>
                     <div style={{ fontSize: 16, color: theme.muted, marginTop: 10 }}>We're confirming your payment and processing your data.</div>
+                    <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                </div>
+            )}
+
+            {/* Verification Overlay — Success */}
+            {verifyState === 'success' && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(255,255,255,0.95)', zIndex: 9999,
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    backdropFilter: 'blur(10px)'
+                }}>
+                    <div style={{
+                        width: 80, height: 80, borderRadius: '50%', background: '#f0fdf4',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24
+                    }}>
+                        <CheckCircle2 size={44} color="#16a34a" />
+                    </div>
+                    <div style={{ fontSize: 24, fontWeight: 900, color: '#0f172a', marginBottom: 8 }}>Purchase Successful! 🎉</div>
+                    <div style={{ fontSize: 15, color: '#64748b', marginBottom: 32, textAlign: 'center', maxWidth: 400 }}>{verifyMsg}</div>
+                    <button onClick={() => setVerifyState('idle')} style={{
+                        padding: '16px 40px', background: theme.accent, color: '#fff', border: 'none',
+                        borderRadius: 14, fontWeight: 800, fontSize: 16, cursor: 'pointer',
+                        boxShadow: `0 8px 24px ${theme.accent}50`
+                    }}>Back to Store</button>
+                    <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                </div>
+            )}
+
+            {/* Verification Overlay — Error */}
+            {verifyState === 'error' && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(255,255,255,0.95)', zIndex: 9999,
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    backdropFilter: 'blur(10px)'
+                }}>
+                    <div style={{
+                        width: 80, height: 80, borderRadius: '50%', background: '#fef2f2',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24
+                    }}>
+                        <XCircle size={44} color="#dc2626" />
+                    </div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: '#0f172a', marginBottom: 8 }}>Payment Issue</div>
+                    <div style={{ fontSize: 15, color: '#64748b', marginBottom: 32, textAlign: 'center', maxWidth: 400 }}>{verifyMsg}</div>
+                    <button onClick={() => setVerifyState('idle')} style={{
+                        padding: '16px 40px', background: '#f1f5f9', color: '#475569', border: 'none',
+                        borderRadius: 14, fontWeight: 800, fontSize: 16, cursor: 'pointer'
+                    }}>Back to Store</button>
                     <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
                 </div>
             )}

@@ -14,7 +14,9 @@ const Dashboard = () => {
     const [buying, setBuying] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
     const [searchQuery, setSearchQuery] = useState('');
-    const [searchParams, setSearchParams] = useSearchParams();
+    const [searchParams] = useSearchParams();
+    const [verifyState, setVerifyState] = useState('idle'); // idle | verifying | success | error
+    const [verifyMsg, setVerifyMsg] = useState('');
 
     const fetchPackages = useCallback(async () => {
         setLoading(true);
@@ -40,25 +42,27 @@ const Dashboard = () => {
         fetchPackages();
     }, [fetchPackages]);
 
+    // Paystack redirect verification — runs once on mount
     useEffect(() => {
         const reference = searchParams.get('reference');
-        if (reference) {
-            const verify = async () => {
-                setLoading(true);
-                try {
-                    await api.get(`/data/buy-paystack-verify/${reference}`);
-                    setMessage({ type: 'success', text: 'Payment verified! Data is being processed.' });
-                    // Clear search params
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                } catch (err) {
-                    setMessage({ type: 'error', text: err.response?.data?.message || 'Verification failed. Contact support.' });
-                } finally {
-                    setLoading(false);
-                }
-            };
-            verify();
-        }
-    }, [searchParams]);
+        if (!reference) return;
+
+        // Clear URL immediately so refreshing won't re-trigger
+        window.history.replaceState({}, document.title, window.location.pathname);
+
+        setVerifyState('verifying');
+        api.get(`/data/buy-paystack-verify/${reference}`)
+            .then(res => {
+                setVerifyState('success');
+                setVerifyMsg(res.data?.message || 'Payment verified! Data is being processed.');
+                setMessage({ type: 'success', text: 'Payment verified! Data is being processed.' });
+            })
+            .catch(err => {
+                setVerifyState('error');
+                setVerifyMsg(err.response?.data?.message || 'Verification failed. Contact support.');
+                setMessage({ type: 'error', text: err.response?.data?.message || 'Verification failed.' });
+            });
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleBuy = async (method) => {
         if (!selectedPackage || phone.replace(/\s/g, '').length < 10) return;
@@ -106,19 +110,64 @@ const Dashboard = () => {
             <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
             
             {/* Verification Overlay */}
-            {loading && searchParams.get('reference') && (
+            {verifyState === 'verifying' && (
                 <div style={{
                     position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                    background: 'rgba(255,255,255,0.9)', zIndex: 9999,
+                    background: 'rgba(255,255,255,0.95)', zIndex: 9999,
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                    backdropFilter: 'blur(8px)'
+                    backdropFilter: 'blur(10px)'
                 }}>
                     <div style={{
-                        width: 50, height: 50, border: '4px solid #e2e8f0', borderTopColor: '#4f46e5',
-                        borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: 20
+                        width: 56, height: 56, border: '4px solid #e2e8f0', borderTopColor: '#4f46e5',
+                        borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: 24
                     }}></div>
-                    <div style={{ fontSize: 18, fontWeight: 900, color: '#0f172a' }}>Verifying Payment...</div>
-                    <div style={{ fontSize: 14, color: '#94a3b8', marginTop: 8 }}>Please don't refresh the page.</div>
+                    <div style={{ fontSize: 20, fontWeight: 900, color: '#0f172a' }}>Verifying Your Payment...</div>
+                    <div style={{ fontSize: 15, color: '#64748b', marginTop: 10 }}>Checking with Paystack and processing your order.</div>
+                </div>
+            )}
+
+            {verifyState === 'success' && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(255,255,255,0.95)', zIndex: 9999,
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    backdropFilter: 'blur(10px)'
+                }}>
+                    <div style={{
+                        width: 80, height: 80, borderRadius: '50%', background: '#f0fdf4',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24
+                    }}>
+                        <CheckCircle2 size={44} color="#16a34a" />
+                    </div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: '#0f172a', marginBottom: 8 }}>Payment Confirmed! ✅</div>
+                    <div style={{ fontSize: 15, color: '#64748b', marginBottom: 32, textAlign: 'center', maxWidth: 400 }}>{verifyMsg}</div>
+                    <button onClick={() => setVerifyState('idle')} style={{
+                        padding: '16px 40px', background: '#4f46e5', color: '#fff', border: 'none',
+                        borderRadius: 14, fontWeight: 800, fontSize: 16, cursor: 'pointer',
+                        boxShadow: '0 8px 24px rgba(79,70,229,0.3)'
+                    }}>Continue to Dashboard</button>
+                </div>
+            )}
+
+            {verifyState === 'error' && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(255,255,255,0.95)', zIndex: 9999,
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    backdropFilter: 'blur(10px)'
+                }}>
+                    <div style={{
+                        width: 80, height: 80, borderRadius: '50%', background: '#fef2f2',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24
+                    }}>
+                        <XCircle size={44} color="#dc2626" />
+                    </div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: '#0f172a', marginBottom: 8 }}>Verification Issue</div>
+                    <div style={{ fontSize: 15, color: '#64748b', marginBottom: 32, textAlign: 'center', maxWidth: 400 }}>{verifyMsg}</div>
+                    <button onClick={() => setVerifyState('idle')} style={{
+                        padding: '16px 40px', background: '#f1f5f9', color: '#475569', border: 'none',
+                        borderRadius: 14, fontWeight: 800, fontSize: 16, cursor: 'pointer'
+                    }}>Go to Dashboard</button>
                 </div>
             )}
 
