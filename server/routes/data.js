@@ -327,7 +327,7 @@ router.post('/buy-paystack-init', auth, async (req, res) => {
             email: user.email,
             amount: paystackAmount,
             reference,
-            callback_url: 'http://localhost:5173/dashboard'
+            callback_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/dashboard`
         }, {
             headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` }
         });
@@ -375,6 +375,8 @@ router.get('/buy-paystack-verify/:reference', auth, async (req, res) => {
             
             // Log topup + purchase transaction history for transparency
             const Transaction = require('../models/Transaction');
+            const isFailed = order.status === 'failed';
+            
             await Transaction.create({
                 user: req.user._id,
                 type: 'deposit',
@@ -389,11 +391,11 @@ router.get('/buy-paystack-verify/:reference', auth, async (req, res) => {
                 user: req.user._id,
                 type: 'purchase',
                 amount: order.amount,
-                status: response.data.status === 'error' ? 'failed' : 'success',
+                status: isFailed ? 'failed' : 'success',
                 reference: reference,
                 description: `${order.network.toUpperCase()} ${order.packageName} - ${order.phoneNumber}`,
                 balanceBefore: req.user.balance + order.amount,
-                balanceAfter: req.user.balance
+                balanceAfter: isFailed ? req.user.balance + order.amount : req.user.balance
             });
 
             await order.save();

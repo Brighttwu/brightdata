@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import api from '../api/axios';
-import { Wifi, RefreshCw, CheckCircle2, XCircle, MessageCircle, ShieldCheck, PartyPopper, Users2, Phone } from 'lucide-react';
+import { Wifi, RefreshCw, CheckCircle2, XCircle, MessageCircle, ShieldCheck, PartyPopper, Users2, Phone, AlertCircle } from 'lucide-react';
 
 const StorePage = () => {
     const { slug } = useParams();
@@ -197,6 +197,19 @@ const StorePage = () => {
         }
     };
 
+    if (loading) return (
+        <div style={{ 
+            minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', 
+            justifyContent: 'center', background: '#f8fafc', fontFamily: "'Inter', sans-serif" 
+        }}>
+            <RefreshCw size={36} color="#4f46e5" style={{ animation: 'spin 1s linear infinite' }} />
+            <div style={{ marginTop: 16, fontSize: 14, fontWeight: 700, color: '#64748b', letterSpacing: '0.05em' }}>
+                LOADING STORE...
+            </div>
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
+    );
+
     if (notFound) return (
         <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0f2f8', flexDirection: 'column' }}>
             <div style={{ fontSize: 64, marginBottom: 16 }}>🏪</div>
@@ -237,6 +250,24 @@ const StorePage = () => {
     return (
         <div style={{ minHeight: '100vh', background: theme.pageBg, fontFamily: theme.font, color: theme.text, paddingBottom: 100 }}>
             <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Outfit:wght@400;700;900&family=Playfair+Display:wght@400;700;900&family=Work+Sans:wght@400;700;900&family=Nunito:wght@400;700;900&family=Quicksand:wght@400;700&display=swap" rel="stylesheet" />
+            
+            {/* Verification Overlay */}
+            {verifying && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(255,255,255,0.95)', zIndex: 9999,
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    backdropFilter: 'blur(10px)'
+                }}>
+                    <div style={{
+                        width: 56, height: 56, border: '4px solid #e2e8f0', borderTopColor: theme.accent,
+                        borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: 24
+                    }}></div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: theme.text }}>Completing Your Purchase...</div>
+                    <div style={{ fontSize: 16, color: theme.muted, marginTop: 10 }}>We're confirming your payment and processing your data.</div>
+                    <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                </div>
+            )}
 
             {/* Store Navbar */}
             <nav style={{ 
@@ -308,6 +339,23 @@ const StorePage = () => {
 
             {/* Main Content */}
             <div style={{ maxWidth: 800, margin: '0 auto', padding: '32px 16px', display: 'flex', flexDirection: 'column', gap: 24, paddingBottom: 80 }}>
+                
+                {/* Price Protection Alert */}
+                {packages.some(p => p.isPriceWarning) && (
+                    <div style={{ 
+                        background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 16, padding: '16px 20px',
+                        display: 'flex', alignItems: 'center', gap: 14, color: '#9a3412'
+                    }}>
+                        <AlertCircle size={24} color="#ea580c" />
+                        <div>
+                            <div style={{ fontWeight: 900, fontSize: 14 }}>Price Protection Active</div>
+                            <div style={{ fontSize: 13, fontWeight: 600, opacity: 0.9 }}>
+                                Some bundles ({packages.filter(p => p.isPriceWarning).map(p => p.display_name).join(', ')}) are priced 
+                                below cost. We've auto-adjusted them to the platform price to protect your profit.
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 <div style={{ 
                     background: theme.cardBg, borderRadius: theme.radius, overflow: 'hidden', 

@@ -13,6 +13,14 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      caches.match('/index.html')
+        .then(response => response || fetch(event.request))
+    );
+    return;
+  }
+  
   event.respondWith(
     caches.match(event.request)
       .then(response => response || fetch(event.request))

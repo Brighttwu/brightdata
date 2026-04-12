@@ -76,14 +76,14 @@ router.post('/store', auth, async (req, res) => {
         if (!['agent', 'store', 'admin'].includes(user.role)) {
             return res.status(403).json({ message: 'Only agents can create a store.' });
         }
-        const { slug, name, description, whatsapp, logo, theme } = req.body;
+        const { slug, name, description, whatsapp, groupLink, logo, theme } = req.body;
         if (!slug || !name) return res.status(400).json({ message: 'Store slug and name are required.' });
         const cleanSlug = slug.toLowerCase().replace(/[^a-z0-9-]/g, '-').trim();
         const existing = await Store.findOne({ slug: cleanSlug, agent: { $ne: user._id } });
         if (existing) return res.status(400).json({ message: 'That store URL is already taken. Try another.' });
         const store = await Store.findOneAndUpdate(
             { agent: user._id },
-            { slug: cleanSlug, name, description, whatsapp, logo, theme, updatedAt: Date.now() },
+            { slug: cleanSlug, name, description, whatsapp, groupLink, logo, theme, updatedAt: Date.now() },
             { upsert: true, new: true, runValidators: true }
         );
         if (user.role === 'agent') { user.role = 'store'; await user.save(); }
@@ -188,14 +188,23 @@ router.get('/public/:slug/packages/:network', async (req, res) => {
                 (x.packageKey || '').toString().trim().toLowerCase() === pKey &&
                 (x.network || '').toLowerCase() === net
             );
-            const sellingPrice = storeRule?.price > 0 ? storeRule.price : platformCost;
+            
+            let sellingPrice = storeRule?.price > 0 ? storeRule.price : platformCost;
+            let isPriceWarning = false;
+
+            // Protection: If agent's price is lower than platform cost, use platform cost to avoid loss
+            if (storeRule && storeRule.price > 0 && storeRule.price < platformCost) {
+                sellingPrice = platformCost;
+                isPriceWarning = true;
+            }
 
             return {
                 package_key: pKeyOriginal,
                 display_name: p.display_name || p.name,
                 price: Number(sellingPrice.toFixed(2)),
                 platform_cost: Number(platformCost.toFixed(2)),
-                network: net
+                network: net,
+                isPriceWarning
             };
         }).sort((a, b) => a.price - b.price);
 
@@ -242,16 +251,16 @@ router.post('/public/:slug/buy-init', async (req, res) => {
             (x.packageKey || '').toString().trim().toLowerCase() === pKey &&
             (x.network || '').toLowerCase() === net
         );
-        const sellingPrice = storeRule?.price > 0 ? storeRule.price : platformCost;
+        let sellingPrice = storeRule?.price > 0 ? storeRule.price : platformCost;
 
-        // SERVER-SIDE PRICE VALIDATION (Security)
+        // SERVER-SIDE PRICE PROTECTION (Security + Loss Prevention)
         if (sellingPrice < platformCost) {
-            return res.status(400).json({ message: 'Invalid price configuration. The selling price is too low.' });
+            sellingPrice = platformCost; // Fallback to avoid loss
         }
 
         // Initiate Paystack payment — customer pays agent's price
         const reference = `STORE_${store.slug}_${Date.now()}`;
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5174';
+        const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
         const paystackRes = await axios.post('https://api.paystack.co/transaction/initialize', {
             email: customer_email || `guest_${Date.now()}@bossdata.store`,
             amount: Math.round(sellingPrice * 100), // in pesewas
@@ -306,20 +315,7 @@ router.get('/public/verify/:reference', async (req, res) => {
         const agent = await User.findById(agentId);
         if (!store || !agent) return res.status(404).json({ message: 'Store or agent not found' });
 
-        // Platform places the Bossu order — NO deduction from agent wallet
-        const buyParams = new URLSearchParams({
-            action: 'create_order',
-            network,
-            package_key: packageKey,
-            recipient_phone: recipientPhone,
-            external_reference: reference
-        });
-        const bossuRes = await axios.post(API_URL, buyParams, {
-            headers: { 'X-API-Key': API_KEY, 'Content-Type': 'application/x-www-form-urlencoded' }
-        });
-        const bossuData = bossuRes.data.data || bossuRes.data;
-
-        // Record the order
+        // 1. Initial Order Record (Pending Vendor)
         const order = await Order.create({
             user: agentId,
             network,
@@ -328,12 +324,45 @@ router.get('/public/verify/:reference', async (req, res) => {
             phoneNumber: recipientPhone,
             amount: sellingPrice,
             externalReference: reference,
-            orderId: bossuData.order_id,
-            apiResponse: bossuRes.data,
             status: 'pending'
         });
 
-        // Credit agent's PROFIT commission to their dedicated commission balance
+        // 2. Platform places the Bossu order
+        let bossuOrderId = null;
+        let bossuStatus = 'pending';
+        let bossuApiResponse = null;
+
+        try {
+            const buyParams = new URLSearchParams({
+                action: 'create_order',
+                network,
+                package_key: packageKey,
+                recipient_phone: recipientPhone,
+                external_reference: reference
+            });
+            const bossuRes = await axios.post(API_URL, buyParams, {
+                headers: { 'X-API-Key': API_KEY, 'Content-Type': 'application/x-www-form-urlencoded' }
+            });
+            bossuApiResponse = bossuRes.data;
+            const bossuData = bossuRes.data.data || bossuRes.data;
+            bossuOrderId = bossuData.order_id;
+            
+            if (bossuData.status === 'failed' || bossuRes.data.success === false) {
+                bossuStatus = 'failed';
+            }
+        } catch (bossuErr) {
+            console.error('Bossu API Call Failed for Store Purchase:', bossuErr.message);
+            bossuStatus = 'failed';
+            bossuApiResponse = { error: bossuErr.message, details: bossuErr.response?.data };
+        }
+
+        // 3. Update Order with API results
+        order.orderId = bossuOrderId;
+        order.apiResponse = bossuApiResponse;
+        order.status = bossuStatus;
+        await order.save();
+
+        // 4. Credit agent's PROFIT commission
         const profit = Number((sellingPrice - platformCost).toFixed(2));
         if (profit > 0) {
             agent.commissionBalance = Number((agent.commissionBalance + profit).toFixed(2));
@@ -345,27 +374,31 @@ router.get('/public/verify/:reference', async (req, res) => {
                 amount: profit,
                 status: 'success',
                 reference: `PROFIT_${reference}`,
-                description: `Commission: ${network.toUpperCase()} ${packageName} → ${recipientPhone} (To Commission Balance)`,
-                balanceBefore: agent.balance, // Main balance doesn't change
+                description: `Commission: ${network.toUpperCase()} ${packageName} → ${recipientPhone}`,
+                balanceBefore: agent.balance,
                 balanceAfter: agent.balance
             });
         }
 
-        // Log profit record for dashboard
+        // 5. Log profit record for dashboard
         await Profit.create({
             agent: agentId, store: storeId, order: order._id, customerPhone: recipientPhone,
             network, packageName, salePrice: sellingPrice, agentCost: platformCost, profit
         });
 
-        // Update store cumulative stats
+        // 6. Update store cumulative stats
         store.totalProfit = Number(((store.totalProfit || 0) + profit).toFixed(2));
         store.totalSales = (store.totalSales || 0) + 1;
         await store.save();
 
-        // Referral Commission (for the agent who was referred)
-        await handleReferralCommission(agentId, sellingPrice, reference);
+        // 7. Referral Commission
+        try {
+            await handleReferralCommission(agentId, sellingPrice, reference);
+        } catch (refErr) {
+            console.error('Referral Commission Error (Store):', refErr.message);
+        }
 
-        res.json({ message: 'Order placed! Commission credited to agent.', orderId: bossuData.order_id, profit });
+        res.json({ message: 'Order processed!', orderId: bossuOrderId, profit, status: bossuStatus });
     } catch (err) {
         console.error('Store verify error:', err.response?.data || err.message);
         res.status(500).json({ message: 'Error processing store purchase' });

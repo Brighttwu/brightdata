@@ -48,17 +48,17 @@ const Dashboard = () => {
                 try {
                     await api.get(`/data/buy-paystack-verify/${reference}`);
                     setMessage({ type: 'success', text: 'Payment verified! Data is being processed.' });
-                    setSearchParams({});
+                    // Clear search params
+                    window.history.replaceState({}, document.title, window.location.pathname);
                 } catch (err) {
-                    setMessage({ type: 'error', text: 'Verification failed. Contact support.' });
-                    setSearchParams({});
+                    setMessage({ type: 'error', text: err.response?.data?.message || 'Verification failed. Contact support.' });
                 } finally {
                     setLoading(false);
                 }
             };
             verify();
         }
-    }, [searchParams, setSearchParams]);
+    }, [searchParams]);
 
     const handleBuy = async (method) => {
         if (!selectedPackage || phone.replace(/\s/g, '').length < 10) return;
@@ -104,6 +104,24 @@ const Dashboard = () => {
     return (
         <div style={{ background: '#f0f2f8', minHeight: 'calc(100vh - 72px)', padding: '24px 16px', fontFamily: "'Inter', sans-serif" }}>
             <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+            
+            {/* Verification Overlay */}
+            {loading && searchParams.get('reference') && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(255,255,255,0.9)', zIndex: 9999,
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    backdropFilter: 'blur(8px)'
+                }}>
+                    <div style={{
+                        width: 50, height: 50, border: '4px solid #e2e8f0', borderTopColor: '#4f46e5',
+                        borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: 20
+                    }}></div>
+                    <div style={{ fontSize: 18, fontWeight: 900, color: '#0f172a' }}>Verifying Payment...</div>
+                    <div style={{ fontSize: 14, color: '#94a3b8', marginTop: 8 }}>Please don't refresh the page.</div>
+                </div>
+            )}
+
             <div style={{ maxWidth: 960, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
                 {/* Balance Hero Card */}

@@ -60,6 +60,18 @@ const OrdersPage = () => {
         } finally {
             setActionLoadingId(null);
         }
+    const handleVerifyPaystackOrder = async (order) => {
+        setActionLoadingId(order._id);
+        setMessage({ type: '', text: '' });
+        try {
+            await api.get(`/data/buy-paystack-verify/${order.externalReference}`);
+            setOrders(prev => prev.map(o => o._id === order._id ? { ...o, status: 'pending' } : o));
+            setMessage({ type: 'success', text: 'Payment verified! Order is now being processed.' });
+        } catch (err) {
+            setMessage({ type: 'error', text: err.response?.data?.message || 'Verification failed. This might happen if payment was not completed.' });
+        } finally {
+            setActionLoadingId(null);
+        }
     };
 
     const handleReport = async (order) => {
@@ -209,6 +221,22 @@ const OrdersPage = () => {
                                                         display: 'flex', alignItems: 'center', gap: 6
                                                     }}>
                                                     <ShieldAlert size={12} /> Report Issue
+                                                </button>
+                                            )}
+                                            {order.status === 'pending_payment' && (
+                                                <button
+                                                    onClick={() => handleVerifyPaystackOrder(order)}
+                                                    disabled={isLoading}
+                                                    style={{
+                                                        padding: '9px 18px', borderRadius: 10,
+                                                        border: 'none', background: '#f59e0b',
+                                                        color: '#fff', fontWeight: 800, fontSize: 12,
+                                                        cursor: isLoading ? 'not-allowed' : 'pointer',
+                                                        display: 'flex', alignItems: 'center', gap: 6,
+                                                        boxShadow: '0 4px 12px rgba(245,158,11,0.3)'
+                                                    }}>
+                                                    <RefreshCw size={12} style={{ animation: isLoading ? 'spin 0.8s linear infinite' : 'none' }} />
+                                                    Verify Payment
                                                 </button>
                                             )}
                                         </div>

@@ -20,17 +20,36 @@ const WalletPage = () => {
         const reference = searchParams.get('reference');
         if (reference) {
             const verify = async () => {
+                setLoading(true);
                 try {
                     const res = await api.get(`/payment/verify/${reference}`);
                     updateBalance(res.data.balance);
                     setMessage({ type: 'success', text: 'Payment verified! Your wallet has been credited.' });
+                    // Clear the reference from URL without page reload
+                    window.history.replaceState({}, document.title, window.location.pathname);
                 } catch (err) {
                     setMessage({ type: 'error', text: err.response?.data?.message || 'Payment verification failed' });
+                } finally {
+                    setLoading(false);
                 }
             };
             verify();
         }
     }, [searchParams]);
+
+    const handleManualVerify = async (ref) => {
+        setMessage({ type: '', text: '' });
+        setLoading(true);
+        try {
+            const res = await api.get(`/payment/verify/${ref}`);
+            updateBalance(res.data.balance);
+            setMessage({ type: 'success', text: 'Payment verified! Your wallet has been credited.' });
+        } catch (err) {
+            setMessage({ type: 'error', text: err.response?.data?.message || 'Verification failed. Try again.' });
+        } finally {
+            setLoading(false);
+        }
+    };
 
     // Fetch transactions
     useEffect(() => {
@@ -75,6 +94,24 @@ const WalletPage = () => {
 
     return (
         <div style={{ background: '#f8fafc', minHeight: 'calc(100vh - 72px)', padding: '24px 16px' }}>
+            
+            {/* Verification Overlay */}
+            {loading && searchParams.get('reference') && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(255,255,255,0.9)', zIndex: 9999,
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    backdropFilter: 'blur(8px)'
+                }}>
+                    <div style={{
+                        width: 50, height: 50, border: '4px solid #e2e8f0', borderTopColor: '#4f46e5',
+                        borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: 20
+                    }}></div>
+                    <div style={{ fontSize: 18, fontWeight: 900, color: '#0f172a' }}>Checking Transaction Status...</div>
+                    <div style={{ fontSize: 14, color: '#64748b', marginTop: 8 }}>This will only take a moment.</div>
+                </div>
+            )}
+
             <div style={{ maxWidth: 600, margin: '0 auto' }}>
 
                 {/* Balance Card */}
@@ -214,11 +251,26 @@ const WalletPage = () => {
                                             </div>
                                         </div>
                                     </div>
-                                    <div style={{
-                                        fontSize: 15, fontWeight: 900, flexShrink: 0,
-                                        color: typeColor(tx.type)
-                                    }}>
-                                        {tx.type === 'deposit' ? '+' : '-'}₵{tx.amount.toFixed(2)}
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end', flexShrink: 0 }}>
+                                        <div style={{
+                                            fontSize: 15, fontWeight: 900,
+                                            color: typeColor(tx.type)
+                                        }}>
+                                            {tx.type === 'deposit' ? '+' : '-'}₵{tx.amount.toFixed(2)}
+                                        </div>
+                                        {tx.type === 'deposit' && tx.status !== 'success' && (
+                                            <button 
+                                                onClick={() => handleManualVerify(tx.reference)}
+                                                disabled={loading}
+                                                style={{
+                                                    padding: '4px 8px', borderRadius: 6, border: '1px solid #e2e8f0',
+                                                    background: '#fff', fontSize: 10, fontWeight: 800, color: '#4f46e5',
+                                                    cursor: loading ? 'not-allowed' : 'pointer'
+                                                }}
+                                            >
+                                                Verify
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             ))}
