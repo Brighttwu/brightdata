@@ -23,6 +23,10 @@ const AdminDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [editModal, setEditModal] = useState(null); 
     const [modalInputs, setModalInputs] = useState({ normal: '', retail: '' });
+    
+    // Manual verification
+    const [verifyRef, setVerifyRef] = useState('');
+    const [verifyLoading, setVerifyLoading] = useState(false);
 
     const fetchData = useCallback(async () => {
         setLoading(true);
@@ -333,12 +337,81 @@ const AdminDashboard = () => {
 
                 {/* Transactions Management */}
                 {tab === 'transactions' && !loading && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                        
+                        {/* Manual Verification Tool */}
+                        <div style={{ ...cardStyle, background: '#0f172a', color: '#fff' }}>
+                            <div style={{ fontWeight: 900, fontSize: 18, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <ShieldAlert size={20} color="#4f46e5" /> Manual Payment Verification
+                            </div>
+                            <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 16 }}>
+                                Force verify a hung Paystack transaction using its reference ID (BH_, BD_PAY_, or STORE_).
+                            </div>
+                            <div style={{ display: 'flex', gap: 12 }}>
+                                <input 
+                                    type="text" 
+                                    placeholder="Enter reference (e.g. BD_PAY_123456)" 
+                                    value={verifyRef}
+                                    onChange={e => setVerifyRef(e.target.value)}
+                                    style={{ flex: 1, padding: '12px 16px', borderRadius: 10, border: 'none', outline: 'none', fontWeight: 700 }}
+                                />
+                                <button 
+                                    disabled={verifyLoading || !verifyRef.trim()}
+                                    onClick={async () => {
+                                        setVerifyLoading(true);
+                                        try {
+                                            const ref = verifyRef.trim();
+                                            let endpoint = '';
+                                            if (ref.startsWith('BH_')) endpoint = `/payment/verify/${ref}`;
+                                            else if (ref.startsWith('BD_PAY_')) endpoint = `/data/buy-paystack-verify/${ref}`;
+                                            else if (ref.startsWith('STORE_')) endpoint = `/agent/public/verify/${ref}`;
+                                            else throw new Error('Unknown reference format. Must start with BH_, BD_PAY_, or STORE_');
+                                    
+                                            const res = await api.get(endpoint);
+                                            alert(res.data.message || 'Payment verified successfully!');
+                                            setVerifyRef('');
+                                            fetchData();
+                                        } catch (err) {
+                                            alert(err.response?.data?.message || err.message || 'Verification failed');
+                                        } finally {
+                                            setVerifyLoading(false);
+                                        }
+                                    }}
+                                    style={{ 
+                                        padding: '12px 24px', borderRadius: 10, border: 'none', 
+                                        background: verifyLoading ? '#475569' : '#4f46e5', 
+                                        color: '#fff', fontWeight: 800, cursor: verifyLoading ? 'not-allowed' : 'pointer'
+                                    }}
+                                >
+                                    {verifyLoading ? 'Verifying...' : 'Verify Now'}
+                                </button>
+                            </div>
+                        </div>
+
                         {transactions.map(tx => (
                             <div key={tx._id} style={{ ...cardStyle, display: 'flex', justifyContent: 'space-between' }}>
                                 <div>
                                     <div style={{ fontWeight: 800, color: '#0f172a' }}>{tx.description}</div>
-                                    <div style={{ fontSize: 12, color: '#64748b' }}>{tx.user?.email} • {new Date(tx.createdAt).toLocaleString()}</div>
+                                    <div style={{ fontSize: 12, color: '#64748b' }}>
+                                        {tx.user?.email} • {new Date(tx.createdAt).toLocaleString()} • 
+                                        <span style={{ fontWeight: 700, color: tx.status === 'success' ? '#16a34a' : (tx.status === 'pending' ? '#f59e0b' : '#dc2626') }}> {tx.status.toUpperCase()}</span>
+                                    </div>
+                                    {tx.status === 'pending' && tx.reference?.startsWith('BH_') && (
+                                        <button 
+                                            onClick={async () => {
+                                                try {
+                                                    const res = await api.get(`/payment/verify/${tx.reference}`);
+                                                    alert(res.data.message || 'Verified!');
+                                                    fetchData();
+                                                } catch (e) {
+                                                    alert('Verification failed: ' + (e.response?.data?.message || e.message));
+                                                }
+                                            }}
+                                            style={{ marginTop: 8, padding: '4px 10px', borderRadius: 6, border: 'none', background: '#f59e0b', color: '#fff', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}
+                                        >
+                                            Verify Transaction
+                                        </button>
+                                    )}
                                 </div>
                                 <div style={{ textAlign: 'right', fontWeight: 900, color: tx.type === 'deposit' ? '#16a34a' : '#0f172a' }}>
                                     {tx.type === 'deposit' ? '+' : '-'}₵{(tx.amount || 0).toFixed(2)}
@@ -375,7 +448,33 @@ const AdminDashboard = () => {
                                     <span style={{ fontWeight: 900, fontSize: 18 }}>{o.packageName}</span>
                                     <span style={{ fontWeight: 900, color: '#4f46e5' }}>₵{(o.amount || 0).toFixed(2)}</span>
                                 </div>
-                                <div style={{ fontSize: 13, color: '#64748b' }}>User: {o.user?.email} • Net: {o.network} • Status: <b style={{ textTransform: 'capitalize', color: o.status === 'completed' ? '#16a34a' : o.status === 'failed' ? '#dc2626' : '#d97706' }}>{o.status}</b></div>
+                                <div style={{ fontSize: 13, color: '#64748b' }}>
+                                    User: {o.user?.email} • Net: {o.network} • 
+                                    Status: <b style={{ textTransform: 'capitalize', color: o.status === 'completed' ? '#16a34a' : (o.status === 'failed' ? '#dc2626' : (o.status === 'pending_payment' ? '#f59e0b' : '#d97706')) }}>{o.status}</b>
+                                    {o.status === 'pending_payment' && (
+                                        <button 
+                                            onClick={async () => {
+                                                const ref = o.externalReference;
+                                                let endpoint = '';
+                                                if (ref.startsWith('BD_PAY_')) endpoint = `/data/buy-paystack-verify/${ref}`;
+                                                else if (ref.startsWith('STORE_')) endpoint = `/agent/public/verify/${ref}`;
+                                                
+                                                if (!endpoint) return alert('Cannot verify this order type automatically.');
+                                                
+                                                try {
+                                                    const res = await api.get(endpoint);
+                                                    alert(res.data.message || 'Verified!');
+                                                    fetchData();
+                                                } catch (e) {
+                                                    alert('Verification failed: ' + (e.response?.data?.message || e.message));
+                                                }
+                                            }}
+                                            style={{ marginLeft: 12, padding: '4px 10px', borderRadius: 6, border: 'none', background: '#f59e0b', color: '#fff', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}
+                                        >
+                                            Verify Payment
+                                        </button>
+                                    )}
+                                </div>
                                 <div style={{ fontSize: 14, fontWeight: 700, marginTop: 8, color: '#0f172a' }}>To: {o.phoneNumber}</div>
                                 {o.isReported && <div style={{ marginTop: 8, padding: '6px 12px', background: '#fef2f2', borderRadius: 8, fontSize: 12, fontWeight: 700, color: '#dc2626' }}>⚠ Reported: {o.reportReason}</div>}
                             </div>

@@ -327,7 +327,7 @@ router.post('/buy-paystack-init', auth, async (req, res) => {
             email: user.email,
             amount: paystackAmount,
             reference,
-            callback_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/dashboard`
+            callback_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/payment-status?type=data&reference=${reference}`
         }, {
             headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` }
         });
@@ -383,33 +383,34 @@ router.get('/buy-paystack-verify/:reference', auth, async (req, res) => {
             
             // Log topup + purchase transaction history for transparency
             const Transaction = require('../models/Transaction');
+            const targetUser = await User.findById(order.user);
             const isFailed = order.status === 'failed';
             
             await Transaction.create({
-                user: req.user._id,
+                user: targetUser._id,
                 type: 'deposit',
                 amount: order.amount,
                 status: 'success',
                 reference: `${reference}_dep`,
                 description: `Paystack Deposit for ${order.packageName}`,
-                balanceBefore: req.user.balance,
-                balanceAfter: req.user.balance + order.amount
+                balanceBefore: targetUser.balance,
+                balanceAfter: targetUser.balance + order.amount
             });
             await Transaction.create({
-                user: req.user._id,
+                user: targetUser._id,
                 type: 'purchase',
                 amount: order.amount,
                 status: isFailed ? 'failed' : 'success',
                 reference: reference,
                 description: `${order.network.toUpperCase()} ${order.packageName} - ${order.phoneNumber}`,
-                balanceBefore: req.user.balance + order.amount,
-                balanceAfter: isFailed ? req.user.balance + order.amount : req.user.balance
+                balanceBefore: targetUser.balance + order.amount,
+                balanceAfter: isFailed ? targetUser.balance + order.amount : targetUser.balance
             });
 
             await order.save();
 
             // Referral Commission
-            await handleReferralCommission(req.user._id, order.amount, reference);
+            await handleReferralCommission(targetUser._id, order.amount, reference);
 
             res.json({ message: 'Payment verified and order submitted successfully.', order });
         } else {

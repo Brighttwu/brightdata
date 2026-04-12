@@ -10,7 +10,7 @@ import {
 const AgentPage = () => {
     const { user, updateBalance } = useAuth();
     const [tab, setTab] = useState('dashboard'); // dashboard | store | pricing | withdrawals
-    const [dashboard, setDashboard] = useState({ profits: [], totalProfit: 0, totalSales: 0, store: null });
+    const [dashboard, setDashboard] = useState({ profits: [], totalProfit: 0, totalSales: 0, store: null, unverifiedOrders: [] });
     const [packages, setPackages] = useState([]);
     const [selectedNetwork, setSelectedNetwork] = useState('mtn');
     const [storeForm, setStoreForm] = useState({ slug: '', name: '', description: '', whatsapp: '', groupLink: '', logo: '', theme: 'classic' });
@@ -22,6 +22,10 @@ const AgentPage = () => {
     const [upgrading, setUpgrading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
     const [copiedLink, setCopiedLink] = useState(false);
+    
+    // Store Manual Verification
+    const [verifyRef, setVerifyRef] = useState('');
+    const [verifyLoading, setVerifyLoading] = useState(false);
     
     const [justUpgraded, setJustUpgraded] = useState(false);
     
@@ -264,6 +268,92 @@ const AgentPage = () => {
                                         <div style={{ fontWeight: 900, color: '#16a34a' }}>+₵{p.profit.toFixed(2)}</div>
                                     </div>
                                 ))}
+                            </div>
+                        </div>
+                        {/* Unverified Orders (Initiated but not confirmed) */}
+                        {dashboard.unverifiedOrders && dashboard.unverifiedOrders.length > 0 && (
+                            <div style={cardStyle}>
+                                <div style={{ fontWeight: 900, fontSize: 18, color: '#f59e0b', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <AlertCircle size={20} /> Awaiting Verification
+                                </div>
+                                <div style={{ fontSize: 13, color: '#64748b', marginBottom: 16 }}>
+                                    These customers started a purchase but didn't complete it or weren't redirected. Check if you received payment and click Verify.
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                    {dashboard.unverifiedOrders.map(order => (
+                                        <div key={order._id} style={{ 
+                                            padding: 16, background: '#fffbeb', borderRadius: 14, border: '1px solid #fde68a',
+                                            display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12
+                                        }}>
+                                            <div>
+                                                <div style={{ fontWeight: 800, fontSize: 15 }}>{order.network?.toUpperCase()} {order.packageName}</div>
+                                                <div style={{ fontSize: 13, color: '#92400e', fontWeight: 600 }}>{order.phoneNumber} • ₵{order.amount.toFixed(2)}</div>
+                                                <div style={{ fontSize: 11, color: '#b45309', marginTop: 4 }}>Ref: {order.externalReference}</div>
+                                            </div>
+                                            <button 
+                                                disabled={verifyLoading}
+                                                onClick={async () => {
+                                                    setVerifyLoading(true);
+                                                    try {
+                                                        const res = await api.get(`/agent/public/verify/${order.externalReference}`);
+                                                        alert(res.data.message || 'Payment verified and order processed!');
+                                                        fetchDashboard();
+                                                    } catch (err) {
+                                                        alert(err.response?.data?.message || 'Verification failed. Transaction might be incomplete.');
+                                                    } finally {
+                                                        setVerifyLoading(false);
+                                                    }
+                                                }}
+                                                style={{ 
+                                                    padding: '10px 20px', borderRadius: 10, border: 'none', 
+                                                    background: '#f59e0b', color: '#fff', fontWeight: 800, cursor: 'pointer',
+                                                    boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)'
+                                                }}>
+                                                {verifyLoading ? '...' : 'Verify Payment'}
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        <div style={cardStyle}>
+                            <div style={{ fontWeight: 900, fontSize: 18, color: '#0f172a', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <ShieldCheck size={20} color="#4f46e5" /> Manual Ref Search
+                            </div>
+                            <div style={{ fontSize: 13, color: '#64748b', marginBottom: 12 }}>
+                                Paste a specific reference if it's not showing in the list above.
+                            </div>
+                            <div style={{ display: 'flex', gap: 10 }}>
+                                <input 
+                                    type="text" 
+                                    placeholder="Enter STORE_ reference" 
+                                    value={verifyRef}
+                                    onChange={e => setVerifyRef(e.target.value)}
+                                    style={{ flex: 1, padding: '12px', borderRadius: 10, border: '2px solid #f1f5f9', outline: 'none', fontWeight: 700 }}
+                                />
+                                <button 
+                                    disabled={verifyLoading || !verifyRef.trim()}
+                                    onClick={async () => {
+                                        setVerifyLoading(true);
+                                        try {
+                                            const res = await api.get(`/agent/public/verify/${verifyRef.trim()}`);
+                                            alert(res.data.message || 'Payment verified!');
+                                            setVerifyRef('');
+                                            fetchDashboard();
+                                        } catch (err) {
+                                            alert(err.response?.data?.message || 'Verification failed');
+                                        } finally {
+                                            setVerifyLoading(false);
+                                        }
+                                    }}
+                                    style={{ 
+                                        padding: '0 20px', borderRadius: 10, border: 'none', 
+                                        background: '#4f46e5', color: '#fff', fontWeight: 800, cursor: 'pointer'
+                                    }}
+                                >
+                                    Verify
+                                </button>
                             </div>
                         </div>
                     </div>

@@ -13,6 +13,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import AgentPage from './pages/AgentPage';
 import StorePage from './pages/StorePage';
 import Referrals from './pages/Referrals';
+import PaymentStatus from './pages/PaymentStatus';
 
 const ProtectedRoute = ({ children }) => {
     const { user, loading } = useAuth();
@@ -55,6 +56,7 @@ function AppContent() {
                 <Route path="/agent" element={<ProtectedRoute><AgentPage /></ProtectedRoute>} />
                 <Route path="/referrals" element={<ProtectedRoute><Referrals /></ProtectedRoute>} />
                 <Route path="/store/:slug" element={<StorePage />} />
+                <Route path="/payment-status" element={<PaymentStatus />} />
             </Routes>
         </div>
     );

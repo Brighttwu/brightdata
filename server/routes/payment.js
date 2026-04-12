@@ -37,7 +37,7 @@ router.post('/initialize', auth, async (req, res) => {
             amount: paystackAmount,
             reference,
             currency: 'GHS',
-            callback_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/wallet`
+            callback_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/payment-status?type=wallet&reference=${reference}`
         }, {
             headers: {
                 Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
@@ -93,15 +93,18 @@ router.get('/verify/:reference', auth, async (req, res) => {
                 return res.status(400).json({ message: 'Payment amount mismatch. Verification rejected.' });
             }
 
-            const balanceBefore = req.user.balance;
-            req.user.balance += transaction.amount;
-            await req.user.save();
+            const targetUser = await User.findById(transaction.user);
+            if (!targetUser) return res.status(404).json({ message: 'User for transaction not found' });
+
+            const balanceBefore = targetUser.balance;
+            targetUser.balance += transaction.amount;
+            await targetUser.save();
 
             transaction.status = 'success';
-            transaction.balanceAfter = req.user.balance;
+            transaction.balanceAfter = targetUser.balance;
             await transaction.save();
 
-            res.json({ message: 'Payment verified', balance: req.user.balance });
+            res.json({ message: 'Payment verified', balance: targetUser.balance });
         } else {
             await Transaction.updateOne({ reference }, { status: 'failed' });
             res.status(400).json({ message: 'Payment was not successful' });

@@ -154,8 +154,9 @@ router.get('/dashboard', auth, async (req, res) => {
     try {
         const store = await Store.findOne({ agent: req.user._id });
         const profits = await Profit.find({ agent: req.user._id }).sort({ createdAt: -1 }).limit(50);
+        const unverifiedOrders = await Order.find({ user: req.user._id, status: 'pending_payment' }).sort({ createdAt: -1 });
         const totalProfit = profits.reduce((sum, p) => sum + (p.profit || 0), 0);
-        res.json({ store, profits, totalProfit, totalSales: profits.length });
+        res.json({ store, profits, totalProfit, totalSales: profits.length, unverifiedOrders });
     } catch (err) {
         res.status(500).json({ message: 'Error fetching dashboard' });
     }
@@ -283,7 +284,7 @@ router.post('/public/:slug/buy-init', async (req, res) => {
             email: customer_email || `guest_${Date.now()}@bossdata.store`,
             amount: Math.round(sellingPrice * 100), // in pesewas
             reference,
-            callback_url: `${frontendUrl}/store/${store.slug}?reference=${reference}`,
+            callback_url: `${frontendUrl}/payment-status?type=store&storeSlug=${store.slug}&reference=${reference}`,
             channels: ['card', 'mobile_money'],
             metadata: {
                 type: 'store_purchase',
@@ -301,6 +302,18 @@ router.post('/public/:slug/buy-init', async (req, res) => {
             headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` }
         });
 
+        // Create "Pending Payment" order record for manual tracking/verification
+        await Order.create({
+            user: store.agent._id,
+            network: net,
+            packageKey: package_key,
+            packageName: basePkg.display_name || basePkg.name,
+            phoneNumber: recipient_phone,
+            amount: sellingPrice,
+            externalReference: reference,
+            status: 'pending_payment'
+        });
+
         res.json({ authorization_url: paystackRes.data.data.authorization_url, reference });
     } catch (err) {
         console.error('Store buy-init error:', err.response?.data || err.message);
@@ -316,7 +329,7 @@ router.get('/public/verify/:reference', async (req, res) => {
 
         // DUPLICATE PROTECTION: Check if this reference was already processed
         const existingOrder = await Order.findOne({ externalReference: reference });
-        if (existingOrder) {
+        if (existingOrder && existingOrder.status !== 'pending_payment') {
             return res.json({ message: 'This payment has already been processed.', orderId: existingOrder.orderId, profit: 0, status: existingOrder.status });
         }
 
@@ -349,16 +362,22 @@ router.get('/public/verify/:reference', async (req, res) => {
         if (!store || !agent) return res.status(404).json({ message: 'Store or agent not found' });
 
         // 1. Initial Order Record (Pending Vendor)
-        const order = await Order.create({
-            user: agentId,
-            network,
-            packageKey,
-            packageName,
-            phoneNumber: recipientPhone,
-            amount: sellingPrice,
-            externalReference: reference,
-            status: 'pending'
-        });
+        let order;
+        if (existingOrder) {
+            order = existingOrder;
+            order.status = 'pending';
+        } else {
+            order = await Order.create({
+                user: agentId,
+                network,
+                packageKey,
+                packageName,
+                phoneNumber: recipientPhone,
+                amount: sellingPrice,
+                externalReference: reference,
+                status: 'pending'
+            });
+        }
 
         // 2. Platform places the Bossu order
         let bossuOrderId = null;
