@@ -56,7 +56,9 @@ function AppContent() {
                 <Route path="/agent" element={<ProtectedRoute><AgentPage /></ProtectedRoute>} />
                 <Route path="/referrals" element={<ProtectedRoute><Referrals /></ProtectedRoute>} />
                 <Route path="/store/:slug" element={<StorePage />} />
+                <Route path="/store" element={<Navigate to="/dashboard" />} />
                 <Route path="/payment-status" element={<PaymentStatus />} />
+                <Route path="*" element={<Navigate to="/dashboard" />} />
             </Routes>
         </div>
     );

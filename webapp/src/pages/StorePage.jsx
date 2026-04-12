@@ -15,6 +15,7 @@ const StorePage = () => {
     const [loading, setLoading] = useState(true);
     const [pkgLoading, setPkgLoading] = useState(false);
     const [buying, setBuying] = useState(false);
+    const [message, setMessage] = useState({ type: '', text: '' });
     const [notFound, setNotFound] = useState(false);
 
     useEffect(() => {
