@@ -112,9 +112,11 @@ router.post('/store/prices', auth, async (req, res) => {
             const rule = await Pricing.findOne({ network: { $regex: new RegExp(`^${net}$`, 'i') }, packageKey: { $regex: new RegExp(`^${pKey}$`, 'i') } });
             
             let platformCost = 0;
-            if (rule && rule.normalPrice > 0) {
-                platformCost = rule.normalPrice;
-            } else {
+            if (rule) {
+                if (rule.retailPrice > 0) platformCost = rule.retailPrice;
+                else if (rule.normalPrice > 0) platformCost = rule.normalPrice;
+            }
+            if (platformCost === 0) {
                 // Fetch from API if no rule
                 const pkgParams = new URLSearchParams();
                 pkgParams.append('action', 'packages');
@@ -187,9 +189,13 @@ router.get('/public/:slug/packages/:network', async (req, res) => {
             const pKey = (p.package_key || p.key || p.id || '').toString().trim().toLowerCase();
             const pKeyOriginal = (p.package_key || p.key || p.id || '').toString().trim();
 
-            // Platform cost = normalPrice (what admin charges normal users)
+            // Platform cost = retailPrice (what admin charges agents)
             const adminRule = pricings.find(x => (x.packageKey || '').toString().trim().toLowerCase() === pKey);
-            const platformCost = adminRule?.normalPrice > 0 ? adminRule.normalPrice : Number(p.price);
+            let platformCost = Number(p.price);
+            if (adminRule) {
+                if (adminRule.retailPrice > 0) platformCost = adminRule.retailPrice;
+                else if (adminRule.normalPrice > 0) platformCost = adminRule.normalPrice;
+            }
 
             // Agent's selling price (their markup on top of platform cost)
             const storeRule = store.customPrices.find(x =>
@@ -249,10 +255,14 @@ router.post('/public/:slug/buy-init', async (req, res) => {
         );
         if (!basePkg) return res.status(400).json({ message: 'Invalid package' });
 
-        // Platform cost = admin's normalPrice (what platform pays Bossu effectively)
+        // Platform cost = admin's retailPrice for agents
         const pricings = await Pricing.find({ network: { $regex: new RegExp(`^${net}$`, 'i') } });
         const adminRule = pricings.find(x => (x.packageKey || '').toString().trim().toLowerCase() === pKey);
-        const platformCost = adminRule?.normalPrice > 0 ? adminRule.normalPrice : Number(basePkg.price);
+        let platformCost = Number(basePkg.price);
+        if (adminRule) {
+            if (adminRule.retailPrice > 0) platformCost = adminRule.retailPrice;
+            else if (adminRule.normalPrice > 0) platformCost = adminRule.normalPrice;
+        }
 
         // Agent's selling price
         const storeRule = store.customPrices.find(x =>
