@@ -12,7 +12,11 @@ createRoot(document.getElementById('root')).render(
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
-      .then(reg => console.log('SW registered'))
+      .then(reg => {
+        console.log('SW registered');
+        // Force check for updates on every page load
+        reg.update();
+      })
       .catch(err => console.log('SW reg error', err));
   });
 }
