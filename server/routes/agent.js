@@ -314,20 +314,35 @@ router.get('/public/verify/:reference', async (req, res) => {
     try {
         const { reference } = req.params;
 
+        // DUPLICATE PROTECTION: Check if this reference was already processed
+        const existingOrder = await Order.findOne({ externalReference: reference });
+        if (existingOrder) {
+            return res.json({ message: 'This payment has already been processed.', orderId: existingOrder.orderId, profit: 0, status: existingOrder.status });
+        }
+
+        // PAYSTACK VERIFICATION: Always check with Paystack before crediting anything
         const psRes = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
             headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` }
         });
 
         if (psRes.data.data.status !== 'success') {
-            return res.status(400).json({ message: 'Payment not successful' });
+            return res.status(400).json({ message: 'Payment not successful. Paystack reported status: ' + psRes.data.data.status });
         }
 
+        // Verify the amount paid matches what we expect (anti-tamper)
+        const amountPaidGHS = psRes.data.data.amount / 100; // Paystack returns pesewas
+        
         const meta = psRes.data.data.metadata;
         if (meta.type !== 'store_purchase') {
             return res.status(400).json({ message: 'Invalid payment type' });
         }
 
         const { storeId, agentId, network, packageKey, packageName, recipientPhone, sellingPrice, platformCost } = meta;
+
+        // Verify the paid amount is sufficient (with 2% tolerance for Paystack fees)
+        if (amountPaidGHS < sellingPrice * 0.95) {
+            return res.status(400).json({ message: 'Payment amount mismatch. Expected ₵' + sellingPrice + ' but received ₵' + amountPaidGHS.toFixed(2) });
+        }
 
         const store = await Store.findById(storeId);
         const agent = await User.findById(agentId);

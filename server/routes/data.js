@@ -353,6 +353,14 @@ router.get('/buy-paystack-verify/:reference', auth, async (req, res) => {
         });
 
         if (psRes.data.data.status === 'success') {
+            // Amount validation: ensure Paystack received the correct amount
+            const paidAmountGHS = psRes.data.data.amount / 100;
+            if (paidAmountGHS < order.amount * 0.95) {
+                order.status = 'failed';
+                await order.save();
+                return res.status(400).json({ message: 'Payment amount mismatch. Expected ₵' + order.amount + ' but received ₵' + paidAmountGHS.toFixed(2) });
+            }
+
             // Paystack success, call Bossu API to actually buy the data
             const buyParams = new URLSearchParams();
             buyParams.append('action', 'create_order');

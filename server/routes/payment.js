@@ -85,6 +85,14 @@ router.get('/verify/:reference', auth, async (req, res) => {
             if (!transaction) return res.status(404).json({ message: 'Transaction not found' });
             if (transaction.status === 'success') return res.json({ message: 'Already verified', balance: req.user.balance });
 
+            // Amount validation: ensure Paystack received enough (with tolerance for fees)
+            const paidAmountGHS = data.amount / 100;
+            if (paidAmountGHS < transaction.amount * 0.95) {
+                transaction.status = 'failed';
+                await transaction.save();
+                return res.status(400).json({ message: 'Payment amount mismatch. Verification rejected.' });
+            }
+
             const balanceBefore = req.user.balance;
             req.user.balance += transaction.amount;
             await req.user.save();
