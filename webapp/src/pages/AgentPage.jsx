@@ -140,9 +140,13 @@ const AgentPage = () => {
             return { network: selectedNetwork, packageKey: pkg.key, packageName: pkg.name, price };
         }).filter(Boolean);
         try {
-            await api.post('/agent/store/prices', { customPrices: priceArr });
+            await api.post('/agent/store/prices', { network: selectedNetwork, customPrices: priceArr });
             setMessage({ type: 'success', text: 'Prices updated!' });
-        } catch (err) { setMessage({ type: 'error', text: 'Error saving prices' }); } finally { setSaving(false); }
+        } catch (err) { 
+            setMessage({ type: 'error', text: err.response?.data?.message || 'Error saving prices' }); 
+        } finally { 
+            setSaving(false); 
+        }
     };
 
     const storeUrl = `${window.location.origin}/store/${dashboard.store?.slug}`;

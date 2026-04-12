@@ -100,10 +100,11 @@ router.post('/store/prices', auth, async (req, res) => {
         const store = await Store.findOne({ agent: req.user._id });
         if (!store) return res.status(404).json({ message: 'Store not found. Create your store first.' });
 
-        const customPrices = req.body.customPrices || [];
+        const networkToSave = req.body.network;
+        const incomingPrices = req.body.customPrices || [];
 
         // Server-side validation: selling price must be >= platform cost
-        for (const cp of customPrices) {
+        for (const cp of incomingPrices) {
             const net = cp.network.toLowerCase();
             const pKey = cp.packageKey.toString().trim().toLowerCase();
 
@@ -125,11 +126,18 @@ router.post('/store/prices', auth, async (req, res) => {
             }
 
             if (cp.price < platformCost) {
-                return res.status(400).json({ message: `Price for ${cp.packageName} (₵${cp.price}) cannot be lower than platform cost (₵${platformCost}).` });
+                return res.status(400).json({ message: `Price for ${cp.packageName} (₵${cp.price.toFixed(2)}) is too low. Minimum allowed is ₵${platformCost.toFixed(2)}.` });
             }
         }
 
-        store.customPrices = customPrices;
+        if (networkToSave) {
+            // Keep prices for other networks, replace for the current one
+            const otherPrices = store.customPrices.filter(cp => cp.network.toLowerCase() !== networkToSave.toLowerCase());
+            store.customPrices = [...otherPrices, ...incomingPrices];
+        } else {
+            store.customPrices = incomingPrices;
+        }
+
         store.updatedAt = Date.now();
         await store.save();
         res.json({ message: 'Prices updated!', store });
