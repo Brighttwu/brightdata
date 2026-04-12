@@ -4,7 +4,7 @@ import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import {
     Store, TrendingUp, DollarSign, ShoppingBag, Settings, AlertCircle,
-    CheckCircle2, ChevronRight, Plus, Edit3, Wifi, ExternalLink, Copy, RefreshCw
+    CheckCircle2, ChevronRight, Plus, Edit3, Wifi, ExternalLink, Copy, RefreshCw, ShieldCheck
 } from 'lucide-react';
 
 const AgentPage = () => {
