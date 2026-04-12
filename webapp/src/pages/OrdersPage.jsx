@@ -60,6 +60,8 @@ const OrdersPage = () => {
         } finally {
             setActionLoadingId(null);
         }
+    };
+
     const handleVerifyPaystackOrder = async (order) => {
         setActionLoadingId(order._id);
         setMessage({ type: '', text: '' });
