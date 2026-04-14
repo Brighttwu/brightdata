@@ -3,6 +3,7 @@ const router = express.Router();
 const axios = require('axios');
 const User = require('../models/User');
 const Transaction = require('../models/Transaction');
+const { verifyPaystackTransaction } = require('../utils/paystackHelper');
 
 // Auth middleware
 const auth = (req, res, next) => {
@@ -72,15 +73,8 @@ router.get('/verify/:reference', async (req, res) => {
     try {
         const { reference } = req.params;
 
-        const response = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
-            headers: {
-                Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`
-            }
-        });
-
-        const data = response.data.data;
-
-        if (data.status === 'success') {
+        const data = await verifyPaystackTransaction(reference);
+        if (data) {
             const transaction = await Transaction.findOne({ reference });
             if (!transaction) return res.status(404).json({ message: 'Transaction record not found. Please contact support.' });
             

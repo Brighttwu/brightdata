@@ -5,6 +5,7 @@ const Store = require('../models/Store');
 const Profit = require('../models/Profit');
 const axios = require('axios');
 const { handleReferralCommission } = require('./referralHelper');
+const { verifyPaystackTransaction } = require('./paystackHelper');
 
 const API_KEY = process.env.BOSSU_API_KEY;
 const API_URL = process.env.BOSSU_API_URL;
@@ -103,16 +104,14 @@ async function retryAwaitingOrder(order) {
 
 async function verifyWalletPayment(tx) {
     try {
-        const res = await axios.get(`https://api.paystack.co/transaction/verify/${tx.reference}`, {
-            headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` }
-        });
-
-        if (res.data.data.status === 'success') {
+        const data = await verifyPaystackTransaction(tx.reference);
+        if (data) {
+            const user = await User.findById(tx.user);
             const user = await User.findById(tx.user);
             if (!user) return;
 
             // Amount check
-            const paid = res.data.data.amount / 100;
+            const paid = data.amount / 100;
             if (paid < tx.amount * 0.95) {
                 tx.status = 'failed';
                 await tx.save();
@@ -134,12 +133,9 @@ async function verifyWalletPayment(tx) {
 
 async function verifyDataPayment(order) {
     try {
-        const res = await axios.get(`https://api.paystack.co/transaction/verify/${order.externalReference}`, {
-            headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` }
-        });
-
-        if (res.data.data.status === 'success') {
-            const paid = res.data.data.amount / 100;
+        const data = await verifyPaystackTransaction(order.externalReference);
+        if (data) {
+            const paid = data.amount / 100;
             if (paid < order.amount * 0.95) {
                 order.status = 'failed';
                 await order.save();
@@ -203,13 +199,10 @@ async function verifyDataPayment(order) {
 
 async function verifyStorePayment(order) {
     try {
-        const res = await axios.get(`https://api.paystack.co/transaction/verify/${order.externalReference}`, {
-            headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` }
-        });
-
-        if (res.data.data.status === 'success') {
-            const meta = res.data.data.metadata;
-            const paid = res.data.data.amount / 100;
+        const data = await verifyPaystackTransaction(order.externalReference);
+        if (data) {
+            const meta = data.metadata;
+            const paid = data.amount / 100;
             
             if (!meta || !meta.storeId) return; // Meta missing, can't auto-verify store easily without it
             if (paid < order.amount * 0.95) {

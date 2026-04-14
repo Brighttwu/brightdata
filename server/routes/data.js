@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
+const orderSyncer = require('../utils/orderSyncer');
+const { verifyPaystackTransaction } = require('../utils/paystackHelper');
 const Order = require('../models/Order');
 const User = require('../models/User');
 const Pricing = require('../models/Pricing');
@@ -349,13 +351,10 @@ router.get('/buy-paystack-verify/:reference', async (req, res) => {
         if (!order) return res.status(404).json({ message: 'Order not found' });
         if (order.status !== 'pending_payment') return res.json({ message: 'Order already processed', order });
 
-        const psRes = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
-            headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` }
-        });
-
-        if (psRes.data.data.status === 'success') {
+        const data = await verifyPaystackTransaction(reference);
+        if (data) {
             // Amount validation: ensure Paystack received the correct amount
-            const paidAmountGHS = psRes.data.data.amount / 100;
+            const paidAmountGHS = data.amount / 100;
             if (paidAmountGHS < order.amount * 0.95) {
                 order.status = 'failed';
                 await order.save();

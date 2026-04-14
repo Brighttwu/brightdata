@@ -10,6 +10,7 @@ const Transaction = require('../models/Transaction');
 const { handleReferralCommission } = require('../utils/referralHelper');
 const checkMaintenance = require('../utils/maintenanceMiddleware');
 const cloudinary = require('../utils/cloudinary');
+const { verifyPaystackTransaction } = require('../utils/paystackHelper');
 
 const API_URL = process.env.BOSSU_API_URL;
 const API_KEY = process.env.BOSSU_API_KEY;
@@ -379,19 +380,15 @@ router.get('/public/verify/:reference', checkMaintenance, async (req, res) => {
             return res.json({ message: 'This payment has already been processed.', orderId: existingOrder.orderId, profit: 0, status: existingOrder.status });
         }
 
-        // PAYSTACK VERIFICATION: Always check with Paystack before crediting anything
-        const psRes = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
-            headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` }
-        });
-
-        if (psRes.data.data.status !== 'success') {
-            return res.status(400).json({ message: 'Payment not successful. Paystack reported status: ' + psRes.data.data.status });
+        const data = await verifyPaystackTransaction(reference);
+        if (!data) {
+            return res.status(400).json({ message: 'Payment verification failed or was not successful on Paystack.' });
         }
 
         // Verify the amount paid matches what we expect (anti-tamper)
-        const amountPaidGHS = psRes.data.data.amount / 100; // Paystack returns pesewas
+        const amountPaidGHS = data.amount / 100; // Paystack returns pesewas
         
-        const meta = psRes.data.data.metadata;
+        const meta = data.metadata;
         if (meta.type !== 'store_purchase') {
             return res.status(400).json({ message: 'Invalid payment type' });
         }
