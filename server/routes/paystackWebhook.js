@@ -102,7 +102,15 @@ router.post('/', async (req, res) => {
                     const bossuData = bossuRes.data.data || bossuRes.data;
                     order.orderId = bossuData.order_id;
                     order.apiResponse = bossuRes.data;
-                    order.status = (bossuData.status === 'failed' || bossuRes.data.success === false) ? 'failed' : 'pending';
+                    
+                    const apiMsg = (bossuRes.data.message || bossuData.message || "").toLowerCase();
+                    const isLowBalance = apiMsg.includes('insufficient') || apiMsg.includes('balance');
+                    
+                    if (bossuRes.data.success === false && isLowBalance) {
+                        order.status = 'awaiting_api_balance';
+                    } else {
+                        order.status = (bossuData.status === 'failed' || bossuRes.data.success === false) ? 'failed' : 'pending';
+                    }
                     
                     const targetUser = await User.findById(order.user);
                     const isFailed = order.status === 'failed';
@@ -195,7 +203,11 @@ router.post('/', async (req, res) => {
                     bossuApiResponse = bossuRes.data;
                     const bossuData = bossuRes.data.data || bossuRes.data;
                     bossuOrderId = bossuData.order_id;
-                    if (bossuData.status === 'failed' || bossuRes.data.success === false) {
+                    
+                    const apiMsg = (bossuRes.data.message || bossuData.message || "").toLowerCase();
+                    if (bossuRes.data.success === false && (apiMsg.includes('insufficient') || apiMsg.includes('balance'))) {
+                        bossuStatus = 'awaiting_api_balance';
+                    } else if (bossuData.status === 'failed' || bossuRes.data.success === false) {
                         bossuStatus = 'failed';
                     }
                 } catch (bossuErr) {

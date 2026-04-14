@@ -45,7 +45,19 @@ const Dashboard = () => {
             } catch (err) { console.error(err); }
         };
         fetchSettings();
-    }, [fetchPackages]);
+
+        // Refresh balance every 15 seconds while on dashboard to catch auto-verifications
+        const interval = setInterval(async () => {
+            try {
+                const res = await api.get('/user/profile');
+                if (res.data.balance !== user.balance) {
+                    updateBalance(res.data.balance);
+                }
+            } catch (err) {}
+        }, 15000);
+
+        return () => clearInterval(interval);
+    }, [fetchPackages, updateBalance, user?.balance]);
 
     const handleBuy = async (method) => {
         if (!selectedPackage || phone.replace(/\s/g, '').length < 10) return;

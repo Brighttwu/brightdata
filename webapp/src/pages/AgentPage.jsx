@@ -91,7 +91,18 @@ const AgentPage = () => {
         } catch (err) { setPackages([]); }
     }, [selectedNetwork]);
 
-    useEffect(() => { if (isAgent) fetchDashboard(); else setLoading(false); }, [isAgent, fetchDashboard]);
+    useEffect(() => { 
+        if (isAgent) fetchDashboard(); 
+        else setLoading(false); 
+
+        // Auto-refresh for pending orders
+        const hasUnverified = dashboard.unverifiedOrders?.length > 0;
+        let interval;
+        if (hasUnverified && isAgent) {
+            interval = setInterval(fetchDashboard, 7000);
+        }
+        return () => clearInterval(interval);
+    }, [isAgent, fetchDashboard, dashboard.unverifiedOrders?.length]);
     useEffect(() => { if (tab === 'pricing' && isAgent) fetchPackages(); }, [tab, fetchPackages, isAgent]);
     useEffect(() => { if (tab === 'withdrawals' && isAgent) fetchWithdrawals(); }, [tab, fetchWithdrawals, isAgent]);
 

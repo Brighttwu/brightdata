@@ -34,6 +34,13 @@ const WalletPage = () => {
             try {
                 const res = await api.get('/payment/transactions');
                 setTransactions(res.data);
+                
+                // If there's a status change from pending to success, refresh balance
+                const hasPending = res.data.some(tx => tx.type === 'deposit' && tx.status === 'pending');
+                if (!hasPending && transactions.some(tx => tx.type === 'deposit' && tx.status === 'pending')) {
+                    // Logic to update global balance if something resolved
+                    api.get('/auth/me').then(res => updateBalance(res.data.balance));
+                }
             } catch (err) {
                 console.error(err);
             } finally {
@@ -41,7 +48,15 @@ const WalletPage = () => {
             }
         };
         fetchTx();
-    }, [message]);
+
+        // Auto-refresh every 5 seconds if there are pending transactions
+        const hasPending = transactions.some(tx => tx.type === 'deposit' && tx.status === 'pending');
+        let interval;
+        if (hasPending) {
+            interval = setInterval(fetchTx, 5000);
+        }
+        return () => clearInterval(interval);
+    }, [message, transactions.length, transactions.some(tx => tx.status === 'pending')]);
 
     const handleFund = async () => {
         const val = parseFloat(amount);

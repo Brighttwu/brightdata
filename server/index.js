@@ -84,7 +84,7 @@ setInterval(async () => {
     } catch (e) {
         console.error('Background Payment Poller Error:', e.message);
     }
-}, 60000); // 60 seconds
+}, 20000); // 20 seconds
 
 // Global Error Handler (Must be after routes)
 app.use((err, req, res, next) => {
