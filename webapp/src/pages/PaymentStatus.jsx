@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext';
 const PaymentStatus = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-    const { updateBalance } = useAuth();
+    const { updateBalance, refreshProfile } = useAuth();
     
     const [status, setStatus] = useState('processing'); // processing, success, error
     const [message, setMessage] = useState('Verifying your securely processed payment...');
@@ -59,6 +59,9 @@ const PaymentStatus = () => {
 
                 const res = await api.get(endpoint);
                 
+                // FORCE REFRESH PROFILE to get latest balance/orders immediately
+                await refreshProfile();
+
                 setStatus('success');
                 
                 if (type === 'wallet') {
