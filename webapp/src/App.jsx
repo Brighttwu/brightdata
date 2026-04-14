@@ -79,32 +79,34 @@ function AppContent() {
                 <Route path="*" element={<Navigate to="/dashboard" />} />
             </Routes>
 
-            {/* Global WhatsApp Floating Button */}
-            <a 
-                href={`https://wa.me/${whatsappNumber}`} 
-                target="_blank" 
-                rel="noreferrer"
-                style={{
-                    position: 'fixed',
-                    bottom: 24,
-                    right: 24,
-                    width: 60,
-                    height: 60,
-                    background: '#25D366',
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 8px 32px rgba(37,211,102,0.4)',
-                    zIndex: 9999,
-                    transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
-                }}
-                onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1) translateY(-4px)'}
-                onMouseLeave={e => e.currentTarget.style.transform = 'scale(1) translateY(0)'}
-            >
-                <div style={{ position: 'absolute', top: -10, left: -10, background: '#ef4444', color: '#fff', fontSize: 10, fontWeight: 900, padding: '4px 8px', borderRadius: 10, border: '2px solid #fff', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>SUPPORT</div>
-                <MessageCircle size={32} color="#fff" />
-            </a>
+            {/* Global WhatsApp Floating Button — Only show on platform pages, not agent stores */}
+            {!isStore && (
+                <a 
+                    href={`https://wa.me/${whatsappNumber}`} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    style={{
+                        position: 'fixed',
+                        bottom: 24,
+                        right: 24,
+                        width: 60,
+                        height: 60,
+                        background: '#25D366',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 8px 32px rgba(37,211,102,0.4)',
+                        zIndex: 9999,
+                        transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1) translateY(-4px)'}
+                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1) translateY(0)'}
+                >
+                    <div style={{ position: 'absolute', top: -10, left: -10, background: '#ef4444', color: '#fff', fontSize: 10, fontWeight: 900, padding: '4px 8px', borderRadius: 10, border: '2px solid #fff', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>SUPPORT</div>
+                    <MessageCircle size={32} color="#fff" />
+                </a>
+            )}
         </div>
     );
 }
