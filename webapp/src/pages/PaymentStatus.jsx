@@ -12,11 +12,22 @@ const PaymentStatus = () => {
     const [status, setStatus] = useState('processing'); // processing, success, error
     const [message, setMessage] = useState('Verifying your securely processed payment...');
     const [details, setDetails] = useState('');
+    const [continueUrl, setContinueUrl] = useState('/dashboard');
     const hasCalledRef = useRef(false);
 
     const type = searchParams.get('type');
     const reference = searchParams.get('reference');
     const storeSlug = searchParams.get('storeSlug');
+
+    const getContinueUrl = () => {
+        if (type === 'store' && storeSlug) {
+            return `/store/${storeSlug}`;
+        }
+        if (type === 'wallet') {
+            return `/wallet`;
+        }
+        return '/dashboard';
+    };
 
     useEffect(() => {
         if (!reference || !type) {
@@ -27,6 +38,10 @@ const PaymentStatus = () => {
 
         if (hasCalledRef.current) return;
         hasCalledRef.current = true;
+
+        // Capture continue URL immediately before any cleanup
+        const targetUrl = getContinueUrl();
+        setContinueUrl(targetUrl);
 
         const verifyPayment = async () => {
             try {
@@ -68,7 +83,7 @@ const PaymentStatus = () => {
 
                 // AUTO-REDIRECT after 3 seconds for seamless experience
                 setTimeout(() => {
-                    navigate(getContinueUrl());
+                    navigate(targetUrl);
                 }, 3000);
 
             } catch (err) {
@@ -82,16 +97,6 @@ const PaymentStatus = () => {
 
         verifyPayment();
     }, [reference, type, updateBalance]);
-
-    const getContinueUrl = () => {
-        if (type === 'store' && storeSlug) {
-            return `/store/${storeSlug}`;
-        }
-        if (type === 'wallet') {
-            return `/wallet`;
-        }
-        return '/dashboard';
-    };
 
     return (
         <div style={{
@@ -173,7 +178,7 @@ const PaymentStatus = () => {
                             <p style={{ fontSize: 16, color: '#94a3b8', lineHeight: 1.6, marginBottom: 40, maxWidth: 340 }}>
                                 {details}
                             </p>
-                            <Link to={getContinueUrl()} style={{
+                            <Link to={continueUrl} style={{
                                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
                                 background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                                 color: '#fff', textDecoration: 'none', padding: '16px 32px', borderRadius: 16,
@@ -208,7 +213,7 @@ const PaymentStatus = () => {
                                 }}>
                                     <RefreshCw size={18} /> Retry
                                 </button>
-                                <Link to={getContinueUrl()} style={{
+                                <Link to={continueUrl} style={{
                                     flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                                     background: '#ef4444', color: '#fff', textDecoration: 'none', padding: '16px',
                                     borderRadius: 16, fontWeight: 800, fontSize: 16
