@@ -107,7 +107,6 @@ async function verifyWalletPayment(tx) {
         const data = await verifyPaystackTransaction(tx.reference);
         if (data) {
             const user = await User.findById(tx.user);
-            const user = await User.findById(tx.user);
             if (!user) return;
 
             // Amount check
