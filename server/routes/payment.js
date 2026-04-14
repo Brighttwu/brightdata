@@ -68,7 +68,7 @@ router.post('/initialize', auth, async (req, res) => {
 });
 
 // Verify Paystack Payment
-router.get('/verify/:reference', auth, async (req, res) => {
+router.get('/verify/:reference', async (req, res) => {
     try {
         const { reference } = req.params;
 
@@ -82,10 +82,15 @@ router.get('/verify/:reference', auth, async (req, res) => {
 
         if (data.status === 'success') {
             const transaction = await Transaction.findOne({ reference });
-            if (!transaction) return res.status(404).json({ message: 'Transaction not found' });
-            if (transaction.status === 'success') return res.json({ message: 'Already verified', balance: req.user.balance });
+            if (!transaction) return res.status(404).json({ message: 'Transaction record not found. Please contact support.' });
+            
+            // Check if already processed
+            if (transaction.status === 'success') {
+                const alreadyUser = await User.findById(transaction.user);
+                return res.json({ message: 'Already verified', balance: alreadyUser?.balance || 0 });
+            }
 
-            // Amount validation: ensure Paystack received enough (with tolerance for fees)
+            // Amount validation: ensure Paystack received enough (with 5% tolerance for fees/calc)
             const paidAmountGHS = data.amount / 100;
             if (paidAmountGHS < transaction.amount * 0.95) {
                 transaction.status = 'failed';
@@ -106,8 +111,12 @@ router.get('/verify/:reference', auth, async (req, res) => {
 
             res.json({ message: 'Payment verified', balance: targetUser.balance });
         } else {
-            await Transaction.updateOne({ reference }, { status: 'failed' });
-            res.status(400).json({ message: 'Payment was not successful' });
+            const tx = await Transaction.findOne({ reference });
+            if (tx && tx.status === 'pending') {
+                tx.status = 'failed';
+                await tx.save();
+            }
+            res.status(400).json({ message: 'Payment was not successful (Paystack reports ' + data.status + ')' });
         }
     } catch (err) {
         console.error('Paystack Verify Error:', err.response?.data || err.message);

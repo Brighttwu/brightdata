@@ -340,7 +340,7 @@ router.post('/buy-paystack-init', auth, async (req, res) => {
 });
 
 // Verify Paystack order and execute
-router.get('/buy-paystack-verify/:reference', auth, async (req, res) => {
+router.get('/buy-paystack-verify/:reference', async (req, res) => {
     try {
         const { reference } = req.params;
         const order = await Order.findOne({ externalReference: reference });
@@ -379,6 +379,11 @@ router.get('/buy-paystack-verify/:reference', auth, async (req, res) => {
             const bossuData = response.data.data || response.data; // Bossu wraps in .data
             order.orderId = bossuData.order_id;
             order.apiResponse = response.data;
+            
+            // Check for low API balance error
+            const apiMsg = (response.data.message || bossuData.message || "").toLowerCase();
+            const isLowBalance = apiMsg.includes('insufficient') || apiMsg.includes('balance');
+            
             order.status = (bossuData.status === 'failed' || response.data.success === false) ? 'failed' : 'pending';
             
             // Log topup + purchase transaction history for transparency
@@ -396,23 +401,43 @@ router.get('/buy-paystack-verify/:reference', auth, async (req, res) => {
                 balanceBefore: targetUser.balance,
                 balanceAfter: targetUser.balance + order.amount
             });
-            await Transaction.create({
-                user: targetUser._id,
-                type: 'purchase',
-                amount: order.amount,
-                status: isFailed ? 'failed' : 'success',
-                reference: reference,
-                description: `${order.network.toUpperCase()} ${order.packageName} - ${order.phoneNumber}`,
-                balanceBefore: targetUser.balance + order.amount,
-                balanceAfter: isFailed ? targetUser.balance + order.amount : targetUser.balance
-            });
+            
+            if (isFailed && isLowBalance && targetUser) {
+                // REFUND TO BALANCE as requested for direct Paystack payments failing due to low API balance
+                targetUser.balance += order.amount;
+                await targetUser.save();
+                
+                await Transaction.create({
+                    user: targetUser._id,
+                    type: 'deposit',
+                    amount: order.amount,
+                    status: 'success',
+                    reference: `${reference}_ref`,
+                    description: `Refund: Insufficient API Balance for ${order.packageName}`,
+                    balanceBefore: targetUser.balance - order.amount,
+                    balanceAfter: targetUser.balance
+                });
+            } else {
+                await Transaction.create({
+                    user: targetUser._id,
+                    type: 'purchase',
+                    amount: order.amount,
+                    status: isFailed ? 'failed' : 'success',
+                    reference: reference,
+                    description: `${order.network.toUpperCase()} ${order.packageName} - ${order.phoneNumber}`,
+                    balanceBefore: targetUser.balance + order.amount,
+                    balanceAfter: isFailed ? targetUser.balance + order.amount : targetUser.balance
+                });
+            }
 
             await order.save();
 
-            // Referral Commission
-            await handleReferralCommission(targetUser._id, order.amount, reference);
+            // Referral Commission (only if didn't fail)
+            if (!isFailed) {
+                await handleReferralCommission(targetUser._id, order.amount, reference);
+            }
 
-            res.json({ message: 'Payment verified and order submitted successfully.', order });
+            res.json({ message: isFailed ? `Order failed: ${apiMsg}` : 'Payment verified and order submitted successfully.', order });
         } else {
             order.status = 'failed';
             await order.save();

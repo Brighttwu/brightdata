@@ -31,4 +31,4 @@ The frontend only needs to know where the backend is.
 ### ⚠️ Important Note:
 When deploying to Render:
 1.  **Frontend**: Make sure the environment variable starts with `VITE_` (e.g., `VITE_API_URL`), otherwise the browser won't be able to see it.
-2.  **Paystack**: In your Paystack dashboard, set your **Webhook URL** to `https://your-api.onrender.com/api/payment/webhook`.
+2.  **Paystack**: In your Paystack dashboard, set your **Webhook URL** to `https://your-api.onrender.com/api/paystack-webhook`.

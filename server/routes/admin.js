@@ -314,4 +314,29 @@ router.post('/resolve-withdrawal/:id', adminAuth, async (req, res) => {
     }
 });
 
+// Manage Stores (Agent Links)
+const Store = require('../models/Store');
+
+router.get('/stores', adminAuth, async (req, res) => {
+    try {
+        const stores = await Store.find().populate('agent', 'name email').sort({ createdAt: -1 });
+        res.json(stores);
+    } catch (err) {
+        res.status(500).json({ message: 'Error fetching stores' });
+    }
+});
+
+router.post('/store-status/:id', adminAuth, async (req, res) => {
+    try {
+        const store = await Store.findById(req.params.id);
+        if (!store) return res.status(404).json({ message: 'Store not found' });
+        
+        store.isActive = !store.isActive;
+        await store.save();
+        res.json({ message: `Store ${store.isActive ? 'activated' : 'deactivated'}`, isActive: store.isActive });
+    } catch (err) {
+        res.status(500).json({ message: 'Error updating store status' });
+    }
+});
+
 module.exports = router;

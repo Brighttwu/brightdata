@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import api from '../api/axios';
-import { CheckCircle2, XCircle, ArrowRight, Home, RefreshCw, ShieldCheck } from 'lucide-react';
+import { CheckCircle2, XCircle, ArrowRight, Home, RefreshCw, ShieldCheck, Store } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const PaymentStatus = () => {
@@ -42,9 +42,6 @@ const PaymentStatus = () => {
                     throw new Error('Unknown payment type');
                 }
 
-                // Give it a tiny bit of Artificial delay so user sees the nice loading screen
-                await new Promise(r => setTimeout(r, 1500));
-
                 const res = await api.get(endpoint);
                 
                 setStatus('success');
@@ -68,6 +65,11 @@ const PaymentStatus = () => {
                 
                 // Clear URL parameters for cleanliness history
                 window.history.replaceState({}, document.title, window.location.pathname);
+
+                // AUTO-REDIRECT after 3 seconds for seamless experience
+                setTimeout(() => {
+                    navigate(getContinueUrl());
+                }, 3000);
 
             } catch (err) {
                 console.error("Payment verification error:", err);
@@ -211,7 +213,8 @@ const PaymentStatus = () => {
                                     background: '#ef4444', color: '#fff', textDecoration: 'none', padding: '16px',
                                     borderRadius: 16, fontWeight: 800, fontSize: 16
                                 }}>
-                                    <Home size={18} /> Home
+                                    {type === 'store' ? <Store size={18} /> : <Home size={18} />}
+                                    {type === 'store' ? 'Back to Store' : 'Home'}
                                 </Link>
                             </div>
                         </div>

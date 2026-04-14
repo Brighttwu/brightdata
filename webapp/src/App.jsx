@@ -39,7 +39,8 @@ const ProtectedRoute = ({ children }) => {
 
 function AppContent() {
     const location = useLocation();
-    const isStore = location.pathname.startsWith('/store/');
+    const query = new URLSearchParams(location.search);
+    const isStore = location.pathname.startsWith('/store/') || (location.pathname === '/payment-status' && query.get('type') === 'store');
     
     return (
         <div style={{ minHeight: '100vh', background: '#fff' }}>

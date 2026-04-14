@@ -4,7 +4,7 @@ import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import {
     Store, TrendingUp, DollarSign, ShoppingBag, Settings, AlertCircle,
-    CheckCircle2, ChevronRight, Plus, Edit3, Wifi, ExternalLink, Copy, RefreshCw, ShieldCheck
+    CheckCircle2, ChevronRight, Plus, Edit3, Wifi, ExternalLink, Copy, RefreshCw, ShieldCheck, ShieldAlert
 } from 'lucide-react';
 
 const AgentPage = () => {
@@ -183,6 +183,26 @@ const AgentPage = () => {
         </div>
     );
 
+    if (dashboard.isDisabled) return (
+        <div style={{ background: '#f8fafc', minHeight: 'calc(100vh - 72px)', padding: '40px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ maxWidth: 500, width: '100%', background: '#fff', borderRadius: 24, padding: 40, textAlign: 'center', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', border: '1px solid #f1f5f9' }}>
+                <div style={{ width: 80, height: 80, background: '#fef2f2', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+                    <ShieldAlert size={40} color="#dc2626" />
+                </div>
+                <h2 style={{ fontSize: 24, fontWeight: 900, color: '#0f172a', marginBottom: 12 }}>Dashboard Disabled</h2>
+                <p style={{ fontSize: 16, color: '#64748b', lineHeight: 1.6, marginBottom: 32 }}>
+                    {dashboard.message || 'Your agent dashboard has been temporarily disabled by an administrator.'}
+                </p>
+                <Link to="/dashboard" style={{ 
+                    display: 'inline-block', padding: '14px 28px', background: '#4f46e5', color: '#fff', 
+                    borderRadius: 12, fontWeight: 800, textDecoration: 'none', transition: 'all 0.2s' 
+                }}>
+                    Back to Main Dashboard
+                </Link>
+            </div>
+        </div>
+    );
+
     if (!isAgent) return (
         <div style={{ background: '#f0f2f8', minHeight: 'calc(100vh - 72px)', padding: '24px 16px', fontFamily: "'Inter', sans-serif" }}>
             <div style={{ maxWidth: 620, margin: '0 auto' }}>
@@ -207,23 +227,33 @@ const AgentPage = () => {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
                     <div>
                         <h1 style={{ fontSize: 26, fontWeight: 900, color: '#0f172a', margin: 0 }}>Agent Dashboard</h1>
-                        {dashboard.store && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8 }}>
-                                <p style={{ fontSize: 13, color: '#64748b', fontWeight: 600, margin: 0 }}>
-                                    Store: <a href={storeUrl} target="_blank" rel="noreferrer" style={{ color: '#4f46e5', textDecoration: 'none', borderBottom: '1.5px solid #4f46e5' }}>{storeUrl}</a>
-                                </p>
-                                <button onClick={copyStoreLink} style={{ 
-                                    padding: '4px 10px', borderRadius: 8, border: '1.5px solid #e2e8f0', 
-                                    background: copiedLink ? '#10b981' : '#fff', color: copiedLink ? '#fff' : '#64748b',
-                                    fontSize: 11, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, transition: 'all 0.2s'
-                                }}>
-                                    {copiedLink ? <CheckCircle2 size={12} /> : <Copy size={12} />}
-                                    {copiedLink ? 'Copied' : 'Copy'}
-                                </button>
-                            </div>
-                        )}
                     </div>
                 </div>
+
+                {dashboard.store && (
+                    <div style={{ ...cardStyle, background: 'linear-gradient(135deg, #4f46e5, #4338ca)', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 20 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                            <div style={{ width: 48, height: 48, background: 'rgba(255,255,255,0.2)', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <Store size={24} />
+                            </div>
+                            <div>
+                                <div style={{ fontSize: 13, fontWeight: 700, opacity: 0.8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Your Public Storefront</div>
+                                <div style={{ fontSize: 18, fontWeight: 900, marginTop: 2 }}>{dashboard.store?.name}</div>
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', flex: '1 1 300px', justifyContent: 'flex-end' }}>
+                            <div style={{ background: 'rgba(0,0,0,0.2)', padding: '10px 16px', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 200 }}>
+                                <span style={{ fontSize: 13, fontWeight: 700, opacity: 0.9, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{storeUrl}</span>
+                                <button onClick={copyStoreLink} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', padding: '6px', borderRadius: 8, cursor: 'pointer' }}>
+                                    {copiedLink ? <CheckCircle2 size={16} /> : <Copy size={16} />}
+                                </button>
+                            </div>
+                            <a href={storeUrl} target="_blank" rel="noreferrer" style={{ background: '#fff', color: '#4f46e5', padding: '12px 20px', borderRadius: 12, fontWeight: 800, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                                Visit Store <ExternalLink size={16} />
+                            </a>
+                        </div>
+                    </div>
+                )}
 
                 {message.text && (
                     <div style={{ padding: '14px 18px', borderRadius: 14, fontWeight: 700, fontSize: 14, background: message.type === 'success' ? '#f0fdf4' : '#fef2f2', color: message.type === 'success' ? '#16a34a' : '#dc2626', border: '1px solid #eee' }}>{message.text}</div>
@@ -246,13 +276,14 @@ const AgentPage = () => {
                         )}
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
                             <div style={{ ...cardStyle, background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff' }}>
-                                <div style={{ fontSize: 13, fontWeight: 700, opacity: 0.8 }}>Commission Balance</div>
+                                <div style={{ fontSize: 13, fontWeight: 700, opacity: 0.8 }}>Available for Withdrawal</div>
                                 <div style={{ fontSize: 32, fontWeight: 900 }}>₵{(user?.commissionBalance || 0).toFixed(2)}</div>
-                                <div style={{ fontSize: 11, marginTop: 4, opacity: 0.7 }}>Available for withdrawal</div>
+                                <div style={{ fontSize: 11, marginTop: 4, opacity: 0.7 }}>Commission balance</div>
                             </div>
                             <div style={cardStyle}>
-                                <div style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8' }}>Total Profit</div>
+                                <div style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8' }}>Lifetime Earnings</div>
                                 <div style={{ fontSize: 28, fontWeight: 900, color: '#0f172a' }}>₵{dashboard.totalProfit.toFixed(2)}</div>
+                                <div style={{ fontSize: 11, marginTop: 4, color: '#94a3b8' }}>Total profit generated</div>
                             </div>
                             <div style={cardStyle}>
                                 <div style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8' }}>Total Sales</div>
@@ -470,7 +501,25 @@ const AgentPage = () => {
                                     <input value={withdrawForm.phone} onChange={e => setWithdrawForm(p => ({ ...p, phone: e.target.value }))} placeholder="024XXXXXXX" style={{ width: '100%', padding: 14, borderRadius: 12, border: '2px solid #f1f5f9', outline: 'none', fontWeight: 700, fontSize: 16, boxSizing: 'border-box' }} />
                                 </div>
                             </div>
-                            <button onClick={submitWithdrawal} disabled={saving || !withdrawForm.amount || !withdrawForm.phone} style={{ width: '100%', padding: 16, borderRadius: 14, background: '#10b981', color: '#fff', fontWeight: 900, border: 'none', cursor: 'pointer' }}>Submit Request</button>
+                            
+                            <div style={{ padding: '16px 20px', background: '#f8fafc', borderRadius: 12, marginBottom: 20, border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontSize: 13, fontWeight: 700, color: '#64748b' }}>Balance after withdrawal:</span>
+                                <span style={{ fontSize: 16, fontWeight: 900, color: Number(user?.commissionBalance || 0) - Number(withdrawForm.amount || 0) < 0 ? '#dc2626' : '#10b981' }}>
+                                    ₵{(Number(user?.commissionBalance || 0) - Number(withdrawForm.amount || 0)).toFixed(2)}
+                                </span>
+                            </div>
+
+                            <button 
+                                onClick={submitWithdrawal} 
+                                disabled={saving || !withdrawForm.amount || !withdrawForm.phone || Number(withdrawForm.amount) > Number(user?.commissionBalance || 0)} 
+                                style={{ 
+                                    width: '100%', padding: '16px', borderRadius: 14, 
+                                    background: Number(withdrawForm.amount) > Number(user?.commissionBalance || 0) ? '#e2e8f0' : '#10b981', 
+                                    color: '#fff', fontWeight: 900, border: 'none', cursor: Number(withdrawForm.amount) > Number(user?.commissionBalance || 0) ? 'not-allowed' : 'pointer' 
+                                }}
+                            >
+                                {Number(withdrawForm.amount) > Number(user?.commissionBalance || 0) ? 'Insufficient Balance' : (saving ? 'Processing...' : 'Submit Request')}
+                            </button>
                         </div>
 
                         <div style={cardStyle}>

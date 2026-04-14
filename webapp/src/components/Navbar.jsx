@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Wallet, Smartphone, Menu, X, ArrowRight, User, History, Plus, ShieldAlert, BarChart2, Users, Tag, Receipt, ShoppingCart, Home, DollarSign, Gift } from 'lucide-react';
+import { LogOut, Wallet, Smartphone, Menu, X, ArrowRight, User, History, Plus, ShieldAlert, BarChart2, Users, Tag, Receipt, ShoppingCart, Home, DollarSign, Gift, Store } from 'lucide-react';
 
 const Navbar = () => {
     const { user, logout } = useAuth();
@@ -85,6 +85,7 @@ const Navbar = () => {
                                     {desktopNavLink('/admin?tab=pricing', 'Pricing', 'pricing')}
                                     {desktopNavLink('/admin?tab=transactions', 'Transactions', 'transactions')}
                                     {desktopNavLink('/admin?tab=orders', 'Orders', 'orders')}
+                                    {desktopNavLink('/admin?tab=stores', 'Stores', 'stores')}
                                     {desktopNavLink('/admin?tab=reports', 'Reports', 'reports')}
                                     {desktopNavLink('/admin?tab=withdrawals', 'Withdrawals', 'withdrawals')}
                                     
@@ -180,6 +181,7 @@ const Navbar = () => {
                                 {navLink('/admin?tab=pricing', 'Manage Pricing', <Tag size={20} style={{ color: '#f59e0b' }} />, 'pricing')}
                                 {navLink('/admin?tab=transactions', 'Global Transactions', <Receipt size={20} style={{ color: '#10b981' }} />, 'transactions')}
                                 {navLink('/admin?tab=orders', 'Global Orders', <ShoppingCart size={20} style={{ color: '#ef4444' }} />, 'orders')}
+                                {navLink('/admin?tab=stores', 'Agent Stores', <Store size={20} style={{ color: '#8b5cf6' }} />, 'stores')}
                                 {navLink('/admin?tab=reports', 'Reported Orders', <ShieldAlert size={20} style={{ color: '#dc2626' }} />, 'reports')}
                                 {navLink('/admin?tab=withdrawals', 'Payout Requests', <DollarSign size={20} style={{ color: '#10b981' }} />, 'withdrawals')}
                                 

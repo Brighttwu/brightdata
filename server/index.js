@@ -19,7 +19,11 @@ app.use(cors({
     origin: true,
     credentials: true
 }));
-app.use(express.json());
+app.use(express.json({
+    verify: (req, res, buf) => {
+        req.rawBody = buf;
+    }
+}));
 
 // Request Logging Middleware (Must be before routes)
 app.use((req, res, next) => {
@@ -48,6 +52,9 @@ app.get('/api/health', (req, res) => {
 });
 
 // Routes
+// Webhook route must be registered before express.json() if raw body is needed, 
+// but here we register it to ensure reliable payment processing.
+app.use('/api/paystack-webhook', require('./routes/paystackWebhook'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/data', require('./routes/data'));
 app.use('/api/user', require('./routes/user'));
@@ -59,6 +66,8 @@ app.get('/', (req, res) => res.send('brightdata API Running'));
 
 // Background Task: Auto-Sync Orders every 20 seconds
 const { syncAllPendingOrders } = require('./utils/orderSyncer');
+const { pollPendingPayments } = require('./utils/paymentPoller');
+
 setInterval(async () => {
     try {
         await syncAllPendingOrders();
@@ -66,6 +75,14 @@ setInterval(async () => {
         console.error('Background Sync Error:', e.message);
     }
 }, 20000); // 20 seconds
+
+setInterval(async () => {
+    try {
+        await pollPendingPayments();
+    } catch (e) {
+        console.error('Background Payment Poller Error:', e.message);
+    }
+}, 60000); // 60 seconds
 
 // Global Error Handler (Must be after routes)
 app.use((err, req, res, next) => {

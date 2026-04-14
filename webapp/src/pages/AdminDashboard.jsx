@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import api from '../api/axios';
-import { Users, ShoppingBag, DollarSign, Wallet, ShieldAlert, Ban, PlusCircle, MinusCircle } from 'lucide-react';
+import { Users, ShoppingBag, DollarSign, Wallet, ShieldAlert, Ban, PlusCircle, MinusCircle, Search, Store, ExternalLink, Power } from 'lucide-react';
 
 const AdminDashboard = () => {
     const [searchParams] = useSearchParams();
@@ -12,6 +12,7 @@ const AdminDashboard = () => {
     });
     const [statsDays, setStatsDays] = useState(1);
     const [users, setUsers] = useState([]);
+    const [stores, setStores] = useState([]);
     // ... rest of state
     const [pricingRules, setPricingRules] = useState([]);
     const [transactions, setTransactions] = useState([]);
@@ -24,6 +25,10 @@ const AdminDashboard = () => {
     const [editModal, setEditModal] = useState(null); 
     const [modalInputs, setModalInputs] = useState({ normal: '', retail: '' });
     
+    // Search & Filter State
+    const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('all');
+
     // Manual verification
     const [verifyRef, setVerifyRef] = useState('');
     const [verifyLoading, setVerifyLoading] = useState(false);
@@ -70,6 +75,10 @@ const AdminDashboard = () => {
                 const res = await api.get('/admin/withdrawals');
                 setWithdrawals(res.data);
             }
+            else if (tab === 'stores') {
+                const res = await api.get('/admin/stores');
+                setStores(res.data);
+            }
         } catch (err) {
             console.error('Fetch error:', err);
         } finally {
@@ -108,6 +117,13 @@ const AdminDashboard = () => {
         const note = prompt(`Optional note for ${action}:`);
         try {
             await api.post(`/admin/resolve-withdrawal/${id}`, { action, note });
+            fetchData();
+        } catch (err) { alert('Action failed'); }
+    };
+
+    const handleStoreStatus = async (id) => {
+        try {
+            await api.post(`/admin/store-status/${id}`);
             fetchData();
         } catch (err) { alert('Action failed'); }
     };
@@ -254,10 +270,62 @@ const AdminDashboard = () => {
                     </>
                 )}
 
+                {/* Search & Global Filter UI (Visible on lists) */}
+                {['users', 'transactions', 'orders', 'reports', 'withdrawals'].includes(tab) && (
+                    <div style={{ marginBottom: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                        <div style={{ display: 'flex', gap: 12 }}>
+                            <div style={{ position: 'relative', flex: 1 }}>
+                                <Search size={18} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                                <input 
+                                    type="text" 
+                                    placeholder={`Search ${tab}...`}
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    style={{ 
+                                        width: '100%', padding: '14px 14px 14px 48px', borderRadius: 16, 
+                                        border: '1px solid #e2e8f0', background: '#fff', fontSize: 14, fontWeight: 700,
+                                        outline: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+                                    }}
+                                />
+                            </div>
+                            <button style={{ 
+                                padding: '0 24px', borderRadius: 16, background: '#0f172a', color: '#fff', 
+                                border: 'none', fontWeight: 800, fontSize: 14, cursor: 'pointer'
+                            }}>
+                                Search
+                            </button>
+                        </div>
+
+                        {/* Status Filters for Orders */}
+                        {tab === 'orders' && (
+                            <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
+                                {['all', 'pending', 'completed', 'failed', 'pending_payment'].map(s => (
+                                    <button 
+                                        key={s}
+                                        onClick={() => setStatusFilter(s)}
+                                        style={{ 
+                                            padding: '8px 16px', borderRadius: 10, fontSize: 12, fontWeight: 800,
+                                            whiteSpace: 'nowrap', cursor: 'pointer', border: 'none',
+                                            background: statusFilter === s ? '#4f46e5' : '#fff',
+                                            color: statusFilter === s ? '#fff' : '#64748b',
+                                            boxShadow: statusFilter === s ? '0 4px 12px rgba(79, 70, 229, 0.2)' : 'none'
+                                        }}
+                                    >
+                                        {s.replace('_', ' ').toUpperCase()}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 {/* Users Management */}
                 {tab === 'users' && !loading && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                        {users.map(u => (
+                        {users.filter(u => 
+                            u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                            u.email.toLowerCase().includes(searchTerm.toLowerCase())
+                        ).map(u => (
                             <div key={u._id} style={{ ...cardStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
                                 <div>
                                     <div style={{ fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -388,7 +456,11 @@ const AdminDashboard = () => {
                             </div>
                         </div>
 
-                        {transactions.map(tx => (
+                        {transactions.filter(tx => 
+                            tx.description?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                            tx.user?.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            tx.reference?.toLowerCase().includes(searchTerm.toLowerCase())
+                        ).map(tx => (
                             <div key={tx._id} style={{ ...cardStyle, display: 'flex', justifyContent: 'space-between' }}>
                                 <div>
                                     <div style={{ fontWeight: 800, color: '#0f172a' }}>{tx.description}</div>
@@ -442,7 +514,14 @@ const AdminDashboard = () => {
                                 Sync with Bossu
                             </button>
                         </div>
-                        {orders.map(o => (
+                        {orders.filter(o => {
+                            const matchesSearch = o.packageName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                                                o.phoneNumber?.includes(searchTerm) ||
+                                                o.user?.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                                o.externalReference?.toLowerCase().includes(searchTerm.toLowerCase());
+                            const matchesFilter = statusFilter === 'all' || o.status === statusFilter;
+                            return matchesSearch && matchesFilter;
+                        }).map(o => (
                             <div key={o._id} style={{ ...cardStyle }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
                                     <span style={{ fontWeight: 900, fontSize: 18 }}>{o.packageName}</span>
@@ -490,7 +569,11 @@ const AdminDashboard = () => {
                                 <div style={{ fontSize: 40, marginBottom: 12 }}>✅</div>
                                 <div style={{ fontWeight: 800, color: '#0f172a', fontSize: 18 }}>No reported orders</div>
                             </div>
-                        ) : reportedOrders.map(o => (
+                        ) : reportedOrders.filter(o => 
+                            o.packageName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                            o.user?.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            o.user?.name.toLowerCase().includes(searchTerm.toLowerCase())
+                        ).map(o => (
                             <div key={o._id} style={{ ...cardStyle, border: '1.5px solid #fecaca' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 12 }}>
                                     <div>
@@ -523,7 +606,11 @@ const AdminDashboard = () => {
                                 <div style={{ fontSize: 40, marginBottom: 12 }}>💸</div>
                                 <div style={{ fontWeight: 800, color: '#0f172a', fontSize: 18 }}>No payout requests</div>
                             </div>
-                        ) : withdrawals.map(w => (
+                        ) : withdrawals.filter(w => 
+                            w.user?.email.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                            w.user?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            w.paymentDetails?.toLowerCase().includes(searchTerm.toLowerCase())
+                        ).map(w => (
                             <div key={w._id} style={{ ...cardStyle, border: w.status === 'pending' ? '1.5px solid #fcd34d' : '1px solid #f1f5f9' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 12 }}>
                                     <div>
@@ -546,6 +633,73 @@ const AdminDashboard = () => {
                                 </div>
                             </div>
                         ))}
+                    </div>
+                )}
+
+                {/* Stores Management */}
+                {tab === 'stores' && !loading && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                        <div style={{ marginBottom: 12, fontSize: 13, color: '#64748b', fontWeight: 700 }}>
+                            Manage agent stores and disable their dashboards if needed.
+                        </div>
+                        {stores.filter(s => 
+                            s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                            s.slug.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            s.agent?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            s.agent?.email?.toLowerCase().includes(searchTerm.toLowerCase())
+                        ).map(s => (
+                            <div key={s._id} style={{ ...cardStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                                    <div style={{ 
+                                        width: 48, height: 48, borderRadius: 12, background: '#f1f5f9', 
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' 
+                                    }}>
+                                        {s.logo ? <img src={s.logo} alt="logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Store size={24} color="#94a3b8" />}
+                                    </div>
+                                    <div>
+                                        <div style={{ fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                            {s.name}
+                                            <span style={{ fontSize: 11, background: '#eef2ff', color: '#4f46e5', padding: '2px 8px', borderRadius: 6 }}>/{s.slug}</span>
+                                        </div>
+                                        <div style={{ fontSize: 13, color: '#64748b', marginTop: 4 }}>
+                                            Agent: <b>{s.agent?.name}</b> ({s.agent?.email})
+                                        </div>
+                                        <div style={{ display: 'flex', gap: 12, marginTop: 4, fontSize: 13, fontWeight: 700 }}>
+                                            <span style={{ color: '#16a34a' }}>Sales: {s.totalSales || 0}</span>
+                                            <span style={{ color: '#4f46e5' }}>Profit: ₵{(s.totalProfit || 0).toFixed(2)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div style={{ display: 'flex', gap: 10 }}>
+                                    <a href={`${window.location.origin}/store/${s.slug}`} target="_blank" rel="noreferrer" style={{ 
+                                        padding: '10px', borderRadius: 10, background: '#f8fafc', color: '#64748b', 
+                                        border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center' 
+                                    }}>
+                                        <ExternalLink size={18} />
+                                    </a>
+                                    <button 
+                                        onClick={() => handleStoreStatus(s._id)}
+                                        style={{ 
+                                            padding: '10px 16px', borderRadius: 10, border: 'none', 
+                                            background: s.isActive ? '#fef2f2' : '#f0fdf4', 
+                                            color: s.isActive ? '#dc2626' : '#16a34a',
+                                            fontWeight: 800, fontSize: 13, cursor: 'pointer',
+                                            display: 'flex', alignItems: 'center', gap: 8
+                                        }}
+                                    >
+                                        <Power size={16} />
+                                        {s.isActive ? 'Disable Dashboard' : 'Enable Dashboard'}
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                        {stores.length === 0 && (
+                            <div style={{ ...cardStyle, padding: 60, textAlign: 'center' }}>
+                                <div style={{ fontSize: 40, marginBottom: 16 }}>🏪</div>
+                                <div style={{ fontWeight: 800, color: '#0f172a' }}>No agent stores found</div>
+                            </div>
+                        )}
                     </div>
                 )}
 

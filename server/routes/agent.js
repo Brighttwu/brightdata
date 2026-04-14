@@ -152,12 +152,40 @@ router.post('/store/prices', auth, async (req, res) => {
 // ─── GET AGENT DASHBOARD STATS ────────────────────────────────────────────────
 router.get('/dashboard', auth, async (req, res) => {
     try {
-        const store = await Store.findOne({ agent: req.user._id });
-        const profits = await Profit.find({ agent: req.user._id }).sort({ createdAt: -1 }).limit(50);
-        const unverifiedOrders = await Order.find({ user: req.user._id, status: 'pending_payment' }).sort({ createdAt: -1 });
-        const totalProfit = profits.reduce((sum, p) => sum + (p.profit || 0), 0);
-        res.json({ store, profits, totalProfit, totalSales: profits.length, unverifiedOrders });
+        const agentId = req.user._id;
+        const store = await Store.findOne({ agent: agentId });
+        
+        // Check if store is active
+        if (store && store.isActive === false) {
+            return res.json({ 
+                isDisabled: true,
+                message: 'Your agent dashboard has been disabled by administrators. Please contact support for assistance.' 
+            });
+        }
+
+        // Fetch recent profits for the list
+        const recentProfits = await Profit.find({ agent: agentId }).sort({ createdAt: -1 }).limit(50);
+        
+        // Calculate LIFETIME PROFIT by aggregating ALL records
+        const lifetimeProfits = await Profit.aggregate([
+            { $match: { agent: agentId } },
+            { $group: { _id: null, total: { $sum: '$profit' } } }
+        ]);
+        
+        const totalProfit = lifetimeProfits[0]?.total || 0;
+        const totalSales = await Profit.countDocuments({ agent: agentId });
+        
+        const unverifiedOrders = await Order.find({ user: agentId, status: 'pending_payment' }).sort({ createdAt: -1 });
+        
+        res.json({ 
+            store, 
+                profits: recentProfits, 
+            totalProfit: Number(totalProfit.toFixed(2)), 
+            totalSales, 
+            unverifiedOrders 
+        });
     } catch (err) {
+        console.error('Agent Dashboard Error:', err);
         res.status(500).json({ message: 'Error fetching dashboard' });
     }
 });
@@ -411,7 +439,16 @@ router.get('/public/verify/:reference', async (req, res) => {
         // 3. Update Order with API results
         order.orderId = bossuOrderId;
         order.apiResponse = bossuApiResponse;
-        order.status = bossuStatus;
+        
+        // Check for low API balance error
+        const apiMsg = (bossuApiResponse?.message || bossuApiResponse?.data?.message || "").toLowerCase();
+        const isLowBalance = apiMsg.includes('insufficient') || apiMsg.includes('balance');
+        
+        if (bossuStatus === 'failed' && isLowBalance) {
+            order.status = 'awaiting_api_balance';
+        } else {
+            order.status = bossuStatus;
+        }
         await order.save();
 
         // 4. Credit agent's PROFIT commission
