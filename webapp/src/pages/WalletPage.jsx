@@ -10,6 +10,7 @@ const WalletPage = () => {
     const [transactions, setTransactions] = useState([]);
     const [txLoading, setTxLoading] = useState(true);
     const [message, setMessage] = useState({ type: '', text: '' });
+    const [refreshing, setRefreshing] = useState(false);
 
     const quickAmounts = [5, 10, 20, 50, 100];
 
@@ -45,9 +46,14 @@ const WalletPage = () => {
         fetchTx(true);
     }, [fetchTx]);
 
-    const handleRefresh = () => {
-        fetchTx(true);
-        api.get('/user/profile').then(res => updateBalance(res.data.balance)).catch(() => {});
+    const handleRefresh = async () => {
+        setRefreshing(true);
+        try {
+            await fetchTx(true);
+            const res = await api.get('/user/profile');
+            updateBalance(res.data.balance);
+        } catch (err) {}
+        setTimeout(() => setRefreshing(false), 1000);
     };
 
     const handleFund = async () => {
@@ -78,6 +84,12 @@ const WalletPage = () => {
 
     return (
         <div style={{ background: '#f8fafc', minHeight: 'calc(100vh - 72px)', padding: '24px 16px' }}>
+            <style>{`
+                @keyframes spin-anim {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                }
+            `}</style>
 
             <div style={{ maxWidth: 600, margin: '0 auto' }}>
 
@@ -100,7 +112,7 @@ const WalletPage = () => {
                             cursor: 'pointer', color: '#fff', transition: 'all 0.2s'
                         }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
                            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}>
-                            <RefreshCw size={16} />
+                            <RefreshCw size={16} style={{ animation: refreshing ? 'spin-anim 0.8s linear infinite' : 'none' }} />
                         </button>
                     </div>
                 </div>
@@ -203,7 +215,7 @@ const WalletPage = () => {
                             background: '#fff', color: '#4f46e5', border: '1px solid #e2e8f0', borderRadius: 10,
                             fontWeight: 700, cursor: 'pointer', fontSize: 13
                         }}>
-                            <RefreshCw size={14} /> Refresh
+                            <RefreshCw size={14} style={{ animation: refreshing ? 'spin-anim 0.8s linear infinite' : 'none' }} /> Refresh
                         </button>
                     </div>
 

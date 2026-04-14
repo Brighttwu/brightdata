@@ -15,7 +15,8 @@ const Dashboard = () => {
     const [message, setMessage] = useState({ type: '', text: '' });
     const [searchQuery, setSearchQuery] = useState('');
     const [platformSettings, setPlatformSettings] = useState(null);
-
+    const [refreshing, setRefreshing] = useState(false);
+ 
     const fetchPackages = useCallback(async () => {
         setLoading(true);
         setSelectedPackage(null);
@@ -50,9 +51,14 @@ const Dashboard = () => {
         fetchPackages();
     }, [fetchPackages]);
 
-    const handleRefresh = () => {
-        fetchPackages();
-        api.get('/user/profile').then(res => updateBalance(res.data.balance)).catch(() => {});
+    const handleRefresh = async () => {
+        setRefreshing(true);
+        try {
+            await fetchPackages();
+            const res = await api.get('/user/profile');
+            updateBalance(res.data.balance);
+        } catch (err) {}
+        setTimeout(() => setRefreshing(false), 1000);
     };
 
     const handleBuy = async (method) => {
@@ -195,10 +201,16 @@ const Dashboard = () => {
                                 cursor: 'pointer', color: '#fff', transition: 'all 0.2s'
                             }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
                                onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}>
-                                <RefreshCw size={16} />
+                                <RefreshCw size={16} style={{ animation: refreshing ? 'spin-anim 0.8s linear infinite' : 'none' }} />
                             </button>
                         </div>
                     </div>
+                    <style>{`
+                        @keyframes spin-anim {
+                            from { transform: rotate(0deg); }
+                            to { transform: rotate(360deg); }
+                        }
+                    `}</style>
 
                     <div style={{ display: 'flex', gap: 12, position: 'relative' }}>
                         <Link to="/wallet" style={{
@@ -243,7 +255,7 @@ const Dashboard = () => {
                                 fontWeight: 700, cursor: 'pointer', fontSize: 13, transition: 'all 0.2s',
                             }} onMouseEnter={e => { e.currentTarget.style.borderColor = '#4f46e5'; e.currentTarget.style.background = '#f5f7ff'; }} 
                                onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.background = '#fff'; }}>
-                                <RefreshCw size={14} /> Refresh Dashboard
+                                <RefreshCw size={14} style={{ animation: refreshing ? 'spin-anim 0.8s linear infinite' : 'none' }} /> Refresh Dashboard
                             </button>
                         </div>
 

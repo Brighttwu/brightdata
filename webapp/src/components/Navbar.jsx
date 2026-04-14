@@ -8,6 +8,13 @@ const Navbar = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const [isOpen, setIsOpen] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
+
+    const handleNavbarRefresh = async () => {
+        setRefreshing(true);
+        await refreshProfile();
+        setTimeout(() => setRefreshing(false), 800);
+    };
 
     const isAdminMode = user?.role === 'admin' && location.pathname.startsWith('/admin');
 
@@ -126,13 +133,20 @@ const Navbar = () => {
                                         padding: '10px 18px', borderRadius: 14, fontSize: 14, fontWeight: 800, marginLeft: 8
                                     }}>
                                         ₵{user.balance.toFixed(2)}
-                                        <button onClick={() => refreshProfile()} style={{
+                                        <button onClick={handleNavbarRefresh} style={{
                                             background: 'transparent', border: 'none', color: '#fff', padding: 0,
                                             marginLeft: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', opacity: 0.8
                                         }} title="Refresh Balance">
-                                            <RefreshCw size={12} />
+                                            <RefreshCw size={12} style={{ animation: refreshing ? 'spin-anim 0.8s linear infinite' : 'none' }} />
                                         </button>
                                     </div>
+
+                                    <style>{`
+                                        @keyframes spin-anim {
+                                            from { transform: rotate(0deg); }
+                                            to { transform: rotate(360deg); }
+                                        }
+                                    `}</style>
                                     <button onClick={handleLogout} style={{
                                         background: '#f8fafc', border: '1px solid #e2e8f0',
                                         padding: 10, borderRadius: 12, cursor: 'pointer', color: '#94a3b8',
