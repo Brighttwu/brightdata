@@ -413,10 +413,32 @@ const StorePage = () => {
                         {store?.name}
                     </span>
                 </div>
-                {/* Badge only — no phone number shown */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: t.accent, background: isOcean ? 'rgba(255,255,255,0.12)' : isDark ? 'rgba(0,212,255,0.08)' : `${t.accent}12`, padding: '5px 12px', borderRadius: '50px', border: `1px solid ${t.accent}33` }}>
-                    <ShieldCheck size={13} /> Secure
-                </div>
+                {/* Agent's own WhatsApp number — clickable link */}
+                {store?.whatsapp ? (
+                    <a
+                        href={`https://wa.me/${store.whatsapp}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="store-whatsapp-nav"
+                        style={{
+                            display: 'flex', alignItems: 'center', gap: 6,
+                            fontSize: 13, fontWeight: 800,
+                            color: t.accent,
+                            background: isOcean ? 'rgba(255,255,255,0.12)' : isDark ? `${t.accent}14` : `${t.accent}12`,
+                            padding: '6px 14px', borderRadius: '50px',
+                            border: `1px solid ${t.accent}33`,
+                            textDecoration: 'none',
+                            transition: 'opacity 0.2s',
+                        }}
+                    >
+                        <MessageCircle size={14} />
+                        <span className="store-whatsapp-num">{store.whatsapp}</span>
+                    </a>
+                ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: t.accent, background: isOcean ? 'rgba(255,255,255,0.12)' : isDark ? `${t.accent}14` : `${t.accent}12`, padding: '5px 12px', borderRadius: '50px', border: `1px solid ${t.accent}33` }}>
+                        <ShieldCheck size={13} /> Secure
+                    </div>
+                )}
             </nav>
 
             {/* ── HEADER — varies by theme ───────────────────────────── */}
