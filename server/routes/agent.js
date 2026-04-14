@@ -552,18 +552,42 @@ router.get('/referral-stats', auth, async (req, res) => {
             await user.save();
         }
 
-        const referrals = await User.find({ referredBy: user._id }).select('name createdAt');
+        const referrals = await User.find({ referredBy: user._id }).select('name createdAt _id');
+
+        // For each referred user, sum up commission the referrer earned from them
+        const referralsWithCommission = await Promise.all(referrals.map(async (r) => {
+            // Transactions created by referralHelper use description like "Referral Commission from <name>"
+            // and reference like "REF_<orderRef>". We match on user (referrer) + description containing buyer name.
+            const commissionTxns = await Transaction.find({
+                user: user._id,
+                type: 'deposit',
+                description: { $regex: `Referral Commission from ${r.name}`, $options: 'i' }
+            }).select('amount');
+            const totalCommission = commissionTxns.reduce((sum, t) => sum + (t.amount || 0), 0);
+            return {
+                _id: r._id,
+                name: r.name,
+                createdAt: r.createdAt,
+                commissionEarned: Number(totalCommission.toFixed(2)),
+                orderCount: commissionTxns.length
+            };
+        }));
+
+        const totalCommissionEarned = referralsWithCommission.reduce((s, r) => s + r.commissionEarned, 0);
+
         res.json({
             referralCode: user.referralCode,
             referralBalance: user.referralBalance,
             referralCount: referrals.length,
-            referrals
+            referrals: referralsWithCommission,
+            totalCommissionEarned: Number(totalCommissionEarned.toFixed(2))
         });
     } catch (err) {
         console.error('Referral Stats Error:', err);
         res.status(500).json({ message: 'Error fetching referral stats' });
     }
 });
+
 
 router.post('/request-referral-withdrawal', auth, async (req, res) => {
     try {

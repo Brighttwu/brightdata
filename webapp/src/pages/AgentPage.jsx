@@ -110,7 +110,7 @@ const AgentPage = () => {
     const handleLogoUpload = (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        if (file.size > 2 * 1024 * 1024) return setMessage({ type: 'error', text: 'Logo must be under 2MB' });
+        if (file.size > 5 * 1024 * 1024) return setMessage({ type: 'error', text: 'Logo must be under 5MB' });
         
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -415,7 +415,7 @@ const AgentPage = () => {
                                     <div style={{ flex: 1 }}>
                                         <input type="file" accept="image/*" onChange={handleLogoUpload} style={{ display: 'none' }} id="logo-upload" />
                                         <label htmlFor="logo-upload" style={{ display: 'inline-block', padding: '10px 20px', background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 10, fontSize: 13, fontWeight: 800, color: '#0f172a', cursor: 'pointer' }}>Choose Image</label>
-                                        <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 8 }}>Square image, max 2MB</div>
+                                        <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 8 }}>Square image, max 5MB (JPG, PNG, WEBP)</div>
                                     </div>
                                 </div>
                             </div>
