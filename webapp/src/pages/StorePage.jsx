@@ -227,6 +227,10 @@ const StorePage = () => {
                 ]);
                 setStore(storeRes.data);
                 setPlatformSettings(settingsRes.data);
+                // Update page title
+                if (storeRes.data?.name) {
+                    document.title = `${storeRes.data.name} - Data Hub`;
+                }
             } catch {
                 setNotFound(true);
             } finally {
