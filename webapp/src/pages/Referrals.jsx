@@ -102,13 +102,13 @@ const Referrals = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                     <div>
                         <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 10, letterSpacing: '0.05em' }}>Your Referral Link</label>
-                        <div style={{ display: 'flex', gap: 8 }}>
-                            <div style={{ flex: 1, background: '#fff', border: '2px solid #e2e8f0', borderRadius: 14, padding: '14px 18px', fontSize: 14, fontWeight: 700, color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <div style={{ display: 'flex', gap: 8 }} className="mobile-stack">
+                            <div style={{ flex: 1, background: '#fff', border: '2px solid #e2e8f0', borderRadius: 14, padding: '14px 18px', fontSize: 13, fontWeight: 700, color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} className="mobile-full-width">
                                 {stats?.referralCode ? `${window.location.origin}/register?ref=${stats.referralCode}` : '--- Generating Link ---'}
                             </div>
-                            <button onClick={copyLink} disabled={!stats?.referralCode} style={{ padding: '0 20px', borderRadius: 14, border: 'none', background: copied ? '#10b981' : '#0f172a', color: '#fff', fontWeight: 800, cursor: (copied || !stats?.referralCode) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.2s' }}>
+                            <button onClick={copyLink} disabled={!stats?.referralCode} style={{ padding: '14px 20px', borderRadius: 14, border: 'none', background: copied ? '#10b981' : '#0f172a', color: '#fff', fontWeight: 800, cursor: (copied || !stats?.referralCode) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.2s' }} className="mobile-full-width">
                                 {copied ? <CheckCircle2 size={18} /> : <Copy size={18} />}
-                                {copied ? 'Copied' : 'Copy'}
+                                {copied ? 'Copied' : 'Copy link'}
                             </button>
                         </div>
                     </div>
@@ -182,6 +182,10 @@ const Referrals = () => {
             <style>{`
                 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
                 .animate-spin { animation: spin 1s linear infinite; }
+                @media (max-width: 600px) {
+                    .mobile-stack { flex-direction: column !important; }
+                    .mobile-full-width { width: 100% !important; }
+                }
             `}</style>
         </div>
     );

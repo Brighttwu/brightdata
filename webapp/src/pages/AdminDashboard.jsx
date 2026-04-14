@@ -212,15 +212,16 @@ const AdminDashboard = () => {
             )}
 
             <div style={{ maxWidth: 1000, margin: '0 auto' }}>
-                <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 24, fontWeight: 900, color: '#0f172a' }}>
-                        Admin Controls • <span style={{ color: '#4f46e5', textTransform: 'capitalize' }}>{tab}</span>
+                        Admin <span style={{ color: '#4f46e5', textTransform: 'capitalize' }}>{tab}</span>
                     </div>
                     {tab === 'stats' && (
                         <select 
                             value={statsDays} 
                             onChange={(e) => setStatsDays(Number(e.target.value))}
-                            style={{ padding: '8px 16px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#fff', fontWeight: 700, fontSize: 14 }}
+                            style={{ padding: '8px 16px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#fff', fontWeight: 700, fontSize: 14, width: 'auto' }}
+                            className="mobile-full-width"
                         >
                             <option value={1}>Last 24 Hours</option>
                             <option value={7}>Last 7 Days</option>
@@ -234,7 +235,7 @@ const AdminDashboard = () => {
                 {/* Statistics */}
                 {tab === 'stats' && !loading && (
                     <>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 24 }}>
+                        <div className="admin-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 24 }}>
                             <div style={cardStyle}>
                                 <Users size={24} color="#6366f1" />
                                 <div style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', marginTop: 12 }}>Total Users / Agents</div>
@@ -253,7 +254,7 @@ const AdminDashboard = () => {
                         </div>
 
                         <div style={{ fontSize: 12, fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 16, letterSpacing: '0.05em' }}>Profit Analytics ({statsDays === 1 ? '24h' : `${statsDays} days`})</div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+                        <div className="admin-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
                             <div style={cardStyle}>
                                 <ShoppingBag size={24} color="#10b981" />
                                 <div style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', marginTop: 12 }}>Admin Profit</div>
@@ -273,8 +274,8 @@ const AdminDashboard = () => {
                 {/* Search & Global Filter UI (Visible on lists) */}
                 {['users', 'transactions', 'orders', 'reports', 'withdrawals'].includes(tab) && (
                     <div style={{ marginBottom: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
-                        <div style={{ display: 'flex', gap: 12 }}>
-                            <div style={{ position: 'relative', flex: 1 }}>
+                        <div style={{ display: 'flex', gap: 12 }} className="mobile-stack">
+                            <div style={{ position: 'relative', flex: 1 }} className="mobile-full-width">
                                 <Search size={18} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
                                 <input 
                                     type="text" 
@@ -288,8 +289,8 @@ const AdminDashboard = () => {
                                     }}
                                 />
                             </div>
-                            <button style={{ 
-                                padding: '0 24px', borderRadius: 16, background: '#0f172a', color: '#fff', 
+                            <button className="mobile-full-width" style={{ 
+                                padding: '14px 24px', borderRadius: 16, background: '#0f172a', color: '#fff', 
                                 border: 'none', fontWeight: 800, fontSize: 14, cursor: 'pointer'
                             }}>
                                 Search
@@ -298,7 +299,7 @@ const AdminDashboard = () => {
 
                         {/* Status Filters for Orders */}
                         {tab === 'orders' && (
-                            <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
+                            <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 8, margin: '0 -4px', padding: '0 4px' }} className="hide-scrollbar">
                                 {['all', 'pending', 'completed', 'failed', 'pending_payment'].map(s => (
                                     <button 
                                         key={s}
@@ -326,9 +327,9 @@ const AdminDashboard = () => {
                             u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                             u.email.toLowerCase().includes(searchTerm.toLowerCase())
                         ).map(u => (
-                            <div key={u._id} style={{ ...cardStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+                            <div key={u._id} style={{ ...cardStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }} className="admin-list-card">
                                 <div>
-                                    <div style={{ fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 10 }}>
+                                    <div style={{ fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                                         {u.name} 
                                         <select 
                                             value={u.role} 
@@ -346,9 +347,9 @@ const AdminDashboard = () => {
                                         Wallet: ₵{(u.balance || 0).toFixed(2)} | Profit: ₵{(u.commissionBalance || 0).toFixed(2)}
                                     </div>
                                 </div>
-                                <div style={{ display: 'flex', gap: 8 }}>
-                                    <button onClick={() => handleBalance(u._id, 'add')} style={{ border: 'none', background: '#f0fdf4', color: '#16a34a', padding: '8px 12px', borderRadius: 8, cursor: 'pointer' }}>Add Balance</button>
-                                    <button onClick={() => handleBlock(u._id)} style={{ border: 'none', background: u.isBlocked ? '#0f172a' : '#f1f5f9', color: u.isBlocked ? '#fff' : '#64748b', padding: '8px 12px', borderRadius: 8, cursor: 'pointer' }}>
+                                <div style={{ display: 'flex', gap: 8 }} className="mobile-full-width">
+                                    <button onClick={() => handleBalance(u._id, 'add')} style={{ flex: 1, border: 'none', background: '#f0fdf4', color: '#16a34a', padding: '10px 12px', borderRadius: 8, cursor: 'pointer', fontWeight: 700, fontSize: 13 }}>Add ₵</button>
+                                    <button onClick={() => handleBlock(u._id)} style={{ flex: 1, border: 'none', background: u.isBlocked ? '#0f172a' : '#f1f5f9', color: u.isBlocked ? '#fff' : '#64748b', padding: '10px 12px', borderRadius: 8, cursor: 'pointer', fontWeight: 700, fontSize: 13 }}>
                                         {u.isBlocked ? 'Unblock' : 'Block'}
                                     </button>
                                 </div>
@@ -360,7 +361,7 @@ const AdminDashboard = () => {
                 {/* Pricing Management */}
                 {tab === 'pricing' && !loading && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                        <div style={{ display: 'flex', gap: 10 }}>
+                        <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 8, margin: '0 -4px', padding: '0 4px' }} className="hide-scrollbar">
                             {['mtn', 'telecel', 'at'].map(net => (
                                 <button key={net} 
                                     onClick={() => setSelectedNetwork(net)}
@@ -368,7 +369,8 @@ const AdminDashboard = () => {
                                         padding: '10px 20px', borderRadius: 10, fontWeight: 800, textTransform: 'uppercase', cursor: 'pointer',
                                         border: selectedNetwork === net ? '2px solid #4f46e5' : '2px solid transparent',
                                         background: selectedNetwork === net ? '#eef2ff' : '#fff',
-                                        color: selectedNetwork === net ? '#4f46e5' : '#64748b'
+                                        color: selectedNetwork === net ? '#4f46e5' : '#64748b',
+                                        flex: '1 0 auto', textAlign: 'center'
                                     }}>
                                     {net}
                                 </button>
@@ -376,28 +378,28 @@ const AdminDashboard = () => {
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                             {packages.map(pkg => (
-                                <div key={pkg.key} style={{ ...cardStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px' }}>
-                                    <div>
+                                <div key={pkg.key} style={{ ...cardStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', gap: 12 }} className="admin-list-card">
+                                    <div style={{ flex: 1 }}>
                                         <div style={{ fontWeight: 900, fontSize: 16, color: '#0f172a' }}>
                                             {pkg.name} <span style={{ fontSize: 10, color: '#94a3b8', fontWeight: 600 }}>ID: {pkg.key}</span>
                                         </div>
                                         <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
                                             <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>API: ₵{(pkg.apiPrice || 0).toFixed(2)}</span>
                                             {(() => {
-                                                const rule = pricingRules.find(x => 
-                                                    (x.packageKey || '').toString().trim().toLowerCase() === (pkg.key || '').toLowerCase() && 
-                                                    (x.network || '').toLowerCase() === (selectedNetwork || '').toLowerCase()
-                                                );
-                                                return rule ? (
-                                                    <span style={{ fontSize: 13, color: '#16a34a', fontWeight: 800 }}>
-                                                        Set: ₵{rule.normalPrice || 0}
-                                                    </span>
-                                                ) : <span style={{ fontSize: 13, color: '#94a3b8', fontWeight: 700 }}>Not Set</span>;
-                                            })()}
-                                        </div>
-                                    </div>
-                                    <button onClick={() => handleEditPriceBtn(pkg)} style={{ background: '#4f46e5', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: 8, fontWeight: 700, cursor: 'pointer' }}>Adjust</button>
-                                </div>
+                                                 const rule = pricingRules.find(x => 
+                                                     (x.packageKey || '').toString().trim().toLowerCase() === (pkg.key || '').toLowerCase() && 
+                                                     (x.network || '').toLowerCase() === (selectedNetwork || '').toLowerCase()
+                                                 );
+                                                 return rule ? (
+                                                     <span style={{ fontSize: 13, color: '#16a34a', fontWeight: 800 }}>
+                                                         Set: ₵{rule.normalPrice || 0}
+                                                     </span>
+                                                 ) : <span style={{ fontSize: 13, color: '#94a3b8', fontWeight: 700 }}>Not Set</span>;
+                                             })()}
+                                         </div>
+                                     </div>
+                                     <button className="mobile-full-width" onClick={() => handleEditPriceBtn(pkg)} style={{ background: '#4f46e5', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>Adjust</button>
+                                 </div>
                             ))}
                         </div>
                     </div>
@@ -415,13 +417,14 @@ const AdminDashboard = () => {
                             <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 16 }}>
                                 Force verify a hung Paystack transaction using its reference ID (BH_, BD_PAY_, or STORE_).
                             </div>
-                            <div style={{ display: 'flex', gap: 12 }}>
+                            <div style={{ display: 'flex', gap: 12 }} className="mobile-stack">
                                 <input 
                                     type="text" 
-                                    placeholder="Enter reference (e.g. BD_PAY_123456)" 
+                                    placeholder="Enter reference ID" 
                                     value={verifyRef}
                                     onChange={e => setVerifyRef(e.target.value)}
                                     style={{ flex: 1, padding: '12px 16px', borderRadius: 10, border: 'none', outline: 'none', fontWeight: 700 }}
+                                    className="mobile-full-width"
                                 />
                                 <button 
                                     disabled={verifyLoading || !verifyRef.trim()}
@@ -450,8 +453,9 @@ const AdminDashboard = () => {
                                         background: verifyLoading ? '#475569' : '#4f46e5', 
                                         color: '#fff', fontWeight: 800, cursor: verifyLoading ? 'not-allowed' : 'pointer'
                                     }}
+                                    className="mobile-full-width"
                                 >
-                                    {verifyLoading ? 'Verifying...' : 'Verify Now'}
+                                    {verifyLoading ? '...' : 'Verify'}
                                 </button>
                             </div>
                         </div>
@@ -496,7 +500,7 @@ const AdminDashboard = () => {
                 {/* Orders Management */}
                 {tab === 'orders' && !loading && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexWrap: 'wrap', gap: 12 }}>
                             <div style={{ fontSize: 13, fontWeight: 700, color: '#64748b' }}>Manage all customer orders</div>
                             <button 
                                 onClick={async () => {
@@ -509,7 +513,8 @@ const AdminDashboard = () => {
                                         } catch (e) { alert('Sync failed'); setLoading(false); }
                                     }
                                 }}
-                                style={{ background: '#0f172a', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 13 }}
+                                style={{ background: '#0f172a', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 13 }}
+                                className="mobile-full-width"
                             >
                                 Sync with Bossu
                             </button>
@@ -625,9 +630,9 @@ const AdminDashboard = () => {
                                         {w.adminNote && <div style={{ fontSize: 12, color: '#64748b', marginTop: 8, fontStyle: 'italic' }}>Note: {w.adminNote}</div>}
                                     </div>
                                     {w.status === 'pending' && (
-                                        <div style={{ display: 'flex', gap: 8 }}>
-                                            <button onClick={() => handleResolveWithdrawal(w._id, 'approved')} style={{ padding: '10px 16px', borderRadius: 10, border: 'none', background: '#16a34a', color: '#fff', fontWeight: 800, cursor: 'pointer' }}>Mark Paid</button>
-                                            <button onClick={() => handleResolveWithdrawal(w._id, 'rejected')} style={{ padding: '10px 16px', borderRadius: 10, border: '1px solid #fee2e2', background: '#fff', color: '#ef4444', fontWeight: 800, cursor: 'pointer' }}>Reject</button>
+                                        <div style={{ display: 'flex', gap: 8 }} className="mobile-full-width">
+                                            <button onClick={() => handleResolveWithdrawal(w._id, 'approved')} style={{ flex: 1, padding: '12px 16px', borderRadius: 10, border: 'none', background: '#16a34a', color: '#fff', fontWeight: 800, cursor: 'pointer' }}>Mark Paid</button>
+                                            <button onClick={() => handleResolveWithdrawal(w._id, 'rejected')} style={{ flex: 1, padding: '12px 16px', borderRadius: 10, border: '1px solid #fee2e2', background: '#fff', color: '#ef4444', fontWeight: 800, cursor: 'pointer' }}>Reject</button>
                                         </div>
                                     )}
                                 </div>
@@ -671,9 +676,9 @@ const AdminDashboard = () => {
                                     </div>
                                 </div>
                                 
-                                <div style={{ display: 'flex', gap: 10 }}>
+                                <div style={{ display: 'flex', gap: 10 }} className="mobile-full-width">
                                     <a href={`${window.location.origin}/store/${s.slug}`} target="_blank" rel="noreferrer" style={{ 
-                                        padding: '10px', borderRadius: 10, background: '#f8fafc', color: '#64748b', 
+                                        flex: 1, padding: '12px', borderRadius: 10, background: '#f8fafc', color: '#64748b', 
                                         border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center' 
                                     }}>
                                         <ExternalLink size={18} />
@@ -681,15 +686,15 @@ const AdminDashboard = () => {
                                     <button 
                                         onClick={() => handleStoreStatus(s._id)}
                                         style={{ 
-                                            padding: '10px 16px', borderRadius: 10, border: 'none', 
+                                            flex: 3, padding: '12px 16px', borderRadius: 10, border: 'none', 
                                             background: s.isActive ? '#fef2f2' : '#f0fdf4', 
                                             color: s.isActive ? '#dc2626' : '#16a34a',
                                             fontWeight: 800, fontSize: 13, cursor: 'pointer',
-                                            display: 'flex', alignItems: 'center', gap: 8
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
                                         }}
                                     >
                                         <Power size={16} />
-                                        {s.isActive ? 'Disable Dashboard' : 'Enable Dashboard'}
+                                        {s.isActive ? 'Disable' : 'Enable'}
                                     </button>
                                 </div>
                             </div>
@@ -705,6 +710,17 @@ const AdminDashboard = () => {
 
                 {loading && <div style={{ padding: 60, textAlign: 'center', color: '#94a3b8', fontWeight: 800 }}>Syncing...</div>}
             </div>
+            <style>{`
+                .hide-scrollbar::-webkit-scrollbar { display: none; }
+                .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+                
+                @media (max-width: 768px) {
+                    .mobile-stack { flex-direction: column !important; }
+                    .mobile-full-width { width: 100% !important; }
+                    .admin-grid { grid-template-columns: 1fr !important; }
+                    .admin-list-card { flex-direction: column !important; align-items: flex-start !important; }
+                }
+            `}</style>
         </div>
     );
 };

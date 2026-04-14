@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Navigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import { Wifi, RefreshCw, CheckCircle2, XCircle, MessageCircle, ShieldCheck, PartyPopper, Users2, Phone, AlertCircle } from 'lucide-react';
 
 const StorePage = () => {
     const { slug } = useParams();
+    const { user, loading: authLoading } = useAuth();
+
 
     const [store, setStore] = useState(null);
     const [packages, setPackages] = useState([]);
@@ -32,6 +35,10 @@ const StorePage = () => {
         if (slug) fetchStore();
         else { setNotFound(true); setLoading(false); }
     }, [slug]);
+
+    if (!authLoading && user && store && store.agent !== user._id) {
+        return <Navigate to="/dashboard" replace />;
+    }
 
 
     const fetchPackages = useCallback(async () => {
@@ -210,7 +217,7 @@ const StorePage = () => {
 
 
             {/* Store Navbar */}
-            <nav style={{ 
+            <nav className="store-nav-padding" style={{ 
                 height: 64, position: 'sticky', top: 0, zIndex: 100, background: theme.cardBg, 
                 borderBottom: theme.border !== 'none' ? theme.border : `1px solid ${theme.id === 'dark' ? '#334155' : '#e2e8f0'}`,
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px',
@@ -233,13 +240,19 @@ const StorePage = () => {
             <style>{`
                 @media (max-width: 600px) {
                     .store-whatsapp-text { display: none; }
+                    .store-nav-padding { padding: 0 16px !important; }
+                    .store-header-padding { padding: 40px 16px !important; }
+                    .store-content-padding { padding: 20px 12px !important; }
+                    .store-network-tabs { gap: 8px !important; }
+                    .store-network-tabs button { padding: 12px 8px !important; fontSize: 13px !important; }
+                    .store-floating-btns { bottom: 16px !important; right: 16px !important; }
                 }
                 @keyframes spin { to { transform: rotate(360deg); } }
                 input::placeholder { color: ${theme.id === 'dark' ? '#64748b' : '#94a3b8'}; opacity: 0.8; }
             `}</style>
 
             {/* Floating Buttons */}
-            <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 200, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div className="store-floating-btns" style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 200, display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {store?.groupLink && (
                     <a href={store.groupLink} target="_blank" rel="noreferrer" title="Join Community" style={{
                         width: 56, height: 56, borderRadius: '50%', background: '#4f46e5', color: '#fff', 
@@ -261,7 +274,7 @@ const StorePage = () => {
             </div>
 
             {/* Store Header */}
-            <div style={{ background: theme.headerBg, padding: '56px 24px', textAlign: 'center', color: '#fff' }}>
+            <div className="store-header-padding" style={{ background: theme.headerBg, padding: '56px 24px', textAlign: 'center', color: '#fff' }}>
                 {store?.logo ? (
                     <img src={store.logo} alt="logo" style={{ width: 84, height: 84, borderRadius: theme.id === 'luxury' ? '0px' : '22%', objectFit: 'cover', marginBottom: 16, border: '3px solid rgba(255,255,255,0.2)' }} />
                 ) : (
@@ -278,7 +291,7 @@ const StorePage = () => {
             </div>
 
             {/* Main Content */}
-            <div style={{ maxWidth: 800, margin: '0 auto', padding: '32px 16px', display: 'flex', flexDirection: 'column', gap: 24, paddingBottom: 80 }}>
+            <div className="store-content-padding" style={{ maxWidth: 800, margin: '0 auto', padding: '32px 16px', display: 'flex', flexDirection: 'column', gap: 24, paddingBottom: 80 }}>
                 
                 {/* Price Protection Alert */}
                 {packages.some(p => p.isPriceWarning) && (
@@ -309,7 +322,7 @@ const StorePage = () => {
                         </div>
 
                         {/* Network Tabs */}
-                        <div style={{ display: 'flex', gap: 12, marginBottom: 28 }}>
+                        <div className="store-network-tabs" style={{ display: 'flex', gap: 12, marginBottom: 28 }}>
                             {networks.map(n => (
                                 <button key={n.id} onClick={() => setNetwork(n.id)} style={{
                                     flex: 1, padding: '15px', borderRadius: theme.id === 'eco' ? '25px' : (theme.id === 'luxury' ? '0px' : '16px'), 

@@ -164,11 +164,12 @@ const AgentPage = () => {
     const networks = ['mtn', 'telecel', 'at'];
 
     const tabStyle = (t) => ({
-        padding: '10px 20px', borderRadius: 10, border: 'none', fontWeight: 800,
-        cursor: 'pointer', fontSize: 13, transition: 'all 0.2s',
+        padding: '10px 16px', borderRadius: 10, border: 'none', fontWeight: 800,
+        cursor: 'pointer', fontSize: 12, transition: 'all 0.2s',
         background: tab === t ? '#4f46e5' : '#fff',
         color: tab === t ? '#fff' : '#64748b',
-        boxShadow: tab === t ? '0 4px 12px rgba(79, 70, 229, 0.3)' : 'none'
+        boxShadow: tab === t ? '0 4px 12px rgba(79, 70, 229, 0.3)' : 'none',
+        flex: '1 0 auto', textAlign: 'center'
     });
 
     const cardStyle = {
@@ -231,25 +232,25 @@ const AgentPage = () => {
                 </div>
 
                 {dashboard.store && (
-                    <div style={{ ...cardStyle, background: 'linear-gradient(135deg, #4f46e5, #4338ca)', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 20 }}>
+                    <div className="agent-store-card" style={{ ...cardStyle, background: 'linear-gradient(135deg, #4f46e5, #4338ca)', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 20 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                            <div style={{ width: 48, height: 48, background: 'rgba(255,255,255,0.2)', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <div style={{ width: 48, height: 48, background: 'rgba(255,255,255,0.2)', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                                 <Store size={24} />
                             </div>
                             <div>
-                                <div style={{ fontSize: 13, fontWeight: 700, opacity: 0.8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Your Public Storefront</div>
-                                <div style={{ fontSize: 18, fontWeight: 900, marginTop: 2 }}>{dashboard.store?.name}</div>
+                                <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Your Public Storefront</div>
+                                <div style={{ fontSize: 16, fontWeight: 900, marginTop: 2 }}>{dashboard.store?.name}</div>
                             </div>
                         </div>
-                        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', flex: '1 1 300px', justifyContent: 'flex-end' }}>
-                            <div style={{ background: 'rgba(0,0,0,0.2)', padding: '10px 16px', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 200 }}>
-                                <span style={{ fontSize: 13, fontWeight: 700, opacity: 0.9, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{storeUrl}</span>
-                                <button onClick={copyStoreLink} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', padding: '6px', borderRadius: 8, cursor: 'pointer' }}>
+                        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', flex: '1 1 100%', maxWidth: '100%' }}>
+                            <div style={{ background: 'rgba(0,0,0,0.2)', padding: '10px 16px', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 200, overflow: 'hidden' }}>
+                                <span style={{ fontSize: 12, fontWeight: 700, opacity: 0.9, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{storeUrl}</span>
+                                <button onClick={copyStoreLink} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', padding: '6px', borderRadius: 8, cursor: 'pointer', flexShrink: 0 }}>
                                     {copiedLink ? <CheckCircle2 size={16} /> : <Copy size={16} />}
                                 </button>
                             </div>
-                            <a href={storeUrl} target="_blank" rel="noreferrer" style={{ background: '#fff', color: '#4f46e5', padding: '12px 20px', borderRadius: 12, fontWeight: 800, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-                                Visit Store <ExternalLink size={16} />
+                            <a href={storeUrl} target="_blank" rel="noreferrer" style={{ background: '#fff', color: '#4f46e5', padding: '12px 20px', borderRadius: 12, fontWeight: 800, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 13, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', flex: '1 0 140px' }}>
+                                Visit <ExternalLink size={16} />
                             </a>
                         </div>
                     </div>
@@ -259,7 +260,7 @@ const AgentPage = () => {
                     <div style={{ padding: '14px 18px', borderRadius: 14, fontWeight: 700, fontSize: 14, background: message.type === 'success' ? '#f0fdf4' : '#fef2f2', color: message.type === 'success' ? '#16a34a' : '#dc2626', border: '1px solid #eee' }}>{message.text}</div>
                 )}
 
-                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 8, margin: '0 -4px', padding: '0 4px' }} className="hide-scrollbar">
                     {[['dashboard', '📊 Stats'], ['store', '🏪 Setup'], ['pricing', '💰 Prices'], ['withdrawals', '💸 Withdraw']].map(([t, label]) => (
                         <button key={t} onClick={() => setTab(t)} style={tabStyle(t)}>{label}</button>
                     ))}
@@ -267,27 +268,28 @@ const AgentPage = () => {
 
                 {tab === 'dashboard' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                        {/* Dashboard Warning */}
                         {!dashboard.store && (
-                            <div style={{ background: '#fffbeb', border: '1.5px solid #fcd34d', borderRadius: 20, padding: 20, display: 'flex', alignItems: 'center', gap: 16 }}>
-                                <div style={{ fontSize: 32 }}>🏪</div>
-                                <div style={{ flex: 1 }}><div style={{ fontWeight: 900, color: '#92400e' }}>Almost there!</div><div style={{ fontSize: 13, color: '#b45309' }}>Please set up your store name and URL to go live.</div></div>
-                                <button onClick={() => setTab('store')} style={{ padding: '10px 18px', background: '#f59e0b', color: '#fff', border: 'none', borderRadius: 12, fontWeight: 800, cursor: 'pointer' }}>Setup →</button>
+                            <div style={{ background: '#fffbeb', border: '1.5px solid #fcd34d', borderRadius: 20, padding: 16, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                                <div style={{ fontSize: 24 }}>🏪</div>
+                                <div style={{ flex: 1, minWidth: 200 }}><div style={{ fontWeight: 900, color: '#92400e' }}>Almost there!</div><div style={{ fontSize: 12, color: '#b45309' }}>Please set up your store name and URL to go live.</div></div>
+                                <button onClick={() => setTab('store')} style={{ padding: '8px 16px', background: '#f59e0b', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 800, cursor: 'pointer', width: '100%', marginTop: 4 }}>Setup →</button>
                             </div>
                         )}
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
-                            <div style={{ ...cardStyle, background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff' }}>
-                                <div style={{ fontSize: 13, fontWeight: 700, opacity: 0.8 }}>Available for Withdrawal</div>
-                                <div style={{ fontSize: 32, fontWeight: 900 }}>₵{(user?.commissionBalance || 0).toFixed(2)}</div>
+                        <div className="agent-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+                            <div style={{ ...cardStyle, background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff', padding: 20 }}>
+                                <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.8 }}>Available for Withdrawal</div>
+                                <div style={{ fontSize: 28, fontWeight: 900 }}>₵{(user?.commissionBalance || 0).toFixed(2)}</div>
                                 <div style={{ fontSize: 11, marginTop: 4, opacity: 0.7 }}>Commission balance</div>
                             </div>
-                            <div style={cardStyle}>
-                                <div style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8' }}>Lifetime Earnings</div>
-                                <div style={{ fontSize: 28, fontWeight: 900, color: '#0f172a' }}>₵{dashboard.totalProfit.toFixed(2)}</div>
+                            <div style={{ ...cardStyle, padding: 20 }}>
+                                <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8' }}>Lifetime Earnings</div>
+                                <div style={{ fontSize: 24, fontWeight: 900, color: '#0f172a' }}>₵{dashboard.totalProfit.toFixed(2)}</div>
                                 <div style={{ fontSize: 11, marginTop: 4, color: '#94a3b8' }}>Total profit generated</div>
                             </div>
-                            <div style={cardStyle}>
-                                <div style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8' }}>Total Sales</div>
-                                <div style={{ fontSize: 28, fontWeight: 900, color: '#0f172a' }}>{dashboard.totalSales}</div>
+                            <div style={{ ...cardStyle, padding: 20 }}>
+                                <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8' }}>Total Sales</div>
+                                <div style={{ fontSize: 24, fontWeight: 900, color: '#0f172a' }}>{dashboard.totalSales}</div>
                             </div>
                         </div>
                         <div style={cardStyle}>
@@ -544,7 +546,19 @@ const AgentPage = () => {
                     </div>
                 )}
             </div>
-            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            <style>{`
+                @keyframes spin { to { transform: rotate(360deg); } }
+                .hide-scrollbar::-webkit-scrollbar { display: none; }
+                .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+                
+                @media (max-width: 600px) {
+                    .agent-stats-grid { grid-template-columns: 1fr !important; }
+                    .agent-card-padding { padding: 16px !important; }
+                    .tab-button { padding: 8px 12px !important; font-size: 11px !important; }
+                    .mobile-stack { flex-direction: column !important; align-items: flex-start !important; }
+                    .mobile-full-width { width: 100% !important; }
+                }
+            `}</style>
         </div>
     );
 };
