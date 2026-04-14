@@ -30,29 +30,46 @@ const WalletPage = () => {
 
     // Fetch transactions
     useEffect(() => {
-        const fetchTx = async () => {
+        const fetchTx = async (showLoading = false) => {
+            if (showLoading) setTxLoading(true);
             try {
                 const res = await api.get('/payment/transactions');
                 setTransactions(res.data);
                 
                 // If there's a status change from pending to success, refresh balance
-                const hasPending = res.data.some(tx => tx.type === 'deposit' && tx.status === 'pending');
-                if (!hasPending && transactions.some(tx => tx.type === 'deposit' && tx.status === 'pending')) {
-                    // Logic to update global balance if something resolved
-                    api.get('/auth/me').then(res => updateBalance(res.data.balance));
+                const hasPendingInState = transactions.some(tx => tx.type === 'deposit' && tx.status === 'pending');
+                const hasPendingInRes = res.data.some(tx => tx.type === 'deposit' && tx.status === 'pending');
+                
+                if (hasPendingInState && !hasPendingInRes) {
+                    api.get('/user/profile').then(res => updateBalance(res.data.balance));
                 }
             } catch (err) {
                 console.error(err);
             } finally {
-                setTxLoading(false);
+                if (showLoading) setTxLoading(false);
             }
         };
-        fetchTx();
 
-        // Auto-refresh every 5 seconds to catch new deposits/purchases
-        const interval = setInterval(fetchTx, 5000);
-        return () => clearInterval(interval);
-    }, [message, transactions.length]);
+        fetchTx(true);
+
+        // Refresh transactions list every 20 seconds (slower)
+        const txInterval = setInterval(() => fetchTx(false), 20000);
+        
+        // Refresh balance only every 5 seconds (faster)
+        const balInterval = setInterval(async () => {
+            try {
+                const res = await api.get('/user/profile');
+                if (res.data.balance !== (user?.balance || 0)) {
+                    updateBalance(res.data.balance);
+                }
+            } catch (err) {}
+        }, 5000);
+
+        return () => {
+            clearInterval(txInterval);
+            clearInterval(balInterval);
+        };
+    }, [updateBalance, user?.balance, transactions.length]);
 
     const handleFund = async () => {
         const val = parseFloat(amount);

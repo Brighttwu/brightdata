@@ -37,7 +37,6 @@ const Dashboard = () => {
     }, [network]);
 
     useEffect(() => {
-        fetchPackages();
         const fetchSettings = async () => {
             try {
                 const res = await api.get('/admin/settings');
@@ -45,19 +44,26 @@ const Dashboard = () => {
             } catch (err) { console.error(err); }
         };
         fetchSettings();
+    }, []);
 
-        // Refresh balance every 5 seconds while on dashboard to catch auto-verifications
+    useEffect(() => {
+        fetchPackages();
+    }, [fetchPackages]);
+
+    useEffect(() => {
+        // Background balance poller: strictly updates balance only
+        // Does not show loading spinners or refresh packages
         const interval = setInterval(async () => {
             try {
                 const res = await api.get('/user/profile');
-                if (res.data.balance !== user.balance) {
+                if (res.data.balance !== (user?.balance || 0)) {
                     updateBalance(res.data.balance);
                 }
             } catch (err) {}
         }, 5000);
 
         return () => clearInterval(interval);
-    }, [fetchPackages, updateBalance, user?.balance]);
+    }, [updateBalance, user?.balance]);
 
     const handleBuy = async (method) => {
         if (!selectedPackage || phone.replace(/\s/g, '').length < 10) return;

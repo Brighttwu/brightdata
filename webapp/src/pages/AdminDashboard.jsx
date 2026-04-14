@@ -101,7 +101,8 @@ const AdminDashboard = () => {
 
     useEffect(() => {
         fetchData();
-        const interval = setInterval(fetchData, 5000); // 5 sec refresh
+        // Refresh full admin data every 15 seconds instead of 5 to avoid constant re-renders
+        const interval = setInterval(fetchData, 15000); 
         return () => clearInterval(interval);
     }, [tab, statsDays]);
 
