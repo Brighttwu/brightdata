@@ -185,8 +185,18 @@ const Dashboard = () => {
                             Welcome back, {user?.name?.split(' ')[0] || 'User'} 👋
                         </div>
                         <div style={{ fontSize: 14, fontWeight: 600, opacity: 0.6, marginBottom: 4 }}>Wallet Balance</div>
-                        <div style={{ fontSize: 44, fontWeight: 900, lineHeight: 1 }}>
-                            ₵{(user?.balance || 0).toFixed(2)}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <div style={{ fontSize: 44, fontWeight: 900, lineHeight: 1 }}>
+                                ₵{(user?.balance || 0).toFixed(2)}
+                            </div>
+                            <button onClick={handleRefresh} style={{
+                                background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '50%',
+                                width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                cursor: 'pointer', color: '#fff', transition: 'all 0.2s'
+                            }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
+                               onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}>
+                                <RefreshCw size={16} />
+                            </button>
                         </div>
                     </div>
 

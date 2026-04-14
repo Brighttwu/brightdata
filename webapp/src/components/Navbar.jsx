@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Wallet, Smartphone, Menu, X, ArrowRight, User, History, Plus, ShieldAlert, BarChart2, Users, Tag, Receipt, ShoppingCart, Home, DollarSign, Gift, Store, Settings } from 'lucide-react';
+import { LogOut, Wallet, Smartphone, Menu, X, ArrowRight, User, History, Plus, ShieldAlert, BarChart2, Users, Tag, Receipt, ShoppingCart, Home, DollarSign, Gift, Store, Settings, RefreshCw } from 'lucide-react';
 
 const Navbar = () => {
-    const { user, logout } = useAuth();
+    const { user, logout, refreshProfile } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const [isOpen, setIsOpen] = useState(false);
@@ -121,11 +121,17 @@ const Navbar = () => {
                                         }}><ShieldAlert size={16} style={{marginBottom: -3}} /> Admin Panel</Link>
                                     )}
                                     <div style={{
-                                        display: 'flex', alignItems: 'center', gap: 8,
+                                        display: 'flex', alignItems: 'center', gap: 6,
                                         background: '#4f46e5', color: '#fff',
                                         padding: '10px 18px', borderRadius: 14, fontSize: 14, fontWeight: 800, marginLeft: 8
                                     }}>
                                         ₵{user.balance.toFixed(2)}
+                                        <button onClick={() => refreshProfile()} style={{
+                                            background: 'transparent', border: 'none', color: '#fff', padding: 0,
+                                            marginLeft: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', opacity: 0.8
+                                        }} title="Refresh Balance">
+                                            <RefreshCw size={12} />
+                                        </button>
                                     </div>
                                     <button onClick={handleLogout} style={{
                                         background: '#f8fafc', border: '1px solid #e2e8f0',

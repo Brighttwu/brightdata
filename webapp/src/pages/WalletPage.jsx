@@ -92,7 +92,17 @@ const WalletPage = () => {
                 }}>
                     <Wallet size={32} style={{ opacity: 0.6, marginBottom: 8 }} />
                     <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.15em', opacity: 0.6, marginBottom: 8 }}>Available Balance</div>
-                    <div style={{ fontSize: 42, fontWeight: 900, letterSpacing: '-0.02em' }}>₵{user?.balance?.toFixed(2) || '0.00'}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
+                        <div style={{ fontSize: 42, fontWeight: 900, letterSpacing: '-0.02em' }}>₵{user?.balance?.toFixed(2) || '0.00'}</div>
+                        <button onClick={handleRefresh} style={{
+                            background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '50%',
+                            width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            cursor: 'pointer', color: '#fff', transition: 'all 0.2s'
+                        }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
+                           onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}>
+                            <RefreshCw size={16} />
+                        </button>
+                    </div>
                 </div>
 
                 {/* Fund Wallet */}
