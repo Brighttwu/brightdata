@@ -10,7 +10,7 @@ import {
 const AgentPage = () => {
     const { user, updateBalance } = useAuth();
     const [tab, setTab] = useState('dashboard'); // dashboard | store | pricing | withdrawals
-    const [dashboard, setDashboard] = useState({ profits: [], totalProfit: 0, totalSales: 0, store: null, unverifiedOrders: [] });
+    const [dashboard, setDashboard] = useState({ profits: [], totalProfit: 0, totalSales: 0, store: null, unverifiedOrders: [], commissionBalance: 0 });
     const [packages, setPackages] = useState([]);
     const [selectedNetwork, setSelectedNetwork] = useState('mtn');
     const [storeForm, setStoreForm] = useState({ slug: '', name: '', description: '', whatsapp: '', groupLink: '', logo: '', theme: 'classic' });
@@ -279,7 +279,7 @@ const AgentPage = () => {
                         <div className="agent-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
                             <div style={{ ...cardStyle, background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff', padding: 20 }}>
                                 <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.8 }}>Available for Withdrawal</div>
-                                <div style={{ fontSize: 28, fontWeight: 900 }}>₵{(user?.commissionBalance || 0).toFixed(2)}</div>
+                                <div style={{ fontSize: 28, fontWeight: 900 }}>₵{(dashboard.commissionBalance !== undefined ? dashboard.commissionBalance : (user?.commissionBalance || 0)).toFixed(2)}</div>
                                 <div style={{ fontSize: 11, marginTop: 4, opacity: 0.7 }}>Commission balance</div>
                             </div>
                             <div style={{ ...cardStyle, padding: 20 }}>
@@ -506,21 +506,21 @@ const AgentPage = () => {
                             
                             <div style={{ padding: '16px 20px', background: '#f8fafc', borderRadius: 12, marginBottom: 20, border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <span style={{ fontSize: 13, fontWeight: 700, color: '#64748b' }}>Balance after withdrawal:</span>
-                                <span style={{ fontSize: 16, fontWeight: 900, color: Number(user?.commissionBalance || 0) - Number(withdrawForm.amount || 0) < 0 ? '#dc2626' : '#10b981' }}>
-                                    ₵{(Number(user?.commissionBalance || 0) - Number(withdrawForm.amount || 0)).toFixed(2)}
+                                <span style={{ fontSize: 16, fontWeight: 900, color: Number(dashboard.commissionBalance || user?.commissionBalance || 0) - Number(withdrawForm.amount || 0) < 0 ? '#dc2626' : '#10b981' }}>
+                                    ₵{(Number(dashboard.commissionBalance || user?.commissionBalance || 0) - Number(withdrawForm.amount || 0)).toFixed(2)}
                                 </span>
                             </div>
 
                             <button 
                                 onClick={submitWithdrawal} 
-                                disabled={saving || !withdrawForm.amount || !withdrawForm.phone || Number(withdrawForm.amount) > Number(user?.commissionBalance || 0)} 
+                                disabled={saving || !withdrawForm.amount || !withdrawForm.phone || Number(withdrawForm.amount) > Number(dashboard.commissionBalance || user?.commissionBalance || 0)} 
                                 style={{ 
                                     width: '100%', padding: '16px', borderRadius: 14, 
                                     background: Number(withdrawForm.amount) > Number(user?.commissionBalance || 0) ? '#e2e8f0' : '#10b981', 
                                     color: '#fff', fontWeight: 900, border: 'none', cursor: Number(withdrawForm.amount) > Number(user?.commissionBalance || 0) ? 'not-allowed' : 'pointer' 
                                 }}
                             >
-                                {Number(withdrawForm.amount) > Number(user?.commissionBalance || 0) ? 'Insufficient Balance' : (saving ? 'Processing...' : 'Submit Request')}
+                                {Number(withdrawForm.amount) > Number(dashboard.commissionBalance || user?.commissionBalance || 0) ? 'Insufficient Balance' : (saving ? 'Processing...' : 'Submit Request')}
                             </button>
                         </div>
 

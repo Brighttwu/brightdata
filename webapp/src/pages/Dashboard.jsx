@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
-import { Wifi, Wallet, Plus, RefreshCw, Search, CheckCircle2, XCircle, ChevronRight, Zap, ShoppingCart } from 'lucide-react';
+import { Wifi, Wallet, Plus, RefreshCw, Search, CheckCircle2, XCircle, ChevronRight, Zap, ShoppingCart, Bell, Truck, Clock } from 'lucide-react';
 
 const Dashboard = () => {
     const { user, updateBalance } = useAuth();
@@ -14,6 +14,7 @@ const Dashboard = () => {
     const [buying, setBuying] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
     const [searchQuery, setSearchQuery] = useState('');
+    const [platformSettings, setPlatformSettings] = useState(null);
 
     const fetchPackages = useCallback(async () => {
         setLoading(true);
@@ -37,6 +38,13 @@ const Dashboard = () => {
 
     useEffect(() => {
         fetchPackages();
+        const fetchSettings = async () => {
+            try {
+                const res = await api.get('/admin/settings');
+                setPlatformSettings(res.data);
+            } catch (err) { console.error(err); }
+        };
+        fetchSettings();
     }, [fetchPackages]);
 
     const handleBuy = async (method) => {
@@ -87,6 +95,51 @@ const Dashboard = () => {
             <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
 
             <div style={{ maxWidth: 960, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+                {/* Platform Notification & Delivery Status */}
+                {platformSettings && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        {platformSettings.globalNotification && (
+                            <div style={{ 
+                                background: 'linear-gradient(90deg, #fffbeb 0%, #fff 100%)', 
+                                border: '1px solid #fde68a', borderRadius: 20, padding: '16px 24px',
+                                display: 'flex', alignItems: 'center', gap: 16,
+                                boxShadow: '0 4px 12px rgba(245, 158, 11, 0.05)'
+                            }}>
+                                <div style={{ width: 40, height: 40, borderRadius: 12, background: '#fef3c7', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                    <Bell size={20} />
+                                </div>
+                                <div style={{ fontSize: 14, fontWeight: 700, color: '#92400e', lineHeight: 1.5 }}>
+                                    {platformSettings.globalNotification}
+                                </div>
+                            </div>
+                        )}
+                        
+                        <div style={{ 
+                            background: '#fff', border: '1px solid #f1f5f9', borderRadius: 20, padding: '12px 24px',
+                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <Truck size={18} color="#64748b" />
+                                <span style={{ fontSize: 13, fontWeight: 700, color: '#64748b' }}>Delivery Speed Status:</span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <div style={{ 
+                                    width: 8, height: 8, borderRadius: '50%', 
+                                    background: platformSettings.deliveryStatus === 'fast' ? '#10b981' : (platformSettings.deliveryStatus === 'normal' ? '#f59e0b' : '#ef4444'),
+                                    boxShadow: `0 0 8px ${platformSettings.deliveryStatus === 'fast' ? '#10b981' : (platformSettings.deliveryStatus === 'normal' ? '#f59e0b' : '#ef4444')}`
+                                }} className="pulse-dot" />
+                                <span style={{ 
+                                    fontSize: 13, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em',
+                                    color: platformSettings.deliveryStatus === 'fast' ? '#059669' : (platformSettings.deliveryStatus === 'normal' ? '#d97706' : '#dc2626')
+                                }}>
+                                    {platformSettings.deliveryStatus}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Balance Hero Card */}
                 <div style={{
@@ -343,6 +396,8 @@ const Dashboard = () => {
 
             <style>{`
                 @keyframes spin { to { transform: rotate(360deg); } }
+                @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.2); } 100% { opacity: 1; transform: scale(1); } }
+                .pulse-dot { animation: pulse 2s infinite ease-in-out; }
                 ::-webkit-scrollbar { width: 6px; }
                 ::-webkit-scrollbar-track { background: transparent; }
                 ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 99px; }

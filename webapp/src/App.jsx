@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
+import api from './api/axios';
+import { MessageCircle } from 'lucide-react';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -42,6 +44,21 @@ function AppContent() {
     const query = new URLSearchParams(location.search);
     const isStore = location.pathname.startsWith('/store/') || (location.pathname === '/payment-status' && query.get('type') === 'store');
     
+    const [settings, setSettings] = useState(null);
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const res = await api.get('/admin/settings');
+                setSettings(res.data);
+            } catch (err) {
+                console.error('Failed to fetch settings');
+            }
+        };
+        fetchSettings();
+    }, []);
+
+    const whatsappNumber = settings?.whatsappNumber || '233556460743';
     return (
         <div style={{ minHeight: '100vh', background: '#fff' }}>
             {!isStore && <Navbar />}
@@ -61,6 +78,33 @@ function AppContent() {
                 <Route path="/payment-status" element={<PaymentStatus />} />
                 <Route path="*" element={<Navigate to="/dashboard" />} />
             </Routes>
+
+            {/* Global WhatsApp Floating Button */}
+            <a 
+                href={`https://wa.me/${whatsappNumber}`} 
+                target="_blank" 
+                rel="noreferrer"
+                style={{
+                    position: 'fixed',
+                    bottom: 24,
+                    right: 24,
+                    width: 60,
+                    height: 60,
+                    background: '#25D366',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 8px 32px rgba(37,211,102,0.4)',
+                    zIndex: 9999,
+                    transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                }}
+                onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1) translateY(-4px)'}
+                onMouseLeave={e => e.currentTarget.style.transform = 'scale(1) translateY(0)'}
+            >
+                <div style={{ position: 'absolute', top: -10, left: -10, background: '#ef4444', color: '#fff', fontSize: 10, fontWeight: 900, padding: '4px 8px', borderRadius: 10, border: '2px solid #fff', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>SUPPORT</div>
+                <MessageCircle size={32} color="#fff" />
+            </a>
         </div>
     );
 }

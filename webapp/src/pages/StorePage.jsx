@@ -36,9 +36,7 @@ const StorePage = () => {
         else { setNotFound(true); setLoading(false); }
     }, [slug]);
 
-    if (!authLoading && user && store && store.agent !== user._id) {
-        return <Navigate to="/dashboard" replace />;
-    }
+
 
 
     const fetchPackages = useCallback(async () => {

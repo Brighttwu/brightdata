@@ -4,6 +4,7 @@ const User = require('../models/User');
 const Order = require('../models/Order');
 const Transaction = require('../models/Transaction');
 const Pricing = require('../models/Pricing');
+const Settings = require('../models/Settings');
 const axios = require('axios');
 
 // Admin Auth Middleware
@@ -336,6 +337,35 @@ router.post('/store-status/:id', adminAuth, async (req, res) => {
         res.json({ message: `Store ${store.isActive ? 'activated' : 'deactivated'}`, isActive: store.isActive });
     } catch (err) {
         res.status(500).json({ message: 'Error updating store status' });
+    }
+});
+
+// ─── PLATFORM SETTINGS ────────────────────────────────────────────────────────
+router.get('/settings', async (req, res) => {
+    try {
+        let settings = await Settings.findOne();
+        if (!settings) settings = await Settings.create({});
+        res.json(settings);
+    } catch (err) {
+        res.status(500).json({ message: 'Error fetching settings' });
+    }
+});
+
+router.post('/settings', adminAuth, async (req, res) => {
+    try {
+        const { globalNotification, deliveryStatus, whatsappNumber } = req.body;
+        let settings = await Settings.findOne();
+        if (!settings) settings = new Settings();
+        
+        if (globalNotification !== undefined) settings.globalNotification = globalNotification;
+        if (deliveryStatus !== undefined) settings.deliveryStatus = deliveryStatus;
+        if (whatsappNumber !== undefined) settings.whatsappNumber = whatsappNumber;
+        
+        settings.updatedAt = Date.now();
+        await settings.save();
+        res.json(settings);
+    } catch (err) {
+        res.status(500).json({ message: 'Error updating settings' });
     }
 });
 

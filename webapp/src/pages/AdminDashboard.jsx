@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import api from '../api/axios';
-import { Users, ShoppingBag, DollarSign, Wallet, ShieldAlert, Ban, PlusCircle, MinusCircle, Search, Store, ExternalLink, Power } from 'lucide-react';
+import { Users, ShoppingBag, DollarSign, Wallet, ShieldAlert, Ban, PlusCircle, MinusCircle, Search, Store, ExternalLink, Power, Settings as SettingsIcon, Bell, Truck, Save, Smartphone } from 'lucide-react';
 
 const AdminDashboard = () => {
     const [searchParams] = useSearchParams();
@@ -28,6 +28,14 @@ const AdminDashboard = () => {
     // Search & Filter State
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+    
+    // Platform Settings State
+    const [platformSettings, setPlatformSettings] = useState({
+        globalNotification: '',
+        deliveryStatus: 'fast',
+        whatsappNumber: ''
+    });
+    const [settingsLoading, setSettingsLoading] = useState(false);
 
     // Manual verification
     const [verifyRef, setVerifyRef] = useState('');
@@ -78,6 +86,10 @@ const AdminDashboard = () => {
             else if (tab === 'stores') {
                 const res = await api.get('/admin/stores');
                 setStores(res.data);
+            }
+            else if (tab === 'settings') {
+                const res = await api.get('/admin/settings');
+                setPlatformSettings(res.data);
             }
         } catch (err) {
             console.error('Fetch error:', err);
@@ -153,9 +165,21 @@ const AdminDashboard = () => {
             
             setEditModal(null);
             alert('Pricing updated successfully!');
-            fetchData(); 
         } catch (err) { 
             alert('Error: ' + (err.response?.data?.message || 'Update failed')); 
+        }
+    };
+
+    const handleSaveSettings = async (e) => {
+        e.preventDefault();
+        setSettingsLoading(true);
+        try {
+            await api.post('/admin/settings', platformSettings);
+            alert('Settings updated successfully!');
+        } catch (err) {
+            alert('Update failed');
+        } finally {
+            setSettingsLoading(false);
         }
     };
 
@@ -653,7 +677,7 @@ const AdminDashboard = () => {
                             s.agent?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             s.agent?.email?.toLowerCase().includes(searchTerm.toLowerCase())
                         ).map(s => (
-                            <div key={s._id} style={{ ...cardStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20 }}>
+                            <div key={s._id} style={{ ...cardStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 20 }} className="admin-list-card">
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                                     <div style={{ 
                                         width: 48, height: 48, borderRadius: 12, background: '#f1f5f9', 
@@ -705,6 +729,80 @@ const AdminDashboard = () => {
                                 <div style={{ fontWeight: 800, color: '#0f172a' }}>No agent stores found</div>
                             </div>
                         )}
+                    </div>
+                )}
+
+                {tab === 'settings' && !loading && (
+                    <div style={{ maxWidth: 600, margin: '0 auto', background: '#fff', borderRadius: 28, padding: 40, border: '1px solid #f1f5f9', boxShadow: '0 4px 24px rgba(0,0,0,0.03)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 32 }}>
+                            <div style={{ width: 48, height: 48, borderRadius: 14, background: '#eef2ff', color: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <SettingsIcon size={24} />
+                            </div>
+                            <div>
+                                <h2 style={{ fontSize: 24, fontWeight: 900, color: '#0f172a', margin: 0 }}>Platform Settings</h2>
+                                <p style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>Manage global notifications and delivery status</p>
+                            </div>
+                        </div>
+
+                        <form onSubmit={handleSaveSettings} style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+                            <div>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 12, letterSpacing: '0.05em' }}>
+                                    <Bell size={14} /> Global Notification
+                                </label>
+                                <textarea 
+                                    rows="3"
+                                    value={platformSettings.globalNotification}
+                                    onChange={(e) => setPlatformSettings({...platformSettings, globalNotification: e.target.value})}
+                                    placeholder="Enter message for all users..."
+                                    style={{ width: '100%', padding: '16px 18px', background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: 16, fontSize: 15, fontWeight: 600, color: '#0f172a', outline: 'none', transition: 'all 0.2s', boxSizing: 'border-box' }}
+                                />
+                            </div>
+
+                            <div>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 12, letterSpacing: '0.05em' }}>
+                                    <Truck size={14} /> Delivery Speed Status
+                                </label>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                                    {['fast', 'normal', 'slow'].map(speed => (
+                                        <button 
+                                            key={speed}
+                                            type="button"
+                                            onClick={() => setPlatformSettings({...platformSettings, deliveryStatus: speed})}
+                                            style={{
+                                                padding: '14px', borderRadius: 12, border: '2px solid',
+                                                borderColor: platformSettings.deliveryStatus === speed ? (speed === 'fast' ? '#10b981' : (speed === 'normal' ? '#f59e0b' : '#ef4444')) : '#f1f5f9',
+                                                background: platformSettings.deliveryStatus === speed ? (speed === 'fast' ? '#f0fdf4' : (speed === 'normal' ? '#fffbeb' : '#fef2f2')) : '#fff',
+                                                color: platformSettings.deliveryStatus === speed ? (speed === 'fast' ? '#16a34a' : (speed === 'normal' ? '#d97706' : '#dc2626')) : '#64748b',
+                                                fontWeight: 800, textTransform: 'capitalize', cursor: 'pointer', transition: 'all 0.2s'
+                                            }}
+                                        >
+                                            {speed}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 12, letterSpacing: '0.05em' }}>
+                                    <Smartphone size={14} /> Support WhatsApp Number
+                                </label>
+                                <input 
+                                    type="text"
+                                    value={platformSettings.whatsappNumber}
+                                    onChange={(e) => setPlatformSettings({...platformSettings, whatsappNumber: e.target.value})}
+                                    placeholder="e.g. 233556460743"
+                                    style={{ width: '100%', padding: '16px 18px', background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: 16, fontSize: 15, fontWeight: 600, color: '#0f172a', outline: 'none', boxSizing: 'border-box' }}
+                                />
+                            </div>
+
+                            <button 
+                                type="submit" 
+                                disabled={settingsLoading}
+                                style={{ width: '100%', padding: '18px', borderRadius: 18, border: 'none', background: '#0f172a', color: '#fff', fontWeight: 900, fontSize: 16, cursor: settingsLoading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}
+                            >
+                                {settingsLoading ? <RefreshCw className="animate-spin" size={20} /> : <><Save size={20} /> Save Platform Settings</>}
+                            </button>
+                        </form>
                     </div>
                 )}
 

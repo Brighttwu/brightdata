@@ -88,6 +88,7 @@ const Navbar = () => {
                                     {desktopNavLink('/admin?tab=stores', 'Stores', 'stores')}
                                     {desktopNavLink('/admin?tab=reports', 'Reports', 'reports')}
                                     {desktopNavLink('/admin?tab=withdrawals', 'Withdrawals', 'withdrawals')}
+                                    {desktopNavLink('/admin?tab=settings', 'Settings', 'settings')}
                                     
                                     <Link to="/dashboard" style={{
                                         fontSize: 14, fontWeight: 800, color: '#4f46e5', textDecoration: 'none', padding: '8px 14px', borderRadius: 10, background: '#eef2ff', marginLeft: 16
@@ -184,6 +185,7 @@ const Navbar = () => {
                                 {navLink('/admin?tab=stores', 'Agent Stores', <Store size={20} style={{ color: '#8b5cf6' }} />, 'stores')}
                                 {navLink('/admin?tab=reports', 'Reported Orders', <ShieldAlert size={20} style={{ color: '#dc2626' }} />, 'reports')}
                                 {navLink('/admin?tab=withdrawals', 'Payout Requests', <DollarSign size={20} style={{ color: '#10b981' }} />, 'withdrawals')}
+                                {navLink('/admin?tab=settings', 'Platform Settings', <Settings size={20} style={{ color: '#64748b' }} />, 'settings')}
                                 
                                 {navLink('/dashboard', 'Switch to User View', <Home size={20} style={{ color: '#64748b' }} />)}
                                 

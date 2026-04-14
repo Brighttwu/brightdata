@@ -8,6 +8,7 @@ const Pricing = require('../models/Pricing');
 const User = require('../models/User');
 const Transaction = require('../models/Transaction');
 const { handleReferralCommission } = require('../utils/referralHelper');
+const cloudinary = require('../utils/cloudinary');
 
 const API_URL = process.env.BOSSU_API_URL;
 const API_KEY = process.env.BOSSU_API_KEY;
@@ -78,12 +79,27 @@ router.post('/store', auth, async (req, res) => {
         }
         const { slug, name, description, whatsapp, groupLink, logo, theme } = req.body;
         if (!slug || !name) return res.status(400).json({ message: 'Store slug and name are required.' });
+        
         const cleanSlug = slug.toLowerCase().replace(/[^a-z0-9-]/g, '-').trim();
         const existing = await Store.findOne({ slug: cleanSlug, agent: { $ne: user._id } });
         if (existing) return res.status(400).json({ message: 'That store URL is already taken. Try another.' });
+
+        let finalLogo = logo;
+        if (logo && logo.startsWith('data:image')) {
+            try {
+                const uploadRes = await cloudinary.uploader.upload(logo, {
+                    folder: 'store_logos',
+                    resource_type: 'image'
+                });
+                finalLogo = uploadRes.secure_url;
+            } catch (err) {
+                console.error('Cloudinary upload error:', err);
+            }
+        }
+
         const store = await Store.findOneAndUpdate(
             { agent: user._id },
-            { slug: cleanSlug, name, description, whatsapp, groupLink, logo, theme, updatedAt: Date.now() },
+            { slug: cleanSlug, name, description, whatsapp, groupLink, logo: finalLogo, theme, updatedAt: Date.now() },
             { upsert: true, new: true, runValidators: true }
         );
         if (user.role === 'agent') { user.role = 'store'; await user.save(); }
@@ -182,7 +198,8 @@ router.get('/dashboard', auth, async (req, res) => {
                 profits: recentProfits, 
             totalProfit: Number(totalProfit.toFixed(2)), 
             totalSales, 
-            unverifiedOrders 
+            unverifiedOrders,
+            commissionBalance: req.user.commissionBalance
         });
     } catch (err) {
         console.error('Agent Dashboard Error:', err);
