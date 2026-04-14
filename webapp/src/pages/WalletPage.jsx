@@ -44,7 +44,9 @@ const WalletPage = () => {
     // Fetch transactions
     useEffect(() => {
         fetchTx(true);
-    }, [fetchTx]);
+        // Automatically refresh balance when wallet is opened
+        api.get('/user/profile').then(res => updateBalance(res.data.balance)).catch(() => {});
+    }, [fetchTx, updateBalance]);
 
     const handleRefresh = async () => {
         setRefreshing(true);

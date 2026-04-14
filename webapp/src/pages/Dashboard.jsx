@@ -49,7 +49,9 @@ const Dashboard = () => {
 
     useEffect(() => {
         fetchPackages();
-    }, [fetchPackages]);
+        // Automatically refresh balance when dashboard is opened
+        api.get('/user/profile').then(res => updateBalance(res.data.balance)).catch(() => {});
+    }, [fetchPackages, updateBalance]);
 
     const handleRefresh = async () => {
         setRefreshing(true);
