@@ -86,7 +86,7 @@ const Dashboard = () => {
     ];
     const currentNet = networks.find(n => n.id === network);
     const filtered = packages.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
-    const canBuy = selectedPackage && phone.replace(/\s/g, '').length >= 10 && !buying;
+    const canBuy = selectedPackage && phone.replace(/\s/g, '').length >= 10 && !buying && !platformSettings?.isMaintenanceMode;
 
     return (
         <div style={{ background: '#f0f2f8', minHeight: 'calc(100vh - 72px)', padding: '24px 16px', fontFamily: "'Inter', sans-serif" }}>
@@ -99,6 +99,25 @@ const Dashboard = () => {
                 {/* Platform Notification & Delivery Status */}
                 {platformSettings && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        {platformSettings.isMaintenanceMode && (
+                            <div style={{ 
+                                background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', 
+                                border: 'none', borderRadius: 20, padding: '20px 24px',
+                                display: 'flex', alignItems: 'center', gap: 16, color: '#fff',
+                                boxShadow: '0 10px 25px rgba(220, 38, 38, 0.25)',
+                                marginBottom: 4
+                            }}>
+                                <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                    <ShieldAlert size={24} />
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: 16, fontWeight: 900, letterSpacing: '0.02em' }}>Platform Locked</div>
+                                    <div style={{ fontSize: 13, fontWeight: 600, opacity: 0.9, marginTop: 2 }}>
+                                        Buying is currently disabled for maintenance. We'll be back shortly!
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                         {platformSettings.globalNotification && (
                             <div style={{ 
                                 background: 'linear-gradient(90deg, #fffbeb 0%, #fff 100%)', 
@@ -342,7 +361,7 @@ const Dashboard = () => {
                             >
                                 {buying
                                     ? <><RefreshCw size={18} style={{ animation: 'spin 0.8s linear infinite' }} /> Processing...</>
-                                    : <><Wallet size={18} /> Pay with Wallet</>
+                                    : (platformSettings?.isMaintenanceMode ? <><Ban size={18} /> Locked</> : <><Wallet size={18} /> Pay with Wallet</>)
                                 }
                             </button>
                             <button

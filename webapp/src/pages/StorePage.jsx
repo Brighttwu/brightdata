@@ -20,12 +20,17 @@ const StorePage = () => {
     const [buying, setBuying] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
     const [notFound, setNotFound] = useState(false);
+    const [platformSettings, setPlatformSettings] = useState(null);
 
     useEffect(() => {
         const fetchStore = async () => {
             try {
-                const res = await api.get(`/agent/public/${slug}`);
-                setStore(res.data);
+                const [storeRes, settingsRes] = await Promise.all([
+                    api.get(`/agent/public/${slug}`),
+                    api.get('/admin/settings') // This route is public for settings
+                ]);
+                setStore(storeRes.data);
+                setPlatformSettings(settingsRes.data);
             } catch {
                 setNotFound(true);
             } finally {
@@ -56,7 +61,7 @@ const StorePage = () => {
     useEffect(() => { fetchPackages(); }, [fetchPackages]);
 
     const handleBuy = async () => {
-        if (!selectedPkg || phone.replace(/\s/g,'').length < 10 || !email) return;
+        if (!selectedPkg || phone.replace(/\s/g,'').length < 10 || !email || platformSettings?.isMaintenanceMode) return;
         setBuying(true);
         setMessage({ type: '', text: '' });
         try {
@@ -79,7 +84,7 @@ const StorePage = () => {
         { id: 'at', name: 'AT', color: '#003399', textColor: '#fff', bg: 'linear-gradient(135deg, #003399, #4f46e5)' }
     ];
     const currentNet = networks.find(n => n.id === network);
-    const canBuy = selectedPkg && phone.replace(/\s/g,'').length >= 10 && email && !buying;
+    const canBuy = selectedPkg && phone.replace(/\s/g,'').length >= 10 && email && !buying && !platformSettings?.isMaintenanceMode;
 
     const themes = {
         classic: {
@@ -407,6 +412,12 @@ const StorePage = () => {
                             </div>
                         </div>
 
+                        {platformSettings?.isMaintenanceMode && (
+                            <div style={{ padding: '14px 18px', borderRadius: theme.id === 'luxury' ? '0px' : '14px', marginBottom: 20, fontWeight: 800, fontSize: 13, background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <Ban size={18} /> Store Locked for Maintenance
+                            </div>
+                        )}
+
                         {message.text && (
                             <div style={{ padding: '14px 18px', borderRadius: theme.id === 'luxury' ? '0px' : '14px', marginBottom: 20, fontWeight: 800, fontSize: 14, background: message.type === 'success' ? '#f0fdf4' : '#fef2f2', color: message.type === 'success' ? '#16a34a' : '#dc2626', border: theme.id === 'luxury' ? `1px solid ${message.type === 'success' ? '#16a34a' : '#dc2626'}` : 'none' }}>
                                 {message.text}
@@ -415,14 +426,14 @@ const StorePage = () => {
 
                         <button onClick={handleBuy} disabled={!canBuy} style={{
                             width: '100%', padding: '20px', borderRadius: theme.id === 'eco' ? '40px' : (theme.id === 'luxury' ? '0px' : '18px'), border: 'none',
-                            background: canBuy ? (theme.id === 'luxury' ? '#000' : `linear-gradient(135deg, ${theme.accent}, ${theme.accent}dd)`) : '#e2e8f0',
-                            color: canBuy ? '#fff' : theme.muted, fontWeight: 900, fontSize: 17, cursor: canBuy ? 'pointer' : 'not-allowed',
-                            boxShadow: canBuy && (theme.id !== 'luxury' && theme.id !== 'sunset') ? `0 12px 32px ${theme.accent}44` : 'none',
+                            background: canBuy ? (theme.id === 'luxury' ? '#000' : `linear-gradient(135deg, ${theme.accent}, ${theme.accent}dd)`) : (platformSettings?.isMaintenanceMode ? '#dc2626' : '#e2e8f0'),
+                            color: '#fff', fontWeight: 900, fontSize: 17, cursor: canBuy ? 'pointer' : 'not-allowed',
+                            boxShadow: (canBuy && theme.id !== 'luxury' && theme.id !== 'sunset') ? `0 12px 32px ${theme.accent}44` : 'none',
                             transition: 'all 0.3s ease',
                             textTransform: (theme.id === 'luxury' || theme.id === 'sunset') ? 'uppercase' : 'none',
                             letterSpacing: (theme.id === 'luxury' || theme.id === 'sunset') ? '2px' : 'normal'
                         }}>
-                            {buying ? 'Processing Payment...' : (selectedPkg ? `Buy for ₵${selectedPkg.price.toFixed(2)}` : 'Select a Bundle')}
+                            {buying ? 'Processing Payment...' : (platformSettings?.isMaintenanceMode ? '🔒 STORE LOCKED' : (selectedPkg ? `Buy for ₵${selectedPkg.price.toFixed(2)}` : 'Select a Bundle'))}
                         </button>
                     </div>
                 </div>

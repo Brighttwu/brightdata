@@ -6,6 +6,7 @@ const User = require('../models/User');
 const Pricing = require('../models/Pricing');
 const Transaction = require('../models/Transaction');
 const { handleReferralCommission } = require('../utils/referralHelper');
+const checkMaintenance = require('../utils/maintenanceMiddleware');
 
 const API_KEY = process.env.BOSSU_API_KEY;
 const API_URL = process.env.BOSSU_API_URL;
@@ -145,7 +146,7 @@ router.get('/api-balance', async (req, res) => {
 });
 
 // Create Order (Buy Data)
-router.post('/buy', (req, res, next) => {
+router.post('/buy', checkMaintenance, (req, res, next) => {
     // INLINE AUTH FOR STABILITY
     const token = req.header('Authorization')?.replace('Bearer ', '');
     if (!token) return res.status(401).json({ message: 'No token' });
@@ -272,7 +273,7 @@ router.post('/buy', (req, res, next) => {
 });
 
 // Init direct Paystack order
-router.post('/buy-paystack-init', auth, async (req, res) => {
+router.post('/buy-paystack-init', checkMaintenance, auth, async (req, res) => {
     try {
         const { network, package_key, recipient_phone, package_name } = req.body;
         const user = req.user;

@@ -353,13 +353,14 @@ router.get('/settings', async (req, res) => {
 
 router.post('/settings', adminAuth, async (req, res) => {
     try {
-        const { globalNotification, deliveryStatus, whatsappNumber } = req.body;
+        const { globalNotification, deliveryStatus, whatsappNumber, isMaintenanceMode } = req.body;
         let settings = await Settings.findOne();
         if (!settings) settings = new Settings();
         
         if (globalNotification !== undefined) settings.globalNotification = globalNotification;
         if (deliveryStatus !== undefined) settings.deliveryStatus = deliveryStatus;
         if (whatsappNumber !== undefined) settings.whatsappNumber = whatsappNumber;
+        if (isMaintenanceMode !== undefined) settings.isMaintenanceMode = isMaintenanceMode;
         
         settings.updatedAt = Date.now();
         await settings.save();

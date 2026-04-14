@@ -33,7 +33,8 @@ const AdminDashboard = () => {
     const [platformSettings, setPlatformSettings] = useState({
         globalNotification: '',
         deliveryStatus: 'fast',
-        whatsappNumber: ''
+        whatsappNumber: '',
+        isMaintenanceMode: false
     });
     const [settingsLoading, setSettingsLoading] = useState(false);
 
@@ -795,12 +796,42 @@ const AdminDashboard = () => {
                                 />
                             </div>
 
+                            <div style={{ ...cardStyle, border: platformSettings.isMaintenanceMode ? '2px solid #ef4444' : '1px solid #f1f5f9', background: platformSettings.isMaintenanceMode ? '#fef2f2' : '#f8fafc', padding: '20px', marginTop: 12 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                                    <Ban size={20} color={platformSettings.isMaintenanceMode ? "#ef4444" : "#64748b"} />
+                                    <div style={{ fontSize: 16, fontWeight: 900, color: platformSettings.isMaintenanceMode ? '#dc2626' : '#0f172a' }}>Platform Lock (Maintenance)</div>
+                                </div>
+                                <div style={{ fontSize: 13, color: '#64748b', marginBottom: 16, fontWeight: 500 }}>
+                                    When locked, all data purchases (including agent stores) will be disabled. 
+                                </div>
+                                <button 
+                                    type="button"
+                                    onClick={() => setPlatformSettings(p => ({ ...p, isMaintenanceMode: !p.isMaintenanceMode }))}
+                                    style={{ 
+                                        width: '100%', padding: '14px', borderRadius: 12, cursor: 'pointer',
+                                        fontWeight: 800, fontSize: 13, transition: 'all 0.2s',
+                                        background: platformSettings.isMaintenanceMode ? '#dc2626' : '#fff',
+                                        color: platformSettings.isMaintenanceMode ? '#fff' : '#0f172a',
+                                        border: platformSettings.isMaintenanceMode ? 'none' : '2px solid #e2e8f0',
+                                        boxShadow: platformSettings.isMaintenanceMode ? '0 4px 12px rgba(220, 38, 38, 0.2)' : 'none'
+                                    }}
+                                >
+                                    {platformSettings.isMaintenanceMode ? '🔒 UNLOCK PLATFORM' : '🔓 LOCK PLATFORM NOW'}
+                                </button>
+                            </div>
+
                             <button 
                                 type="submit" 
                                 disabled={settingsLoading}
-                                style={{ width: '100%', padding: '18px', borderRadius: 18, border: 'none', background: '#0f172a', color: '#fff', fontWeight: 900, fontSize: 16, cursor: settingsLoading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}
+                                style={{ 
+                                    width: '100%', padding: '18px', borderRadius: 18, border: 'none', 
+                                    background: '#0f172a', color: '#fff', fontWeight: 900, fontSize: 16, 
+                                    cursor: settingsLoading ? 'not-allowed' : 'pointer', 
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, 
+                                    marginTop: 20, boxShadow: '0 8px 24px rgba(0,0,0,0.1)' 
+                                }}
                             >
-                                {settingsLoading ? <RefreshCw className="animate-spin" size={20} /> : <><Save size={20} /> Save Platform Settings</>}
+                                {settingsLoading ? 'Applying...' : <><Save size={20} /> Save Platform Settings</>}
                             </button>
                         </form>
                     </div>

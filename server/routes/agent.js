@@ -8,6 +8,7 @@ const Pricing = require('../models/Pricing');
 const User = require('../models/User');
 const Transaction = require('../models/Transaction');
 const { handleReferralCommission } = require('../utils/referralHelper');
+const checkMaintenance = require('../utils/maintenanceMiddleware');
 const cloudinary = require('../utils/cloudinary');
 
 const API_URL = process.env.BOSSU_API_URL;
@@ -277,7 +278,7 @@ router.get('/public/:slug/packages/:network', async (req, res) => {
 
 // ─── PUBLIC: BUY FROM STORE (Commission Model) ────────────────────────────────
 // Customer pays agent's selling price → Platform uses Bossu API to fulfill → Agent earns commission
-router.post('/public/:slug/buy-init', async (req, res) => {
+router.post('/public/:slug/buy-init', checkMaintenance, async (req, res) => {
     try {
         const store = await Store.findOne({ slug: req.params.slug.toLowerCase(), isActive: { $ne: false } }).populate('agent');
         if (!store) return res.status(404).json({ message: 'Store not found' });
@@ -368,7 +369,7 @@ router.post('/public/:slug/buy-init', async (req, res) => {
 
 // ─── STORE PAYSTACK VERIFY ────────────────────────────────────────────────────
 // After customer pays: Platform places Bossu order, then credits commission to agent's wallet
-router.get('/public/verify/:reference', async (req, res) => {
+router.get('/public/verify/:reference', checkMaintenance, async (req, res) => {
     try {
         const { reference } = req.params;
 
