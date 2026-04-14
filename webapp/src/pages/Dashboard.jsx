@@ -48,15 +48,17 @@ const Dashboard = () => {
     }, []);
 
     useEffect(() => {
-        fetchPackages();
-        // Automatically refresh balance when dashboard is opened
+        // Automatically refresh ONLY balance when dashboard is opened
         api.get('/user/profile').then(res => updateBalance(res.data.balance)).catch(() => {});
-    }, [fetchPackages, updateBalance]);
+    }, [updateBalance]);
+
+    useEffect(() => {
+        fetchPackages();
+    }, [fetchPackages]);
 
     const handleRefresh = async () => {
         setRefreshing(true);
         try {
-            await fetchPackages();
             const res = await api.get('/user/profile');
             updateBalance(res.data.balance);
         } catch (err) {}
@@ -257,7 +259,7 @@ const Dashboard = () => {
                                 fontWeight: 700, cursor: 'pointer', fontSize: 13, transition: 'all 0.2s',
                             }} onMouseEnter={e => { e.currentTarget.style.borderColor = '#4f46e5'; e.currentTarget.style.background = '#f5f7ff'; }} 
                                onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.background = '#fff'; }}>
-                                <RefreshCw size={14} style={{ animation: refreshing ? 'spin-anim 0.8s linear infinite' : 'none' }} /> Refresh Dashboard
+                                <RefreshCw size={14} style={{ animation: refreshing ? 'spin-anim 0.8s linear infinite' : 'none' }} /> Refresh Balance
                             </button>
                         </div>
 
