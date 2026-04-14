@@ -94,15 +94,13 @@ const AgentPage = () => {
     useEffect(() => { 
         if (isAgent) fetchDashboard(); 
         else setLoading(false); 
+    }, [isAgent, fetchDashboard]);
 
-        // Auto-refresh for pending orders
-        const hasUnverified = dashboard.unverifiedOrders?.length > 0;
-        let interval;
-        if (hasUnverified && isAgent) {
-            interval = setInterval(fetchDashboard, 7000);
-        }
-        return () => clearInterval(interval);
-    }, [isAgent, fetchDashboard, dashboard.unverifiedOrders?.length]);
+    const handleRefresh = () => {
+        if (isAgent) fetchDashboard();
+        api.get('/user/profile').then(res => updateBalance(res.data.balance)).catch(() => {});
+        if (tab === 'withdrawals') fetchWithdrawals();
+    };
     useEffect(() => { if (tab === 'pricing' && isAgent) fetchPackages(); }, [tab, fetchPackages, isAgent]);
     useEffect(() => { if (tab === 'withdrawals' && isAgent) fetchWithdrawals(); }, [tab, fetchWithdrawals, isAgent]);
 
@@ -240,6 +238,13 @@ const AgentPage = () => {
                     <div>
                         <h1 style={{ fontSize: 26, fontWeight: 900, color: '#0f172a', margin: 0 }}>Agent Dashboard</h1>
                     </div>
+                    <button onClick={handleRefresh} style={{
+                        display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px',
+                        background: '#fff', color: '#4f46e5', border: '1px solid #e2e8f0', borderRadius: 12,
+                        fontWeight: 700, cursor: 'pointer', fontSize: 13
+                    }}>
+                        <RefreshCw size={14} /> Refresh
+                    </button>
                 </div>
 
                 {dashboard.store && (

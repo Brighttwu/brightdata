@@ -28,48 +28,27 @@ const WalletPage = () => {
         }
     };
 
+    const fetchTx = useCallback(async (showLoading = false) => {
+        if (showLoading) setTxLoading(true);
+        try {
+            const res = await api.get('/payment/transactions');
+            setTransactions(res.data);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            if (showLoading) setTxLoading(false);
+        }
+    }, []);
+
     // Fetch transactions
     useEffect(() => {
-        const fetchTx = async (showLoading = false) => {
-            if (showLoading) setTxLoading(true);
-            try {
-                const res = await api.get('/payment/transactions');
-                setTransactions(res.data);
-                
-                // If there's a status change from pending to success, refresh balance
-                const hasPendingInState = transactions.some(tx => tx.type === 'deposit' && tx.status === 'pending');
-                const hasPendingInRes = res.data.some(tx => tx.type === 'deposit' && tx.status === 'pending');
-                
-                if (hasPendingInState && !hasPendingInRes) {
-                    api.get('/user/profile').then(res => updateBalance(res.data.balance));
-                }
-            } catch (err) {
-                console.error(err);
-            } finally {
-                if (showLoading) setTxLoading(false);
-            }
-        };
-
         fetchTx(true);
+    }, [fetchTx]);
 
-        // Refresh transactions list every 20 seconds (slower)
-        const txInterval = setInterval(() => fetchTx(false), 20000);
-        
-        // Refresh balance only every 5 seconds (faster)
-        const balInterval = setInterval(async () => {
-            try {
-                const res = await api.get('/user/profile');
-                if (res.data.balance !== (user?.balance || 0)) {
-                    updateBalance(res.data.balance);
-                }
-            } catch (err) {}
-        }, 5000);
-
-        return () => {
-            clearInterval(txInterval);
-            clearInterval(balInterval);
-        };
-    }, [updateBalance, user?.balance, transactions.length]);
+    const handleRefresh = () => {
+        fetchTx(true);
+        api.get('/user/profile').then(res => updateBalance(res.data.balance)).catch(() => {});
+    };
 
     const handleFund = async () => {
         const val = parseFloat(amount);
@@ -207,7 +186,16 @@ const WalletPage = () => {
                     border: '1px solid #f1f5f9',
                     boxShadow: '0 4px 24px rgba(0,0,0,0.04)'
                 }}>
-                    <h3 style={{ fontSize: 18, fontWeight: 900, color: '#0f172a', margin: '0 0 20px' }}>Transaction History</h3>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                        <h3 style={{ fontSize: 18, fontWeight: 900, color: '#0f172a', margin: 0 }}>Transaction History</h3>
+                        <button onClick={handleRefresh} style={{
+                            display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px',
+                            background: '#fff', color: '#4f46e5', border: '1px solid #e2e8f0', borderRadius: 10,
+                            fontWeight: 700, cursor: 'pointer', fontSize: 13
+                        }}>
+                            <RefreshCw size={14} /> Refresh
+                        </button>
+                    </div>
 
                     {txLoading ? (
                         <div style={{ textAlign: 'center', padding: '40px 0', color: '#94a3b8' }}>

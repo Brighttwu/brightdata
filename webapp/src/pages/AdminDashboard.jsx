@@ -101,10 +101,9 @@ const AdminDashboard = () => {
 
     useEffect(() => {
         fetchData();
-        // Refresh full admin data every 15 seconds instead of 5 to avoid constant re-renders
-        const interval = setInterval(fetchData, 15000); 
-        return () => clearInterval(interval);
-    }, [tab, statsDays]);
+    }, [tab, statsDays, selectedNetwork]);
+
+    const handleRefresh = () => fetchData();
 
     const handleBlock = async (id) => {
         try {
@@ -241,8 +240,15 @@ const AdminDashboard = () => {
 
             <div style={{ maxWidth: 1000, margin: '0 auto' }}>
                 <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 24, fontWeight: 900, color: '#0f172a' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 24, fontWeight: 900, color: '#0f172a' }}>
                         Admin <span style={{ color: '#4f46e5', textTransform: 'capitalize' }}>{tab}</span>
+                        <button onClick={handleRefresh} style={{
+                            marginLeft: 12, display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px',
+                            background: '#fff', color: '#4f46e5', border: '1px solid #e2e8f0', borderRadius: 10,
+                            fontWeight: 700, cursor: 'pointer', fontSize: 12
+                        }}>
+                            <RefreshCw size={12} /> Refresh
+                        </button>
                     </div>
                     {tab === 'stats' && (
                         <select 

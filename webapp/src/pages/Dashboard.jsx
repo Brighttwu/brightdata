@@ -50,20 +50,10 @@ const Dashboard = () => {
         fetchPackages();
     }, [fetchPackages]);
 
-    useEffect(() => {
-        // Background balance poller: strictly updates balance only
-        // Does not show loading spinners or refresh packages
-        const interval = setInterval(async () => {
-            try {
-                const res = await api.get('/user/profile');
-                if (res.data.balance !== (user?.balance || 0)) {
-                    updateBalance(res.data.balance);
-                }
-            } catch (err) {}
-        }, 5000);
-
-        return () => clearInterval(interval);
-    }, [updateBalance, user?.balance]);
+    const handleRefresh = () => {
+        fetchPackages();
+        api.get('/user/profile').then(res => updateBalance(res.data.balance)).catch(() => {});
+    };
 
     const handleBuy = async (method) => {
         if (!selectedPackage || phone.replace(/\s/g, '').length < 10) return;
@@ -224,17 +214,27 @@ const Dashboard = () => {
 
                     {/* Header */}
                     <div style={{ padding: '28px 32px 0' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-                            <div style={{
-                                width: 48, height: 48, borderRadius: 16, background: '#eef2ff',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center'
-                            }}>
-                                <Wifi size={22} color="#4f46e5" />
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                <div style={{
+                                    width: 48, height: 48, borderRadius: 16, background: '#eef2ff',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                }}>
+                                    <Wifi size={22} color="#4f46e5" />
+                                </div>
+                                <div>
+                                    <div style={{ fontWeight: 900, fontSize: 20, color: '#0f172a' }}>Buy Data Bundle</div>
+                                    <div style={{ fontSize: 13, color: '#94a3b8', fontWeight: 600, marginTop: 2 }}>Fast & affordable data for all networks</div>
+                                </div>
                             </div>
-                            <div>
-                                <div style={{ fontWeight: 900, fontSize: 20, color: '#0f172a' }}>Buy Data Bundle</div>
-                                <div style={{ fontSize: 13, color: '#94a3b8', fontWeight: 600, marginTop: 2 }}>Fast & affordable data for all networks</div>
-                            </div>
+                            <button onClick={handleRefresh} style={{
+                                display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px',
+                                background: '#fff', color: '#4f46e5', border: '1.5px solid #e2e8f0', borderRadius: 12,
+                                fontWeight: 700, cursor: 'pointer', fontSize: 13, transition: 'all 0.2s',
+                            }} onMouseEnter={e => { e.currentTarget.style.borderColor = '#4f46e5'; e.currentTarget.style.background = '#f5f7ff'; }} 
+                               onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.background = '#fff'; }}>
+                                <RefreshCw size={14} /> Refresh Dashboard
+                            </button>
                         </div>
 
                         {/* Network Selector */}

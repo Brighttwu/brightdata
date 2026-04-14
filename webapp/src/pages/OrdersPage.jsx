@@ -47,15 +47,9 @@ const OrdersPage = () => {
 
     useEffect(() => { 
         fetchOrders(); 
-        
-        // Auto-refresh every 5 seconds if there are pending_payment orders
-        const hasPendingPayment = orders.some(o => o.status === 'pending_payment');
-        let interval;
-        if (hasPendingPayment) {
-            interval = setInterval(fetchOrders, 5000);
-        }
-        return () => clearInterval(interval);
-    }, [fetchOrders, orders.some(o => o.status === 'pending_payment')]);
+    }, [fetchOrders]);
+
+    const handleRefresh = () => fetchOrders();
 
     const handleCheckStatus = async (order) => {
         setActionLoadingId(order._id);
