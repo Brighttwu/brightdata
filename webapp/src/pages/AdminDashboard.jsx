@@ -101,17 +101,9 @@ const AdminDashboard = () => {
 
     useEffect(() => {
         fetchData();
-
-        // Auto-refresh for pending items on specific tabs
-        const hasPending = (tab === 'transactions' && transactions.some(tx => tx.status === 'pending')) ||
-                          (tab === 'orders' && orders.some(o => o.status === 'pending_payment'));
-        
-        let interval;
-        if (hasPending) {
-            interval = setInterval(fetchData, 10000); // 10s for admin dashboard
-        }
+        const interval = setInterval(fetchData, 5000); // 5 sec refresh
         return () => clearInterval(interval);
-    }, [fetchData, tab, transactions.some(tx => tx.status === 'pending'), orders.some(o => o.status === 'pending_payment')]);
+    }, [tab, statsDays]);
 
     const handleBlock = async (id) => {
         try {

@@ -46,7 +46,7 @@ const Dashboard = () => {
         };
         fetchSettings();
 
-        // Refresh balance every 15 seconds while on dashboard to catch auto-verifications
+        // Refresh balance every 5 seconds while on dashboard to catch auto-verifications
         const interval = setInterval(async () => {
             try {
                 const res = await api.get('/user/profile');
@@ -54,7 +54,7 @@ const Dashboard = () => {
                     updateBalance(res.data.balance);
                 }
             } catch (err) {}
-        }, 15000);
+        }, 5000);
 
         return () => clearInterval(interval);
     }, [fetchPackages, updateBalance, user?.balance]);

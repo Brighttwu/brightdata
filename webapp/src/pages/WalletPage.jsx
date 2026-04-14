@@ -49,14 +49,10 @@ const WalletPage = () => {
         };
         fetchTx();
 
-        // Auto-refresh every 5 seconds if there are pending transactions
-        const hasPending = transactions.some(tx => tx.type === 'deposit' && tx.status === 'pending');
-        let interval;
-        if (hasPending) {
-            interval = setInterval(fetchTx, 5000);
-        }
+        // Auto-refresh every 5 seconds to catch new deposits/purchases
+        const interval = setInterval(fetchTx, 5000);
         return () => clearInterval(interval);
-    }, [message, transactions.length, transactions.some(tx => tx.status === 'pending')]);
+    }, [message, transactions.length]);
 
     const handleFund = async () => {
         const val = parseFloat(amount);
