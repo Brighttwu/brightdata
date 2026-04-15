@@ -410,6 +410,7 @@ router.get('/buy-paystack-verify/:reference', async (req, res) => {
                 balanceAfter: targetUser.balance + order.amount
             });
             
+            if (isFailed && isLowBalance && targetUser) {
                 targetUser.balance += order.amount;
                 await targetUser.save();
                 
