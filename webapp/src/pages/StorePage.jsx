@@ -344,7 +344,7 @@ const StorePage = () => {
         };
 
         return (
-            <div key={p.package_key} onClick={() => setSelectedPkg(p)} style={baseStyle}>
+            <div key={p.package_key} className="store-pkg-item" onClick={() => setSelectedPkg(p)} style={baseStyle}>
                 {sel && t.pkgLayout !== 'list' && (
                     <CheckCircle2 size={15} style={{ position: 'absolute', top: 10, right: 10 }} />
                 )}

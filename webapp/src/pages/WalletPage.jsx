@@ -4,7 +4,7 @@ import api from '../api/axios';
 import { Wallet, Plus, ArrowDownLeft, ArrowUpRight, CheckCircle2, XCircle, Clock, AlertCircle, RefreshCw } from 'lucide-react';
 
 const WalletPage = () => {
-    const { user, updateBalance } = useAuth();
+    const { user, updateBalance, refreshProfile } = useAuth();
     const [amount, setAmount] = useState('');
     const [loading, setLoading] = useState(false);
     const [transactions, setTransactions] = useState([]);
@@ -44,16 +44,15 @@ const WalletPage = () => {
     // Fetch transactions
     useEffect(() => {
         fetchTx(true);
-        // Automatically refresh balance when wallet is opened
-        api.get('/user/profile').then(res => updateBalance(res.data.balance)).catch(() => {});
-    }, [fetchTx, updateBalance]);
+        // Automatically full sync profile when wallet is opened
+        refreshProfile();
+    }, [fetchTx]);
 
     const handleRefresh = async () => {
         setRefreshing(true);
         try {
             await fetchTx(true);
-            const res = await api.get('/user/profile');
-            updateBalance(res.data.balance);
+            await refreshProfile();
         } catch (err) {}
         setTimeout(() => setRefreshing(false), 1000);
     };

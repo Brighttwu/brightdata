@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { Wifi, Wallet, Plus, RefreshCw, Search, CheckCircle2, XCircle, ChevronRight, Zap, ShoppingCart, Bell, Truck, Clock, ShieldAlert, Ban } from 'lucide-react';
 
 const Dashboard = () => {
-    const { user, updateBalance } = useAuth();
+    const { user, updateBalance, refreshProfile } = useAuth();
     const [network, setNetwork] = useState('mtn');
     const [packages, setPackages] = useState([]);
     const [selectedPackage, setSelectedPackage] = useState(null);
@@ -48,9 +48,9 @@ const Dashboard = () => {
     }, []);
 
     useEffect(() => {
-        // Automatically refresh ONLY balance when dashboard is opened
-        api.get('/user/profile').then(res => updateBalance(res.data.balance)).catch(() => {});
-    }, [updateBalance]);
+        // Full profile sync when dashboard is opened
+        refreshProfile();
+    }, []);
 
     useEffect(() => {
         fetchPackages();
@@ -59,8 +59,7 @@ const Dashboard = () => {
     const handleRefresh = async () => {
         setRefreshing(true);
         try {
-            const res = await api.get('/user/profile');
-            updateBalance(res.data.balance);
+            await refreshProfile();
         } catch (err) {}
         setTimeout(() => setRefreshing(false), 1000);
     };

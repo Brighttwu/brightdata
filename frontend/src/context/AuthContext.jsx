@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import axios from 'axios';
 
 const AuthContext = createContext();
@@ -44,9 +44,9 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
     };
 
-    const updateBalance = (newBalance) => {
+    const updateBalance = useCallback((newBalance) => {
         setUser(prev => ({ ...prev, balance: newBalance }));
-    };
+    }, []);
 
     return (
         <AuthContext.Provider value={{ user, loading, login, register, logout, updateBalance }}>

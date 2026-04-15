@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 
 const AgentPage = () => {
-    const { user, updateBalance } = useAuth();
+    const { user, updateBalance, refreshProfile } = useAuth();
     const [tab, setTab] = useState('dashboard'); // dashboard | store | pricing | withdrawals
     const [dashboard, setDashboard] = useState({ profits: [], totalProfit: 0, totalSales: 0, store: null, unverifiedOrders: [], commissionBalance: 0 });
     const [packages, setPackages] = useState([]);
@@ -96,9 +96,9 @@ const AgentPage = () => {
         else setLoading(false); 
     }, [isAgent, fetchDashboard]);
 
-    const handleRefresh = () => {
-        if (isAgent) fetchDashboard();
-        api.get('/user/profile').then(res => updateBalance(res.data.balance)).catch(() => {});
+    const handleRefresh = async () => {
+        if (isAgent) await fetchDashboard();
+        await refreshProfile();
         if (tab === 'withdrawals') fetchWithdrawals();
     };
     useEffect(() => { if (tab === 'pricing' && isAgent) fetchPackages(); }, [tab, fetchPackages, isAgent]);
@@ -138,25 +138,22 @@ const AgentPage = () => {
         } catch (err) { setMessage({ type: 'error', text: err.response?.data?.message || 'Error saving store' }); } finally { setSaving(false); }
     };
 
-    const savePrices = async () => {
-        const invalidPrices = packages.filter(pkg => {
-            const mapKey = `${selectedNetwork}-${pkg.key.toLowerCase()}`;
-            const price = Number(customPrices[mapKey]);
-            return price && price < pkg.platformCost;
-        });
-        if (invalidPrices.length > 0) return setMessage({ type: 'error', text: 'Some prices are too low.' });
-        setSaving(true);
-        const priceArr = packages.map(pkg => {
-            const mapKey = `${selectedNetwork}-${pkg.key.toLowerCase()}`;
-            const price = Number(customPrices[mapKey]);
-            if (!price || price <= 0) return null;
-            return { network: selectedNetwork, packageKey: pkg.key, packageName: pkg.name, price };
-        }).filter(Boolean);
+    const saveSinglePrice = async (pkg) => {
+        const mapKey = `${selectedNetwork}-${pkg.key.toLowerCase()}`;
+        const price = Number(customPrices[mapKey]);
+        if (!price || price <= 0) return setMessage({ type: 'error', text: 'Please enter a valid price.' });
+        if (price < pkg.platformCost) return setMessage({ type: 'error', text: 'Price cannot be lower than the platform cost.' });
+
+        setSaving(mapKey);
         try {
-            await api.post('/agent/store/prices', { network: selectedNetwork, customPrices: priceArr });
-            setMessage({ type: 'success', text: 'Prices updated!' });
+            await api.post('/agent/store/prices', { 
+                network: selectedNetwork, 
+                customPrices: [{ packageKey: pkg.key, packageName: pkg.name, price }] 
+            });
+            setMessage({ type: 'success', text: `Price for ${pkg.name} saved!` });
+            setTimeout(() => setMessage({ type: '', text: '' }), 3000);
         } catch (err) { 
-            setMessage({ type: 'error', text: err.response?.data?.message || 'Error saving prices' }); 
+            setMessage({ type: 'error', text: err.response?.data?.message || 'Error saving price' }); 
         } finally { 
             setSaving(false); 
         }
@@ -450,7 +447,7 @@ const AgentPage = () => {
                                     ].map(t => (
                                         <div key={t.id} onClick={() => setStoreForm(p => ({ ...p, theme: t.id }))} style={{
                                             padding: '12px', borderRadius: 16, border: storeForm.theme === t.id ? `2.5px solid ${t.color}` : '2.5px solid #f1f5f9',
-                                            cursor: 'pointer', textAlign: 'center', background: storeForm.theme === t.id ? `${t.color}10` : '#fff', transiton: 'all 0.2s',
+                                            cursor: 'pointer', textAlign: 'center', background: storeForm.theme === t.id ? `${t.color}10` : '#fff', transition: 'all 0.2s',
                                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8
                                         }}>
                                             <div style={{ width: 32, height: 32, borderRadius: '50%', background: t.color, border: '2px solid #fff', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }} />
@@ -474,14 +471,18 @@ const AgentPage = () => {
                                     const mk = `${selectedNetwork}-${pkg.key.toLowerCase()}`;
                                     const price = customPrices[mk] || '';
                                     return (
-                                        <div key={pkg.key} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 14, background: '#f8fafc', borderRadius: 14 }}>
-                                            <div style={{ flex: 1 }}><div style={{ fontWeight: 800 }}>{pkg.name}</div><div style={{ fontSize: 12, color: '#94a3b8' }}>Cost: ₵{pkg.platformCost.toFixed(2)}</div></div>
-                                            <input type="number" value={price} onChange={e => setCustomPrices(v => ({ ...v, [mk]: e.target.value }))} placeholder={pkg.platformCost} style={{ width: 100, padding: 10, borderRadius: 10, border: '2px solid #e2e8f0', fontWeight: 800, textAlign: 'center' }} />
+                                        <div key={pkg.key} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 14, background: '#f8fafc', borderRadius: 14, flexWrap: 'wrap' }}>
+                                            <div style={{ flex: 1, minWidth: 200 }}><div style={{ fontWeight: 800 }}>{pkg.name}</div><div style={{ fontSize: 12, color: '#94a3b8' }}>Cost: ₵{pkg.platformCost.toFixed(2)}</div></div>
+                                            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                                <input type="number" value={price} onChange={e => setCustomPrices(v => ({ ...v, [mk]: e.target.value }))} placeholder={pkg.platformCost} style={{ width: 90, padding: 10, borderRadius: 10, border: '2px solid #e2e8f0', fontWeight: 800, textAlign: 'center' }} />
+                                                <button onClick={() => saveSinglePrice(pkg)} disabled={saving === mk} style={{ padding: '10px 16px', borderRadius: 10, background: '#4f46e5', color: '#fff', fontWeight: 800, border: 'none', cursor: saving === mk ? 'not-allowed' : 'pointer', minWidth: 80 }}>
+                                                    {saving === mk ? '...' : 'Save'}
+                                                </button>
+                                            </div>
                                         </div>
                                     );
                                 })}
                             </div>
-                            <button onClick={savePrices} disabled={saving} style={{ marginTop: 20, width: '100%', padding: 16, borderRadius: 14, background: '#4f46e5', color: '#fff', fontWeight: 800, border: 'none', cursor: 'pointer' }}>Save Prices</button>
                         </div>
                     </div>
                 )}

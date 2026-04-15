@@ -50,12 +50,29 @@ router.post('/upgrade', auth, async (req, res) => {
         user.balance -= AGENT_FEE;
         if (user.role !== 'admin') user.role = 'agent';
         await user.save();
+        
+        // Auto-create a default store for the agent immediately so they don't have to wait
+        const baseSlug = (user.name || 'store').toLowerCase().replace(/[^a-z0-9]/g, '');
+        const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+        await Store.create({
+            agent: user._id,
+            slug: `${baseSlug}-${randomSuffix}`,
+            name: `${user.name}'s Store`,
+            theme: 'classic'
+        });
+
+        // If they were just 'user', now they are 'store' because they have an active store immediately
+        if (user.role === 'agent') {
+            user.role = 'store';
+            await user.save();
+        }
+
         await Transaction.create({
             user: user._id, type: 'purchase', amount: AGENT_FEE, status: 'success',
             reference: `AGENT_FEE_${Date.now()}`, description: 'Agent Upgrade Fee',
             balanceBefore: user.balance + AGENT_FEE, balanceAfter: user.balance
         });
-        res.json({ message: 'Congratulations! You are now an agent.', user: { role: user.role, balance: user.balance } });
+        res.json({ message: 'Congratulations! Your store is now active.', user: { role: user.role, balance: user.balance } });
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Error upgrading to agent' });
