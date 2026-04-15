@@ -148,7 +148,7 @@ const AgentPage = () => {
         try {
             await api.post('/agent/store/prices', { 
                 network: selectedNetwork, 
-                customPrices: [{ packageKey: pkg.key, packageName: pkg.name, price }] 
+                customPrices: [{ network: selectedNetwork, packageKey: pkg.key, packageName: pkg.name, price }] 
             });
             setMessage({ type: 'success', text: `Price for ${pkg.name} saved!` });
             setTimeout(() => setMessage({ type: '', text: '' }), 3000);

@@ -167,13 +167,22 @@ router.post('/store/prices', auth, async (req, res) => {
             }
         }
 
-        if (networkToSave) {
-            // Keep prices for other networks, replace for the current one
-            const otherPrices = store.customPrices.filter(cp => cp.network.toLowerCase() !== networkToSave.toLowerCase());
-            store.customPrices = [...otherPrices, ...incomingPrices];
-        } else {
-            store.customPrices = incomingPrices;
-        }
+        // Merge updated prices cleanly
+        incomingPrices.forEach(cp => {
+            const net = cp.network.toLowerCase();
+            const pKey = cp.packageKey.toString().trim().toLowerCase();
+            
+            const existingIndex = store.customPrices.findIndex(
+                p => p.network.toLowerCase() === net && p.packageKey.toLowerCase() === pKey
+            );
+            
+            if (existingIndex > -1) {
+                store.customPrices[existingIndex].price = cp.price;
+                if (cp.packageName) store.customPrices[existingIndex].packageName = cp.packageName;
+            } else {
+                store.customPrices.push(cp);
+            }
+        });
 
         store.updatedAt = Date.now();
         await store.save();
