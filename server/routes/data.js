@@ -12,6 +12,7 @@ const checkMaintenance = require('../utils/maintenanceMiddleware');
 
 const API_KEY = process.env.BOSSU_API_KEY;
 const API_URL = process.env.BOSSU_API_URL;
+const { sendAdminFundAlert } = require('../utils/emailHelper');
 
 // Middleware for private routes
 const auth = (req, res, next) => {
@@ -241,6 +242,13 @@ router.post('/buy', checkMaintenance, (req, res, next) => {
         });
 
         const orderFailed = apiData.status === 'failed' || response.data.success === false;
+        
+        // Alert admin if failure is due to low balance
+        const apiMsg = (response.data.message || apiData.message || "").toLowerCase();
+        if (orderFailed && (apiMsg.includes('insufficient') || apiMsg.includes('balance'))) {
+            await sendAdminFundAlert('Bossu Data Hub (Direct)', 0);
+        }
+
         if (orderFailed) {
             // Refund if API immediately fails
             user.balance += amount;
@@ -402,11 +410,11 @@ router.get('/buy-paystack-verify/:reference', async (req, res) => {
                 balanceAfter: targetUser.balance + order.amount
             });
             
-            if (isFailed && isLowBalance && targetUser) {
-                // REFUND TO BALANCE as requested for direct Paystack payments failing due to low API balance
                 targetUser.balance += order.amount;
                 await targetUser.save();
                 
+                await sendAdminFundAlert('Bossu Data Hub (Paystack Direct)', 0);
+
                 await Transaction.create({
                     user: targetUser._id,
                     type: 'deposit',

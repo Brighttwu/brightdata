@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const Transaction = require('../models/Transaction');
+const { sendReferralNotification } = require('./emailHelper');
 
 const handleReferralCommission = async (buyerId, amount, orderRef) => {
     try {
@@ -24,6 +25,9 @@ const handleReferralCommission = async (buyerId, amount, orderRef) => {
             balanceBefore: referrer.balance,
             balanceAfter: referrer.balance // We don't touch main balance
         });
+
+        // Notify Referrer via Email
+        await sendReferralNotification(referrer.email, referrer.name, buyer.name, commission);
 
         console.log(`Referral Commission: ₵${commission} paid to ${referrer.name} for buyer ${buyer.name}`);
     } catch (err) {

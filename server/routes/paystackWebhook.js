@@ -8,6 +8,7 @@ const Order = require('../models/Order');
 const Store = require('../models/Store');
 const Profit = require('../models/Profit');
 const { handleReferralCommission } = require('../utils/referralHelper');
+const { sendStoreOrderNotification, sendAdminFundAlert } = require('../utils/emailHelper');
 
 const API_KEY = process.env.BOSSU_API_KEY;
 const API_URL = process.env.BOSSU_API_URL;
@@ -108,6 +109,7 @@ router.post('/', async (req, res) => {
                     
                     if (bossuRes.data.success === false && isLowBalance) {
                         order.status = 'awaiting_api_balance';
+                        await sendAdminFundAlert('Bossu Data Hub', 0);
                     } else {
                         order.status = (bossuData.status === 'failed' || bossuRes.data.success === false) ? 'failed' : 'pending';
                     }
@@ -207,6 +209,7 @@ router.post('/', async (req, res) => {
                     const apiMsg = (bossuRes.data.message || bossuData.message || "").toLowerCase();
                     if (bossuRes.data.success === false && (apiMsg.includes('insufficient') || apiMsg.includes('balance'))) {
                         bossuStatus = 'awaiting_api_balance';
+                        await sendAdminFundAlert('Bossu Data Hub (Store)', 0);
                     } else if (bossuData.status === 'failed' || bossuRes.data.success === false) {
                         bossuStatus = 'failed';
                     }
@@ -244,6 +247,11 @@ router.post('/', async (req, res) => {
                 store.totalProfit = Number(((store.totalProfit || 0) + profit).toFixed(2));
                 store.totalSales = (store.totalSales || 0) + 1;
                 await store.save();
+
+                // Notify Agent of New Store Order
+                await sendStoreOrderNotification(agent.email, agent.name, {
+                    network, packageName, recipientPhone, profit
+                });
 
                 await handleReferralCommission(agentId, sellingPrice, reference);
                 console.log(`[Paystack Webhook] Store order processed: ${reference}`);

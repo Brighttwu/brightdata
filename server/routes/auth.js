@@ -3,6 +3,7 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const nodemailer = require('nodemailer');
+const { sendOtpEmail } = require('../utils/emailHelper');
 
 // Register
 router.post('/register', async (req, res) => {
@@ -76,24 +77,8 @@ router.post('/forgot-password', async (req, res) => {
         user.resetOtpExpire = Date.now() + 15 * 60 * 1000; // 15 mins
         await user.save();
 
-        if (process.env.SMTP_EMAIL && process.env.SMTP_PASSWORD) {
-            const transporter = nodemailer.createTransport({
-                service: 'gmail',
-                auth: { user: process.env.SMTP_EMAIL, pass: process.env.SMTP_PASSWORD }
-            });
-            await transporter.sendMail({
-                from: `"Bright Data" <${process.env.SMTP_EMAIL}>`,
-                to: user.email,
-                subject: 'Password Reset OTP',
-                text: `Your password reset OTP is ${otp}. It is valid for 15 minutes.`
-            });
-            return res.json({ message: 'An OTP has been sent to your email.' });
-        } else {
-            console.log(`[DEV ONLY] Password Reset OTP for ${email}: ${otp}`);
-            return res.json({ 
-                message: 'An OTP has been issued. If you are the admin, check the server console. Contact admin if you did not receive it.' 
-            });
-        }
+        await sendOtpEmail(user.email, otp);
+        return res.json({ message: 'An OTP has been sent to your email.' });
     } catch (err) {
         console.error('Forgot Password Error:', err);
         res.status(500).json({ message: 'Failed to request reset' });
