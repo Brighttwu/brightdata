@@ -13,6 +13,8 @@ const UserSchema = new mongoose.Schema({
     momoNumber: { type: String }, // For withdrawals
     role: { type: String, enum: ['user', 'admin', 'agent', 'store'], default: 'user' },
     isBlocked: { type: Boolean, default: false },
+    resetOtp: { type: String },
+    resetOtpExpire: { type: Date },
     createdAt: { type: Date, default: Date.now }
 });
 

@@ -158,6 +158,9 @@ const Login = () => {
                                     onBlur={e => { e.target.style.background = '#f8fafc'; e.target.style.borderColor = 'transparent'; e.target.style.boxShadow = 'none'; }}
                                 />
                             </div>
+                            <div style={{ textAlign: 'right', marginTop: 8 }}>
+                                <Link to="/forgot-password" style={{ color: '#4f46e5', textDecoration: 'none', fontSize: 13, fontWeight: 700 }}>Forgot Password?</Link>
+                            </div>
                         </div>
 
                         <button 

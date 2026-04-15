@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const nodemailer = require('nodemailer');
 
 // Register
 router.post('/register', async (req, res) => {
@@ -60,6 +61,68 @@ router.post('/login', async (req, res) => {
     } catch (err) {
         console.error('Login Error:', err);
         res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Forgot Password
+router.post('/forgot-password', async (req, res) => {
+    try {
+        const { email } = req.body;
+        const user = await User.findOne({ email });
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        user.resetOtp = otp;
+        user.resetOtpExpire = Date.now() + 15 * 60 * 1000; // 15 mins
+        await user.save();
+
+        if (process.env.SMTP_EMAIL && process.env.SMTP_PASSWORD) {
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: { user: process.env.SMTP_EMAIL, pass: process.env.SMTP_PASSWORD }
+            });
+            await transporter.sendMail({
+                from: `"Bright Data" <${process.env.SMTP_EMAIL}>`,
+                to: user.email,
+                subject: 'Password Reset OTP',
+                text: `Your password reset OTP is ${otp}. It is valid for 15 minutes.`
+            });
+            return res.json({ message: 'An OTP has been sent to your email.' });
+        } else {
+            console.log(`[DEV ONLY] Password Reset OTP for ${email}: ${otp}`);
+            return res.json({ 
+                message: 'An OTP has been issued. If you are the admin, check the server console. Contact admin if you did not receive it.' 
+            });
+        }
+    } catch (err) {
+        console.error('Forgot Password Error:', err);
+        res.status(500).json({ message: 'Failed to request reset' });
+    }
+});
+
+// Reset Password
+router.post('/reset-password', async (req, res) => {
+    try {
+        const { email, otp, newPassword } = req.body;
+        const user = await User.findOne({ email });
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        
+        if (!user.resetOtp || user.resetOtp !== otp) {
+            return res.status(400).json({ message: 'Invalid OTP' });
+        }
+        if (user.resetOtpExpire < Date.now()) {
+            return res.status(400).json({ message: 'OTP has expired' });
+        }
+        
+        user.password = newPassword;
+        user.resetOtp = undefined;
+        user.resetOtpExpire = undefined;
+        await user.save();
+        
+        res.json({ message: 'Password has been reset successfully' });
+    } catch (err) {
+        console.error('Reset Password Error:', err);
+        res.status(500).json({ message: 'Failed to reset password' });
     }
 });
 
