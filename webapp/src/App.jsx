@@ -58,7 +58,7 @@ function AppContent() {
         fetchSettings();
     }, []);
 
-    const whatsappNumber = settings?.whatsappNumber || '233556460743';
+    const communityLink = settings?.communityLink || 'https://chat.whatsapp.com/';
     return (
         <div style={{ minHeight: '100vh', background: '#fff' }}>
             {!isStore && <Navbar />}
@@ -82,7 +82,7 @@ function AppContent() {
             {/* Global WhatsApp Floating Button — Only show on platform pages, not agent stores */}
             {!isStore && (
                 <a 
-                    href={`https://wa.me/${whatsappNumber}`} 
+                    href={communityLink}
                     target="_blank" 
                     rel="noreferrer"
                     style={{

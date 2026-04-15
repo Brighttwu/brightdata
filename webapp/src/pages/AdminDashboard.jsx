@@ -33,7 +33,7 @@ const AdminDashboard = () => {
     const [platformSettings, setPlatformSettings] = useState({
         globalNotification: '',
         deliveryStatus: 'fast',
-        whatsappNumber: '',
+        communityLink: '',
         isMaintenanceMode: false
     });
     const [settingsLoading, setSettingsLoading] = useState(false);
@@ -794,13 +794,13 @@ const AdminDashboard = () => {
 
                             <div>
                                 <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 12, letterSpacing: '0.05em' }}>
-                                    <Smartphone size={14} /> Support WhatsApp Number
+                                    <ExternalLink size={14} /> Community Link
                                 </label>
                                 <input 
                                     type="text"
-                                    value={platformSettings.whatsappNumber}
-                                    onChange={(e) => setPlatformSettings({...platformSettings, whatsappNumber: e.target.value})}
-                                    placeholder="e.g. 233556460743"
+                                    value={platformSettings.communityLink}
+                                    onChange={(e) => setPlatformSettings({...platformSettings, communityLink: e.target.value})}
+                                    placeholder="e.g. https://chat.whatsapp.com/..."
                                     style={{ width: '100%', padding: '16px 18px', background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: 16, fontSize: 15, fontWeight: 600, color: '#0f172a', outline: 'none', boxSizing: 'border-box' }}
                                 />
                             </div>
