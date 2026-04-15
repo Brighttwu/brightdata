@@ -13,9 +13,9 @@ const Home = () => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    if (!loading && user) {
-        return <Navigate to="/dashboard" replace />;
-    }
+    // if (!loading && user) {
+    //     return <Navigate to="/dashboard" replace />;
+    // }
 
     return (
         <div style={{ background: '#ffffff', minHeight: '100vh', color: '#0f172a', fontFamily: "'Inter', 'Outfit', sans-serif", overflowX: 'hidden' }}>
@@ -99,24 +99,26 @@ const Home = () => {
                             </p>
 
                             <div className="home-cta-buttons" style={{ display: 'flex', gap: 16, animation: 'slide-up 1.2s ease-out', flexWrap: 'wrap' }}>
-                                <Link to="/register" className="home-cta-btn" style={{
+                                <Link to={user ? "/dashboard" : "/register"} className="home-cta-btn" style={{
                                     display: 'inline-flex', alignItems: 'center', gap: 12,
                                     padding: '20px 40px', background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
                                     color: '#fff', borderRadius: 16, fontWeight: 800, fontSize: 17,
                                     textDecoration: 'none', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                                     boxShadow: '0 12px 40px rgba(79,70,229,0.25)'
                                 }}>
-                                    Start Selling Free <ArrowRight size={20} />
+                                    {user ? 'Go to Dashboard' : 'Start Selling Free'} <ArrowRight size={20} />
                                 </Link>
-                                <Link to="/login" style={{
-                                    display: 'inline-flex', alignItems: 'center', gap: 10,
-                                    padding: '20px 32px', background: '#fff',
-                                    border: '2px solid #f1f5f9', color: '#0f172a',
-                                    borderRadius: 16, fontWeight: 700, fontSize: 16, textDecoration: 'none',
-                                    transition: 'all 0.3s', boxShadow: '0 4px 12px rgba(0,0,0,0.03)'
-                                }}>
-                                    Sign In <ChevronRight size={18} />
-                                </Link>
+                                {!user && (
+                                    <Link to="/login" style={{
+                                        display: 'inline-flex', alignItems: 'center', gap: 10,
+                                        padding: '20px 32px', background: '#fff',
+                                        border: '2px solid #f1f5f9', color: '#0f172a',
+                                        borderRadius: 16, fontWeight: 700, fontSize: 16, textDecoration: 'none',
+                                        transition: 'all 0.3s', boxShadow: '0 4px 12px rgba(0,0,0,0.03)'
+                                    }}>
+                                        Sign In <ChevronRight size={18} />
+                                    </Link>
+                                )}
                             </div>
 
                             {/* Trust strip */}
@@ -435,14 +437,14 @@ const Home = () => {
                     <p style={{ color: '#475569', fontSize: 18, lineHeight: 1.7, marginBottom: 40, maxWidth: 520, margin: '0 auto 40px' }}>
                         Join thousands of agents already making real money on brightdata. Setup is free — your first sale could be minutes away.
                     </p>
-                    <Link to="/register" className="home-cta-btn" style={{
+                    <Link to={user ? "/dashboard" : "/register"} className="home-cta-btn" style={{
                         display: 'inline-flex', alignItems: 'center', gap: 12,
                         padding: '22px 48px', background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
                         color: '#fff', borderRadius: 18, fontWeight: 900, fontSize: 18,
                         textDecoration: 'none', transition: 'all 0.3s',
                         boxShadow: '0 16px 48px rgba(79,70,229,0.3)'
                     }}>
-                        Create Free Account <ArrowRight size={20} />
+                        {user ? 'Go to Dashboard' : 'Create Free Account'} <ArrowRight size={20} />
                     </Link>
                 </div>
             </section>
