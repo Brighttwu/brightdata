@@ -87,9 +87,16 @@ const Navbar = () => {
                             isAdminMode ? (
                                 /* ADMIN MODE NAV */
                                 <>
-                                    <Link to="/admin?tab=stats" style={{
-                                        fontSize: 14, fontWeight: 800, color: '#ef4444', textDecoration: 'none', padding: '8px 14px', borderRadius: 10, background: '#fef2f2'
-                                    }}><ShieldAlert size={16} style={{marginBottom: -3}} /> Admin Dashboard</Link>
+                                    {desktopNavLink('/admin?tab=stats', 'Stats', 'stats')}
+                                    {desktopNavLink('/admin?tab=analysis', 'Analysis', 'analysis')}
+                                    {desktopNavLink('/admin?tab=users', 'Users', 'users')}
+                                    {desktopNavLink('/admin?tab=pricing', 'Pricing', 'pricing')}
+                                    {desktopNavLink('/admin?tab=transactions', 'Transactions', 'transactions')}
+                                    {desktopNavLink('/admin?tab=orders', 'Orders', 'orders')}
+                                    {desktopNavLink('/admin?tab=stores', 'Stores', 'stores')}
+                                    {desktopNavLink('/admin?tab=reports', 'Reports', 'reports')}
+                                    {desktopNavLink('/admin?tab=withdrawals', 'Withdrawals', 'withdrawals')}
+                                    {desktopNavLink('/admin?tab=settings', 'Settings', 'settings')}
                                     
                                     <Link to="/dashboard" style={{
                                         fontSize: 14, fontWeight: 800, color: '#4f46e5', textDecoration: 'none', padding: '8px 14px', borderRadius: 10, background: '#eef2ff', marginLeft: 16
@@ -191,7 +198,16 @@ const Navbar = () => {
                                     <div style={{ fontSize: 13, fontWeight: 800, opacity: 0.6, marginBottom: 6 }}>Admin Access Active</div>
                                     <div style={{ fontSize: 24, fontWeight: 900 }}>Control Room</div>
                                 </div>
-                                {navLink('/admin?tab=stats', 'Go to Dashboard', <BarChart2 size={20} style={{ color: '#4f46e5' }} />, 'stats')}
+                                {navLink('/admin?tab=stats', 'Platform Stats', <BarChart2 size={20} style={{ color: '#4f46e5' }} />, 'stats')}
+                                {navLink('/admin?tab=analysis', 'Analysis Chat', <BarChart2 size={20} style={{ color: '#7c3aed' }} />, 'analysis')}
+                                {navLink('/admin?tab=users', 'Manage Users', <Users size={20} style={{ color: '#0ea5e9' }} />, 'users')}
+                                {navLink('/admin?tab=pricing', 'Manage Pricing', <Tag size={20} style={{ color: '#f59e0b' }} />, 'pricing')}
+                                {navLink('/admin?tab=transactions', 'Global Transactions', <Receipt size={20} style={{ color: '#10b981' }} />, 'transactions')}
+                                {navLink('/admin?tab=orders', 'Global Orders', <ShoppingCart size={20} style={{ color: '#ef4444' }} />, 'orders')}
+                                {navLink('/admin?tab=stores', 'Agent Stores', <Store size={20} style={{ color: '#8b5cf6' }} />, 'stores')}
+                                {navLink('/admin?tab=reports', 'Reported Orders', <ShieldAlert size={20} style={{ color: '#dc2626' }} />, 'reports')}
+                                {navLink('/admin?tab=withdrawals', 'Payout Requests', <DollarSign size={20} style={{ color: '#10b981' }} />, 'withdrawals')}
+                                {navLink('/admin?tab=settings', 'Platform Settings', <Settings size={20} style={{ color: '#64748b' }} />, 'settings')}
                                 
                                 {navLink('/dashboard', 'Switch to User View', <Home size={20} style={{ color: '#64748b' }} />)}
                                 
