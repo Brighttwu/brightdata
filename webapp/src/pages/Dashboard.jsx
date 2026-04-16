@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
-import { Wifi, Wallet, Plus, RefreshCw, Search, CheckCircle2, XCircle, ChevronRight, Zap, ShoppingCart, Bell, Truck, Clock, ShieldAlert, Ban, Gift, User, TrendingUp, Sparkles, CreditCard, ArrowUpRight } from 'lucide-react';
+import { Wifi, Wallet, Plus, RefreshCw, Search, CheckCircle2, XCircle, ChevronRight, Zap, ShoppingCart, Bell, Truck, Clock, ShieldAlert, Ban, Gift, User, TrendingUp, Sparkles, CreditCard, ArrowUpRight, Code } from 'lucide-react';
 
 const Dashboard = () => {
     const { user, updateBalance, refreshProfile } = useAuth();
@@ -216,11 +216,12 @@ const Dashboard = () => {
             <div style={{ maxWidth: 960, margin: '-48px auto 0', padding: '0 16px 40px', position: 'relative', zIndex: 2 }}>
 
                 {/* Quick Action Cards */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }} className="quick-actions-grid">
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 20 }} className="quick-actions-grid">
                     {[
                         { to: '/dashboard', icon: <Wifi size={20} />, label: 'Buy Data', color: '#4f46e5', bg: '#eef2ff', active: true },
                         { to: '/orders', icon: <ShoppingCart size={20} />, label: 'Orders', color: '#f59e0b', bg: '#fffbeb' },
                         { to: '/referrals', icon: <Gift size={20} />, label: 'Referrals', color: '#10b981', bg: '#ecfdf5' },
+                        { to: '/developer', icon: <Code size={20} />, label: 'API Access', color: '#6366f1', bg: '#eef2ff' },
                         { to: '/profile', icon: <User size={20} />, label: 'Profile', color: '#8b5cf6', bg: '#f5f3ff' },
                     ].map((item, i) => (
                         <Link key={i} to={item.to} style={{
@@ -481,9 +482,11 @@ const Dashboard = () => {
                     .hero-flex { flex-direction: column !important; }
                     .hero-buttons { width: 100% !important; }
                     .hero-buttons a { flex: 1 !important; justify-content: center !important; }
-                    .quick-actions-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 8px !important; }
-                    .quick-actions-grid a { padding: 14px 8px !important; }
-                    .quick-actions-grid span { font-size: 10px !important; }
+                    .quick-actions-grid { grid-template-columns: repeat(5, 1fr) !important; gap: 4px !important; }
+                    .quick-actions-grid a { padding: 12px 4px !important; border-radius: 12px !important; }
+                    .quick-actions-grid span { font-size: 9px !important; }
+                    .quick-actions-grid div { width: 32px !important; height: 32px !important; }
+                    .quick-actions-grid svg { width: 16px !important; height: 16px !important; }
                     .package-grid { grid-template-columns: repeat(2, 1fr) !important; }
                     .bottom-grid { grid-template-columns: 1fr !important; }
                     .buy-buttons { flex-direction: column !important; }

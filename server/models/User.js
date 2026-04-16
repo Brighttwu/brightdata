@@ -14,6 +14,7 @@ const UserSchema = new mongoose.Schema({
     phoneNumber: { type: String },
     role: { type: String, enum: ['user', 'admin', 'agent', 'store'], default: 'user' },
     isBlocked: { type: Boolean, default: false },
+    apiKey: { type: String, unique: true, sparse: true },
     resetOtp: { type: String },
     resetOtpExpire: { type: Date },
     createdAt: { type: Date, default: Date.now }

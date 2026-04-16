@@ -37,8 +37,22 @@ router.get('/profile', auth, async (req, res) => {
         referralCode: req.user.referralCode,
         momoNumber: req.user.momoNumber,
         phoneNumber: req.user.phoneNumber,
-        referralBalance: req.user.referralBalance
+        referralBalance: req.user.referralBalance,
+        apiKey: req.user.apiKey
     });
+});
+
+// Generate/Rotate API Key
+router.post('/generate-api-key', auth, async (req, res) => {
+    try {
+        const crypto = require('crypto');
+        const newKey = crypto.randomBytes(32).toString('hex');
+        req.user.apiKey = newKey;
+        await req.user.save();
+        res.json({ message: 'API key generated successfully', apiKey: newKey });
+    } catch (err) {
+        res.status(500).json({ message: 'Error generating API key' });
+    }
 });
 
 // Update Profile

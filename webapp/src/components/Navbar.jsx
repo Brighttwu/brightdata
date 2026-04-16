@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Wallet, Smartphone, Menu, X, ArrowRight, User, History, Plus, ShieldAlert, BarChart2, Users, Tag, Receipt, ShoppingCart, Home, DollarSign, Gift, Store, Settings, RefreshCw } from 'lucide-react';
+import { LogOut, Wallet, Smartphone, Menu, X, ArrowRight, User, History, Plus, ShieldAlert, BarChart2, Users, Tag, Receipt, ShoppingCart, Home, DollarSign, Gift, Store, Settings, RefreshCw, Code } from 'lucide-react';
 
 const Navbar = () => {
     const { user, logout, refreshProfile } = useAuth();
@@ -117,6 +117,7 @@ const Navbar = () => {
                                     {desktopNavLink('/orders', 'Orders')}
                                     {desktopNavLink('/agent', 'Agent Store')}
                                     {desktopNavLink('/referrals', 'Refer & Earn')}
+                                    {desktopNavLink('/developer', 'Developers API')}
                                     <Link to="/wallet" style={{
                                         display: 'flex', alignItems: 'center', gap: 6,
                                         fontSize: 14, fontWeight: 700, color: location.pathname==='/wallet'?'#4f46e5':'#64748b', textDecoration: 'none', padding: '8px 14px', borderRadius: 10,
@@ -234,6 +235,7 @@ const Navbar = () => {
                                 {navLink('/wallet', 'My Wallet', <Wallet size={20} style={{ color: '#4f46e5' }} />)}
                                 {navLink('/agent', 'Agent Store', <Tag size={20} style={{ color: '#10b981' }} />)}
                                 {navLink('/referrals', 'Refer & Earn', <Gift size={20} style={{ color: '#4f46e5' }} />)}
+                                {navLink('/developer', 'Developers API', <Code size={20} style={{ color: '#6366f1' }} />)}
                                 {navLink('/profile', 'My Profile', <User size={20} style={{ color: '#0ea5e9' }} />)}
                                 
                                 {user.role === 'admin' && navLink('/admin?tab=stats', 'Admin Panel', <ShieldAlert size={20} style={{ color: '#ef4444' }} />)}
