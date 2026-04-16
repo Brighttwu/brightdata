@@ -4,9 +4,30 @@ const User = require('../models/User');
 const Order = require('../models/Order');
 const Pricing = require('../models/Pricing');
 const axios = require('axios');
+const rateLimit = require('express-rate-limit');
 
 const API_KEY = process.env.BOSSU_API_KEY;
 const API_URL = 'https://bossudatahub.com/api/v1/data';
+
+// Global rate limiter for API (100 reqs per 15 mins)
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: { status: false, message: 'Too many requests, please try again after 15 minutes' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+// Stricter limiter for heavy actions like /buy (30 reqs per 15 mins)
+const transactionLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 30,
+    message: { status: false, message: 'Too many transaction attempts. Please wait 15 minutes.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+router.use(apiLimiter);
 
 // Middleware to authenticate via API Key
 const apiKeyAuth = async (req, res, next) => {
@@ -81,7 +102,7 @@ router.get('/packages/:network', apiKeyAuth, async (req, res) => {
 });
 
 // POST Buy Data
-router.post('/buy', apiKeyAuth, async (req, res) => {
+router.post('/buy', transactionLimiter, apiKeyAuth, async (req, res) => {
     try {
         const { network, package_key, phone } = req.body;
         if (!network || !package_key || !phone) {
