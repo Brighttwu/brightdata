@@ -11,6 +11,7 @@ const { handleReferralCommission } = require('../utils/referralHelper');
 const checkMaintenance = require('../utils/maintenanceMiddleware');
 const cloudinary = require('../utils/cloudinary');
 const { verifyPaystackTransaction } = require('../utils/paystackHelper');
+const { sendStoreOrderNotification, sendAdminFundAlert } = require('../utils/emailHelper');
 
 const API_URL = process.env.BOSSU_API_URL;
 const API_KEY = process.env.BOSSU_API_KEY;
@@ -487,6 +488,7 @@ router.get('/public/verify/:reference', checkMaintenance, async (req, res) => {
         
         if (bossuStatus === 'failed' && isLowBalance) {
             order.status = 'awaiting_api_balance';
+            await sendAdminFundAlert('Bossu Data Hub (Store Manual)', 0);
         } else {
             order.status = bossuStatus;
         }
@@ -529,6 +531,11 @@ router.get('/public/verify/:reference', checkMaintenance, async (req, res) => {
         }
 
         res.json({ message: 'Order processed!', orderId: bossuOrderId, profit, status: bossuStatus });
+
+        // 8. Notify Agent of New Store Order
+        await sendStoreOrderNotification(agent.email, agent.name, {
+            network, packageName, recipientPhone, profit
+        });
     } catch (err) {
         console.error('Store verify error:', err.response?.data || err.message);
         res.status(500).json({ message: 'Error processing store purchase' });
