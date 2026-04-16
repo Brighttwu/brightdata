@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import api from '../api/axios';
 import { Users, ShoppingBag, DollarSign, Wallet, ShieldAlert, Ban, PlusCircle, MinusCircle, Search, Store, ExternalLink, Power, Settings as SettingsIcon, Bell, Truck, Save, Smartphone, RefreshCw } from 'lucide-react';
 
@@ -242,8 +242,15 @@ const AdminDashboard = () => {
                 <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 24, fontWeight: 900, color: '#0f172a' }}>
                         Admin <span style={{ color: '#4f46e5', textTransform: 'capitalize' }}>{tab}</span>
+                        <Link to="/analysis" style={{
+                            marginLeft: 12, display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px',
+                            background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: '#fff', border: 'none', borderRadius: 10,
+                            fontWeight: 800, cursor: 'pointer', fontSize: 12, textDecoration: 'none', boxShadow: '0 4px 12px rgba(79,70,229,0.3)'
+                        }}>
+                            <Sparkles size={12} /> Intelligence Dashboard
+                        </Link>
                         <button onClick={handleRefresh} style={{
-                            marginLeft: 12, display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px',
+                            marginLeft: 4, display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px',
                             background: '#fff', color: '#4f46e5', border: '1px solid #e2e8f0', borderRadius: 10,
                             fontWeight: 700, cursor: 'pointer', fontSize: 12
                         }}>

@@ -384,4 +384,84 @@ router.post('/settings', adminAuth, async (req, res) => {
     }
 });
 
+// Business Analysis & Trends
+router.get('/analysis', adminAuth, async (req, res) => {
+    try {
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        // Sales trend (Daily)
+        const salesTrend = await Order.aggregate([
+            { $match: { status: 'completed', createdAt: { $gte: thirtyDaysAgo } } },
+            { $group: { 
+                _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }, 
+                revenue: { $sum: "$amount" },
+                cost: { $sum: "$cost" },
+                count: { $sum: 1 }
+            }},
+            { $sort: { _id: 1 } }
+        ]);
+
+        // User growth trend
+        const userTrend = await User.aggregate([
+            { $match: { createdAt: { $gte: thirtyDaysAgo } } },
+            { $group: { 
+                _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }, 
+                count: { $sum: 1 }
+            }},
+            { $sort: { _id: 1 } }
+        ]);
+
+        // Top selling products (Packages)
+        const topProducts = await Order.aggregate([
+            { $match: { status: 'completed' } },
+            { $group: { 
+                _id: { network: "$network", name: "$packageName" }, 
+                count: { $sum: 1 },
+                revenue: { $sum: "$amount" }
+            }},
+            { $sort: { count: -1 } },
+            { $limit: 5 }
+        ]);
+
+        // Top Spending Users
+        const topUsers = await Order.aggregate([
+            { $match: { status: 'completed' } },
+            { $group: { 
+                _id: "$user", 
+                totalSpent: { $sum: "$amount" },
+                orderCount: { $sum: 1 }
+            }},
+            { $sort: { totalSpent: -1 } },
+            { $limit: 5 },
+            { $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'userDetails' } },
+            { $unwind: "$userDetails" },
+            { $project: { name: "$userDetails.name", email: "$userDetails.email", totalSpent: 1, orderCount: 1 } }
+        ]);
+
+        // Summary for AI/Chat Explanation
+        const stats = await Order.aggregate([
+            { $match: { status: 'completed', createdAt: { $gte: thirtyDaysAgo } } },
+            { $group: {
+                _id: null,
+                totalRevenue: { $sum: "$amount" },
+                totalCost: { $sum: "$cost" },
+                totalOrders: { $sum: 1 }
+            }}
+        ]);
+
+        const summary = {
+            revenue: stats[0]?.totalRevenue || 0,
+            profit: (stats[0]?.totalRevenue || 0) - (stats[0]?.totalCost || 0),
+            orders: stats[0]?.totalOrders || 0,
+            avgOrderValue: stats[0]?.totalRevenue ? (stats[0].totalRevenue / stats[0].totalOrders) : 0
+        };
+
+        res.json({ salesTrend, userTrend, topProducts, topUsers, summary });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Analysis failed' });
+    }
+});
+
 module.exports = router;
