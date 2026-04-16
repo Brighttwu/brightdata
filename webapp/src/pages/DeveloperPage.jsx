@@ -128,7 +128,7 @@ print(response.json())`
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 16px', background: '#eef2ff', color: '#4f46e5', borderRadius: 99, fontWeight: 800, fontSize: 12, marginBottom: 16 }}>
                         <Terminal size={14} /> DEVELOPER API V1.0
                     </div>
-                    <h1 style={{ fontSize: window.innerWidth < 600 ? 28 : 42, fontWeight: 900, color: '#0f172a', margin: '0 0 12px', letterSpacing: '-0.02em' }}>Build Your Own Store</h1>
+                    <h1 className="responsive-h1" style={{ fontWeight: 900, color: '#0f172a', margin: '0 0 12px', letterSpacing: '-0.02em' }}>Build Your Own Store</h1>
                     <p style={{ fontSize: 16, color: '#64748b', fontWeight: 600, maxWidth: 700, margin: '0 auto' }}>
                         Automate your data delivery with our robust infrastructure.
                     </p>
@@ -140,7 +140,7 @@ print(response.json())`
                         <Code size={14} /> Global Base Endpoint
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
-                        <div style={{ fontSize: window.innerWidth < 600 ? 14 : 20, fontWeight: 800, fontFamily: "'Fira Code', monospace", wordBreak: 'break-all' }}>
+                        <div style={{ fontWeight: 800, fontFamily: "'Fira Code', monospace", wordBreak: 'break-all' }} className="responsive-endpoint">
                             {API_BASE}
                         </div>
                         <button 
@@ -158,7 +158,7 @@ print(response.json())`
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                         
                         {/* API Key Card */}
-                        <div style={{ background: '#fff', borderRadius: 24, padding: window.innerWidth < 600 ? 20 : 32, border: '1px solid #f1f5f9', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
+                        <div className="responsive-card" style={{ background: '#fff', borderRadius: 24, border: '1px solid #f1f5f9', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                                     <div style={{ width: 44, height: 44, borderRadius: 14, background: 'linear-gradient(135deg, #fef3c7, #fde68a)', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -195,7 +195,7 @@ print(response.json())`
                             )}
                         </div>
 
-                        {/* Guide Sections Mobile Swipeable? No, just vertical but clean */}
+                        {/* Guide Sections */}
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
                             {docSections.map((s, i) => (
                                 <div key={i} style={{ background: '#fff', padding: 24, borderRadius: 24, border: '1px solid #f1f5f9' }}>
@@ -207,7 +207,7 @@ print(response.json())`
                         </div>
 
                         {/* Integration Details Table */}
-                        <div style={{ background: '#fff', borderRadius: 24, padding: window.innerWidth < 600 ? 20 : 32, border: '1px solid #f1f5f9', boxShadow: '0 10px 30px rgba(0,0,0,0.02)', overflowX: 'hidden' }}>
+                        <div className="responsive-card" style={{ background: '#fff', borderRadius: 24, border: '1px solid #f1f5f9', boxShadow: '0 10px 30px rgba(0,0,0,0.02)', overflowX: 'hidden' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
                                 <div style={{ width: 44, height: 44, borderRadius: 14, background: '#eef2ff', color: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                     <BookOpen size={20} />
@@ -317,9 +317,19 @@ print(response.json())`
                 .hide-scrollbar::-webkit-scrollbar { display: none; }
                 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
                 
+                .responsive-h1 { fontSize: 42px; }
+                .responsive-endpoint { fontSize: 20px; }
+                .responsive-card { padding: 32px; }
+
                 @media (max-width: 968px) {
                     .dev-grid { grid-template-columns: 1fr !important; }
                     .snippet-column > div { position: static !important; }
+                }
+
+                @media (max-width: 600px) {
+                    .responsive-h1 { fontSize: 28px !important; }
+                    .responsive-endpoint { fontSize: 14px !important; }
+                    .responsive-card { padding: 20px !important; }
                 }
             `}</style>
         </div>
