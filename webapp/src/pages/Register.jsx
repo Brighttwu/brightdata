@@ -8,7 +8,8 @@ const Register = () => {
     const [formData, setFormData] = useState({ 
         name: '', email: '', password: '', 
         referralCode: searchParams.get('ref') || '', 
-        momoNumber: '' 
+        momoNumber: '',
+        phoneNumber: '' 
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -19,9 +20,10 @@ const Register = () => {
         e.preventDefault();
         setError('');
         if (!formData.momoNumber) return setError('MoMo Number is required for withdrawals.');
+        if (!formData.phoneNumber) return setError('Phone Number is required.');
         setLoading(true);
         try {
-            await register(formData.name, formData.email, formData.password, formData.referralCode, formData.momoNumber);
+            await register(formData.name, formData.email, formData.password, formData.referralCode, formData.momoNumber, formData.phoneNumber);
             navigate('/dashboard');
         } catch (err) {
             setError(err.response?.data?.message || 'Something went wrong. Please try again.');
@@ -177,6 +179,23 @@ const Register = () => {
                                     onChange={(e) => setFormData({ ...formData, momoNumber: e.target.value })}
                                     style={inputStyle}
                                     placeholder="024XXXXXXX"
+                                    onFocus={e => { e.target.style.background = '#fff'; e.target.style.borderColor = '#818cf8'; e.target.style.boxShadow = '0 0 0 4px rgba(79,70,229,0.08)'; }}
+                                    onBlur={e => { e.target.style.background = '#f8fafc'; e.target.style.borderColor = 'transparent'; e.target.style.boxShadow = 'none'; }}
+                                />
+                            </div>
+                        </div>
+
+                        <div style={{ marginBottom: 20 }}>
+                            <label style={labelStyle}>Phone Number (Primary)</label>
+                            <div style={{ position: 'relative' }}>
+                                <Smartphone size={18} style={iconStyle} />
+                                <input 
+                                    type="text"
+                                    required
+                                    value={formData.phoneNumber}
+                                    onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                                    style={inputStyle}
+                                    placeholder="05XXXXXXXX"
                                     onFocus={e => { e.target.style.background = '#fff'; e.target.style.borderColor = '#818cf8'; e.target.style.boxShadow = '0 0 0 4px rgba(79,70,229,0.08)'; }}
                                     onBlur={e => { e.target.style.background = '#f8fafc'; e.target.style.borderColor = 'transparent'; e.target.style.boxShadow = 'none'; }}
                                 />

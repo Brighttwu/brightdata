@@ -39,8 +39,8 @@ export const AuthProvider = ({ children }) => {
         return res.data;
     };
 
-    const register = async (name, email, password, referralCode = '', momoNumber = '') => {
-        const res = await api.post('/auth/register', { name, email, password, referralCode, momoNumber });
+    const register = async (name, email, password, referralCode = '', momoNumber = '', phoneNumber = '') => {
+        const res = await api.post('/auth/register', { name, email, password, referralCode, momoNumber, phoneNumber });
         localStorage.setItem('token', res.data.token);
         setUser(res.data.user);
         return res.data;

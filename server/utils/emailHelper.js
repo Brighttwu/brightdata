@@ -1,7 +1,7 @@
 const { Resend } = require('resend');
 const resend = new Resend(process.env.RESEND_API_KEY || 're_Tj6d9cB9_Kd8ShyyQqJzXkicuuoth6gzx');
 
-const FROM_EMAIL = 'Bright Data <onboarding@resend.dev>'; // Should be updated with verified domain
+const FROM_EMAIL = 'Bright Data <onboarding@brightdatahub.store>'; // Updated to verified domain
 
 /**
  * Send Password Reset OTP

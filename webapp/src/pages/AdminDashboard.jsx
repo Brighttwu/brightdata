@@ -376,9 +376,13 @@ const AdminDashboard = () => {
                                             <option value="admin">Admin</option>
                                         </select>
                                     </div>
-                                    <div style={{ fontSize: 13, color: '#64748b', marginTop: 4 }}>{u.email}</div>
-                                    <div style={{ fontSize: 14, fontWeight: 900, color: '#4f46e5', marginTop: 4 }}>
-                                        Wallet: ₵{(u.balance || 0).toFixed(2)} | Profit: ₵{(u.commissionBalance || 0).toFixed(2)}
+                                    <div style={{ fontSize: 13, color: '#64748b', marginTop: 4 }}>
+                                        {u.email} {u.phoneNumber && <span style={{ marginLeft: 8, color: '#4f46e5', fontWeight: 700 }}>• {u.phoneNumber}</span>}
+                                    </div>
+                                    <div style={{ fontSize: 14, fontWeight: 900, color: '#4f46e5', marginTop: 4, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                                        <span>Wallet: ₵{(u.balance || 0).toFixed(2)}</span>
+                                        <span style={{ color: '#10b981' }}>Total Spent: ₵{(u.totalSpent || 0).toFixed(2)}</span>
+                                        <span>Profit: ₵{(u.commissionBalance || 0).toFixed(2)}</span>
                                     </div>
                                 </div>
                                 <div style={{ display: 'flex', gap: 8 }} className="mobile-full-width">
@@ -854,9 +858,12 @@ const AdminDashboard = () => {
                 
                 @media (max-width: 768px) {
                     .mobile-stack { flex-direction: column !important; }
-                    .mobile-full-width { width: 100% !important; }
+                    .mobile-full-width { width: 100% !important; margin-bottom: 8px !important; }
                     .admin-grid { grid-template-columns: 1fr !important; }
-                    .admin-list-card { flex-direction: column !important; align-items: flex-start !important; }
+                    .admin-list-card { flex-direction: column !important; align-items: stretch !important; padding: 16px !important; }
+                    .mobile-hide { display: none !important; }
+                    .mobile-text-sm { fontSize: 13px !important; }
+                    .home-cta-buttons { flex-direction: column; }
                 }
             `}</style>
         </div>

@@ -5,7 +5,11 @@ import { User, Mail, Shield, Lock, Eye, EyeOff, RefreshCw, Smartphone, CheckCirc
 
 const Profile = () => {
     const { user } = useAuth();
-    const [profileForm, setProfileForm] = useState({ name: user?.name || '', momoNumber: user?.momoNumber || '' });
+    const [profileForm, setProfileForm] = useState({ 
+        name: user?.name || '', 
+        momoNumber: user?.momoNumber || '',
+        phoneNumber: user?.phoneNumber || ''
+    });
     const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
     const [loading, setLoading] = useState({ profile: false, password: false });
     const [message, setMessage] = useState({ type: '', text: '' });
@@ -14,6 +18,7 @@ const Profile = () => {
     const rows = [
         { icon: <User size={18} />, label: 'Full Name', value: user?.name },
         { icon: <Mail size={18} />, label: 'Email', value: user?.email },
+        { icon: <Smartphone size={18} />, label: 'Primary Phone', value: user?.phoneNumber || 'Not set' },
         { icon: <Smartphone size={18} />, label: 'MoMo Number', value: user?.momoNumber || 'Not set' },
         { icon: <Gift size={18} />, label: 'My Referral Code', value: user?.referralCode },
         { icon: <Shield size={18} />, label: 'Role', value: user?.role || 'User' },
@@ -107,6 +112,11 @@ const Profile = () => {
                         <div>
                             <label style={{ display: 'block', fontSize: 12, fontWeight: 800, color: '#64748b', marginBottom: 8, textTransform: 'uppercase' }}>MoMo Number</label>
                             <input type="text" value={profileForm.momoNumber} onChange={e => setProfileForm({ ...profileForm, momoNumber: e.target.value })} required
+                                style={{ width: '100%', padding: '14px 16px', borderRadius: 12, border: '2px solid #f1f5f9', outline: 'none', fontWeight: 700, boxSizing: 'border-box' }} />
+                        </div>
+                        <div>
+                            <label style={{ display: 'block', fontSize: 12, fontWeight: 800, color: '#64748b', marginBottom: 8, textTransform: 'uppercase' }}>Primary Phone Number</label>
+                            <input type="text" value={profileForm.phoneNumber} onChange={e => setProfileForm({ ...profileForm, phoneNumber: e.target.value })} required
                                 style={{ width: '100%', padding: '14px 16px', borderRadius: 12, border: '2px solid #f1f5f9', outline: 'none', fontWeight: 700, boxSizing: 'border-box' }} />
                         </div>
                         <button type="submit" disabled={loading.profile} style={{ padding: '14px', borderRadius: 12, border: 'none', background: '#3b82f6', color: '#fff', fontWeight: 800, cursor: 'pointer' }}>

@@ -8,7 +8,7 @@ const { sendOtpEmail } = require('../utils/emailHelper');
 // Register
 router.post('/register', async (req, res) => {
     try {
-        const { name, email, password, referralCode, momoNumber } = req.body;
+        const { name, email, password, referralCode, momoNumber, phoneNumber } = req.body;
         let user = await User.findOne({ email });
         if (user) return res.status(400).json({ message: 'User already exists' });
 
@@ -18,7 +18,7 @@ router.post('/register', async (req, res) => {
             if (referrer) referredBy = referrer._id;
         }
 
-        user = new User({ name, email, password, referredBy, momoNumber });
+        user = new User({ name, email, password, referredBy, momoNumber, phoneNumber });
         await user.save();
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '365d' });
@@ -27,7 +27,7 @@ router.post('/register', async (req, res) => {
             user: { 
                 id: user._id, name: user.name, email: user.email, 
                 balance: user.balance, role: user.role, referralCode: user.referralCode,
-                momoNumber: user.momoNumber
+                momoNumber: user.momoNumber, phoneNumber: user.phoneNumber
             } 
         });
     } catch (err) {
@@ -56,7 +56,8 @@ router.post('/login', async (req, res) => {
                 balance: user.balance,
                 role: user.role,
                 referralCode: user.referralCode,
-                momoNumber: user.momoNumber
+                momoNumber: user.momoNumber,
+                phoneNumber: user.phoneNumber
             } 
         });
     } catch (err) {

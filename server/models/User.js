@@ -11,6 +11,7 @@ const UserSchema = new mongoose.Schema({
     referralCode: { type: String, unique: true },
     referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     momoNumber: { type: String }, // For withdrawals
+    phoneNumber: { type: String },
     role: { type: String, enum: ['user', 'admin', 'agent', 'store'], default: 'user' },
     isBlocked: { type: Boolean, default: false },
     resetOtp: { type: String },

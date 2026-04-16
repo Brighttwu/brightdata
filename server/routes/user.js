@@ -36,6 +36,7 @@ router.get('/profile', auth, async (req, res) => {
         role: req.user.role,
         referralCode: req.user.referralCode,
         momoNumber: req.user.momoNumber,
+        phoneNumber: req.user.phoneNumber,
         referralBalance: req.user.referralBalance
     });
 });
@@ -43,9 +44,10 @@ router.get('/profile', auth, async (req, res) => {
 // Update Profile
 router.post('/update-profile', auth, async (req, res) => {
     try {
-        const { name, momoNumber } = req.body;
+        const { name, momoNumber, phoneNumber } = req.body;
         if (name) req.user.name = name;
         if (momoNumber) req.user.momoNumber = momoNumber;
+        if (phoneNumber) req.user.phoneNumber = phoneNumber;
         await req.user.save();
         res.json({ message: 'Profile updated successfully', user: req.user });
     } catch (err) {

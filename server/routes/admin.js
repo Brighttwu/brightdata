@@ -111,9 +111,23 @@ router.get('/stats', adminAuth, async (req, res) => {
 // Manage Users
 router.get('/users', adminAuth, async (req, res) => {
     try {
-        const users = await User.find().select('-password').sort({ createdAt: -1 });
-        res.json(users);
+        const users = await User.find().select('-password').sort({ createdAt: -1 }).lean();
+        
+        // Parallelly fetch total spent for each user
+        const usersWithStats = await Promise.all(users.map(async (u) => {
+            const spentData = await Order.aggregate([
+                { $match: { user: u._id, status: 'completed' } },
+                { $group: { _id: null, total: { $sum: '$amount' } } }
+            ]);
+            return {
+                ...u,
+                totalSpent: spentData[0]?.total || 0
+            };
+        }));
+
+        res.json(usersWithStats);
     } catch (err) {
+        console.error(err);
         res.status(500).json({ message: 'Error fetching users' });
     }
 });
