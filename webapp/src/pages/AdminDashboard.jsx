@@ -240,22 +240,24 @@ const AdminDashboard = () => {
 
             <div style={{ maxWidth: 1000, margin: '0 auto' }}>
                 <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 24, fontWeight: 900, color: '#0f172a' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 24, fontWeight: 900, color: '#0f172a', flexWrap: 'wrap' }} className="mobile-header-stack">
                         Admin <span style={{ color: '#4f46e5', textTransform: 'capitalize' }}>{tab}</span>
-                        <Link to="/analysis" style={{
-                            marginLeft: 12, display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px',
-                            background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: '#fff', border: 'none', borderRadius: 10,
-                            fontWeight: 800, cursor: 'pointer', fontSize: 12, textDecoration: 'none', boxShadow: '0 4px 12px rgba(79,70,229,0.3)'
-                        }}>
-                            <Sparkles size={12} /> Intelligence Dashboard
-                        </Link>
-                        <button onClick={handleRefresh} style={{
-                            marginLeft: 4, display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px',
-                            background: '#fff', color: '#4f46e5', border: '1px solid #e2e8f0', borderRadius: 10,
-                            fontWeight: 700, cursor: 'pointer', fontSize: 12
-                        }}>
-                            <RefreshCw size={12} /> Refresh
-                        </button>
+                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                            <Link to="/analysis" style={{
+                                display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px',
+                                background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: '#fff', border: 'none', borderRadius: 10,
+                                fontWeight: 800, cursor: 'pointer', fontSize: 12, textDecoration: 'none', boxShadow: '0 4px 12px rgba(79,70,229,0.3)'
+                            }}>
+                                <Sparkles size={12} /> Intelligence
+                            </Link>
+                            <button onClick={handleRefresh} style={{
+                                display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px',
+                                background: '#fff', color: '#4f46e5', border: '1px solid #e2e8f0', borderRadius: 10,
+                                fontWeight: 700, cursor: 'pointer', fontSize: 12
+                            }}>
+                                <RefreshCw size={12} /> Refresh
+                            </button>
+                        </div>
                     </div>
                     {tab === 'stats' && (
                         <select 
@@ -267,8 +269,6 @@ const AdminDashboard = () => {
                             <option value={1}>Last 24 Hours</option>
                             <option value={7}>Last 7 Days</option>
                             <option value={30}>Last 30 Days</option>
-                            <option value={90}>Last quarter</option>
-                            <option value={365}>Last year</option>
                         </select>
                     )}
                 </div>
@@ -312,6 +312,31 @@ const AdminDashboard = () => {
                     </>
                 )}
 
+                {/* Global Tab Navigation */}
+                <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 12, marginBottom: 24, margin: '0 -4px', padding: '0 4px' }} className="hide-scrollbar">
+                    {[['stats', '📊 Stats'], ['users', '👥 Users'], ['pricing', '💰 Prices'], ['orders', '📦 Orders'], ['transactions', '💸 Billing'], ['reports', '⚠ Reports'], ['withdrawals', '🏧 Payouts'], ['stores', '🏪 Stores'], ['settings', '⚙ Setup']].map(([t, label]) => (
+                        <button 
+                            key={t}
+                            onClick={() => {
+                                const params = new URLSearchParams(searchParams);
+                                params.set('tab', t);
+                                window.history.pushState({}, '', `?${params.toString()}`);
+                                window.location.reload(); // Quickest way to handle tab change given the structure
+                            }}
+                            style={{
+                                padding: '10px 18px', borderRadius: 12, border: 'none', fontWeight: 800, fontSize: 12,
+                                whiteSpace: 'nowrap', cursor: 'pointer', transition: 'all 0.2s',
+                                background: tab === t ? '#4f46e5' : '#fff',
+                                color: tab === t ? '#fff' : '#64748b',
+                                boxShadow: tab === t ? '0 4px 12px rgba(79, 70, 229, 0.3)' : 'none',
+                                flex: '0 0 auto'
+                            }}
+                        >
+                            {label}
+                        </button>
+                    ))}
+                </div>
+
                 {/* Search & Global Filter UI (Visible on lists) */}
                 {['users', 'transactions', 'orders', 'reports', 'withdrawals'].includes(tab) && (
                     <div style={{ marginBottom: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -326,38 +351,11 @@ const AdminDashboard = () => {
                                     style={{ 
                                         width: '100%', padding: '14px 14px 14px 48px', borderRadius: 16, 
                                         border: '1px solid #e2e8f0', background: '#fff', fontSize: 14, fontWeight: 700,
-                                        outline: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+                                        outline: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', boxSizing: 'border-box'
                                     }}
                                 />
                             </div>
-                            <button className="mobile-full-width" style={{ 
-                                padding: '14px 24px', borderRadius: 16, background: '#0f172a', color: '#fff', 
-                                border: 'none', fontWeight: 800, fontSize: 14, cursor: 'pointer'
-                            }}>
-                                Search
-                            </button>
                         </div>
-
-                        {/* Status Filters for Orders */}
-                        {tab === 'orders' && (
-                            <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 8, margin: '0 -4px', padding: '0 4px' }} className="hide-scrollbar">
-                                {['all', 'pending', 'completed', 'failed', 'pending_payment'].map(s => (
-                                    <button 
-                                        key={s}
-                                        onClick={() => setStatusFilter(s)}
-                                        style={{ 
-                                            padding: '8px 16px', borderRadius: 10, fontSize: 12, fontWeight: 800,
-                                            whiteSpace: 'nowrap', cursor: 'pointer', border: 'none',
-                                            background: statusFilter === s ? '#4f46e5' : '#fff',
-                                            color: statusFilter === s ? '#fff' : '#64748b',
-                                            boxShadow: statusFilter === s ? '0 4px 12px rgba(79, 70, 229, 0.2)' : 'none'
-                                        }}
-                                    >
-                                        {s.replace('_', ' ').toUpperCase()}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
                     </div>
                 )}
 
@@ -867,10 +865,24 @@ const AdminDashboard = () => {
                     .mobile-stack { flex-direction: column !important; }
                     .mobile-full-width { width: 100% !important; margin-bottom: 8px !important; }
                     .admin-grid { grid-template-columns: 1fr !important; }
-                    .admin-list-card { flex-direction: column !important; align-items: stretch !important; padding: 16px !important; }
+                    .admin-list-card { flex-direction: column !important; align-items: stretch !important; padding: 16px !important; gap: 12px !important; }
                     .mobile-hide { display: none !important; }
                     .mobile-text-sm { fontSize: 13px !important; }
                     .home-cta-buttons { flex-direction: column; }
+                    .mobile-header-stack { flex-direction: column; align-items: flex-start !important; gap: 12px !important; }
+                    
+                    /* Modal responsiveness */
+                    .modal-container { padding: 16px !important; }
+                    .modal-content { padding: 24px !important; width: 100% !important; border-radius: 20px !important; }
+
+                    /* Pricing rule grid */
+                    .pricing-card-stats { flex-direction: column !important; gap: 4px !important; }
+                    
+                    /* Fix button alignment */
+                    .mobile-full-width button { width: 100% !important; }
+                    
+                    /* Form inputs */
+                    input, select, textarea { font-size: 16px !important; width: 100% !important; box-sizing: border-box !important; }
                 }
             `}</style>
         </div>

@@ -184,7 +184,7 @@ const Dashboard = () => {
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 20,
                     boxShadow: '0 20px 60px -10px rgba(79, 70, 229, 0.5)',
                     position: 'relative', overflow: 'hidden'
-                }}>
+                }} className="mobile-balance-card">
                     {/* Decorative circles */}
                     <div style={{ position: 'absolute', top: -40, right: -40, width: 200, height: 200, borderRadius: '50%', background: 'rgba(255,255,255,0.07)' }} />
                     <div style={{ position: 'absolute', bottom: -60, right: 100, width: 160, height: 160, borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }} />
@@ -308,7 +308,7 @@ const Dashboard = () => {
                         ) : filtered.length === 0 ? (
                             <div style={{ textAlign: 'center', padding: '60px 0', color: '#94a3b8', fontWeight: 700 }}>No plans found.</div>
                         ) : (
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12, paddingBottom: 8 }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12, paddingBottom: 8 }} className="package-grid">
                                 {filtered.map(p => {
                                     const sel = selectedPackage?.key === p.key;
                                     return (
@@ -426,7 +426,7 @@ const Dashboard = () => {
                 </div>
 
                 {/* Quick Links */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }} className="mobile-stack">
                     <Link to="/orders" style={{
                         background: '#fff', borderRadius: 20, padding: '20px 24px',
                         textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -463,6 +463,13 @@ const Dashboard = () => {
                 ::-webkit-scrollbar { width: 6px; }
                 ::-webkit-scrollbar-track { background: transparent; }
                 ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 99px; }
+                
+                @media (max-width: 768px) {
+                    .mobile-balance-card { padding: 24px !important; flex-direction: column !important; align-items: flex-start !important; }
+                    .mobile-stack { grid-template-columns: 1fr !important; }
+                    .package-grid { grid-template-columns: repeat(2, 1fr) !important; }
+                    input { font-size: 16px !important; }
+                }
             `}</style>
         </div>
     );
