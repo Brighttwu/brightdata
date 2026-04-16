@@ -7,8 +7,23 @@ const Login = () => {
     const [formData, setFormData] = useState({ email: '', password: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const { login } = useAuth();
+    const { login, user } = useAuth();
     const navigate = useNavigate();
+
+    // If user is already logged in, show a dedicated button
+    if (user) {
+        return (
+            <div style={{ minHeight: '100vh', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+                <div style={{ width: '100%', maxWidth: 400, background: '#fff', padding: 40, borderRadius: 24, textAlign: 'center', border: '1px solid #f1f5f9', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
+                    <h2 style={{ fontSize: 24, fontWeight: 900, marginBottom: 12 }}>Already Logged In</h2>
+                    <p style={{ color: '#64748b', fontWeight: 600, marginBottom: 24 }}>You are already signed in as {user.email}</p>
+                    <Link to="/dashboard" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, background: '#4f46e5', color: '#fff', textDecoration: 'none', padding: '16px 24px', borderRadius: 14, fontWeight: 800 }}>
+                        Go to Dashboard <ArrowRight size={20} />
+                    </Link>
+                </div>
+            </div>
+        );
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault();

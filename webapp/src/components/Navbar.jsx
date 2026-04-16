@@ -88,6 +88,7 @@ const Navbar = () => {
                                 /* ADMIN MODE NAV */
                                 <>
                                     {desktopNavLink('/admin?tab=stats', 'Stats', 'stats')}
+                                    {desktopNavLink('/admin?tab=analysis', 'Analysis', 'analysis')}
                                     {desktopNavLink('/admin?tab=users', 'Users', 'users')}
                                     {desktopNavLink('/admin?tab=pricing', 'Pricing', 'pricing')}
                                     {desktopNavLink('/admin?tab=transactions', 'Transactions', 'transactions')}
@@ -198,6 +199,7 @@ const Navbar = () => {
                                     <div style={{ fontSize: 24, fontWeight: 900 }}>Control Room</div>
                                 </div>
                                 {navLink('/admin?tab=stats', 'Platform Stats', <BarChart2 size={20} style={{ color: '#4f46e5' }} />, 'stats')}
+                                {navLink('/admin?tab=analysis', 'Analysis Chat', <BarChart2 size={20} style={{ color: '#7c3aed' }} />, 'analysis')}
                                 {navLink('/admin?tab=users', 'Manage Users', <Users size={20} style={{ color: '#0ea5e9' }} />, 'users')}
                                 {navLink('/admin?tab=pricing', 'Manage Pricing', <Tag size={20} style={{ color: '#f59e0b' }} />, 'pricing')}
                                 {navLink('/admin?tab=transactions', 'Global Transactions', <Receipt size={20} style={{ color: '#10b981' }} />, 'transactions')}

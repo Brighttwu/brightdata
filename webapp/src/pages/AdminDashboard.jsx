@@ -25,6 +25,14 @@ const AdminDashboard = () => {
     const [editModal, setEditModal] = useState(null); 
     const [modalInputs, setModalInputs] = useState({ normal: '', retail: '' });
     
+    // Analysis State
+    const [analysisData, setAnalysisData] = useState(null);
+    const [messages, setMessages] = useState([
+        { role: 'assistant', text: "Hello Boss! I've analyzed your platform's data for the last 30 days. How can I help you today?" }
+    ]);
+    const [analysisInput, setAnalysisInput] = useState('');
+    const chatEndRef = React.useRef(null);
+    
     // Search & Filter State
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
@@ -91,6 +99,10 @@ const AdminDashboard = () => {
             else if (tab === 'settings') {
                 const res = await api.get('/admin/settings');
                 setPlatformSettings(res.data);
+            }
+            else if (tab === 'analysis') {
+                const res = await api.get('/admin/analysis');
+                setAnalysisData(res.data);
             }
         } catch (err) {
             console.error('Fetch error:', err);
@@ -186,6 +198,41 @@ const AdminDashboard = () => {
         }
     };
 
+    const handleSendMessage = (e) => {
+        e.preventDefault();
+        if (!analysisInput.trim() || !analysisData) return;
+
+        const userMsg = analysisInput.trim();
+        setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
+        setAnalysisInput('');
+
+        setTimeout(() => {
+            let response = "";
+            const q = userMsg.toLowerCase();
+            const data = analysisData;
+
+            if (q.includes('revenue') || q.includes('money') || q.includes('earn')) {
+                response = `In the last 30 days, you've generated ₵${data.summary.revenue.toFixed(2)} total revenue with a net profit of ₵${data.summary.profit.toFixed(2)}. This comes from ${data.summary.orders} successful orders.`;
+            } else if (q.includes('top') || q.includes('product') || q.includes('best')) {
+                const top = data.topProducts[0];
+                response = `Your top product is ${top?._id.name} (${top?._id.network.toUpperCase()}) with ${top?.count} sales, contributing ₵${top?.revenue.toFixed(2)} to revenue.`;
+            } else if (q.includes('user') || q.includes('growth')) {
+                const totalGrowth = data.userTrend.reduce((acc, curr) => acc + curr.count, 0);
+                response = `You've gained ${totalGrowth} new users recently. Your top spender is ${data.topUsers[0]?.name} (₵${data.topUsers[0]?.totalSpent.toFixed(2)}).`;
+            } else {
+                response = "I can explain your revenue trends, top selling products, or user growth. What would you like to know?";
+            }
+
+            setMessages(prev => [...prev, { role: 'assistant', text: response }]);
+        }, 600);
+    };
+
+    useEffect(() => {
+        if (tab === 'analysis') {
+            chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [messages, tab]);
+
     const cardStyle = {
         background: '#fff', borderRadius: 20, padding: 24, border: '1px solid #f1f5f9', boxShadow: '0 4px 12px rgba(0,0,0,0.03)'
     };
@@ -240,24 +287,15 @@ const AdminDashboard = () => {
 
             <div style={{ maxWidth: 1000, margin: '0 auto' }}>
                 <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 24, fontWeight: 900, color: '#0f172a', flexWrap: 'wrap' }} className="mobile-header-stack">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 24, fontWeight: 900, color: '#0f172a' }}>
                         Admin <span style={{ color: '#4f46e5', textTransform: 'capitalize' }}>{tab}</span>
-                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                            <Link to="/analysis" style={{
-                                display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px',
-                                background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: '#fff', border: 'none', borderRadius: 10,
-                                fontWeight: 800, cursor: 'pointer', fontSize: 12, textDecoration: 'none', boxShadow: '0 4px 12px rgba(79,70,229,0.3)'
-                            }}>
-                                <Sparkles size={12} /> Intelligence
-                            </Link>
-                            <button onClick={handleRefresh} style={{
-                                display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px',
-                                background: '#fff', color: '#4f46e5', border: '1px solid #e2e8f0', borderRadius: 10,
-                                fontWeight: 700, cursor: 'pointer', fontSize: 12
-                            }}>
-                                <RefreshCw size={12} /> Refresh
-                            </button>
-                        </div>
+                        <button onClick={handleRefresh} style={{
+                            marginLeft: 4, display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px',
+                            background: '#fff', color: '#4f46e5', border: '1px solid #e2e8f0', borderRadius: 10,
+                            fontWeight: 700, cursor: 'pointer', fontSize: 12
+                        }}>
+                            <RefreshCw size={12} /> Refresh
+                        </button>
                     </div>
                     {tab === 'stats' && (
                         <select 
@@ -314,14 +352,17 @@ const AdminDashboard = () => {
 
                 {/* Global Tab Navigation */}
                 <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 12, marginBottom: 24, margin: '0 -4px', padding: '0 4px' }} className="hide-scrollbar">
-                    {[['stats', '📊 Stats'], ['users', '👥 Users'], ['pricing', '💰 Prices'], ['orders', '📦 Orders'], ['transactions', '💸 Billing'], ['reports', '⚠ Reports'], ['withdrawals', '🏧 Payouts'], ['stores', '🏪 Stores'], ['settings', '⚙ Setup']].map(([t, label]) => (
+                    {[['stats', '📊 Stats'], ['analysis', '🤖 Analysis'], ['users', '👥 Users'], ['pricing', '💰 Prices'], ['orders', '📦 Orders'], ['transactions', '💸 Billing'], ['reports', '⚠ Reports'], ['withdrawals', '🏧 Payouts'], ['stores', '🏪 Stores'], ['settings', '⚙ Setup']].map(([t, label]) => (
                         <button 
                             key={t}
                             onClick={() => {
-                                const params = new URLSearchParams(searchParams);
+                                const params = new URLSearchParams();
                                 params.set('tab', t);
                                 window.history.pushState({}, '', `?${params.toString()}`);
-                                window.location.reload(); // Quickest way to handle tab change given the structure
+                                // We don't need a reload if we use state properly, but the current code uses searchParams.get('tab')
+                                // To make it smooth without reload, we'd need to use useSearchParams' set function.
+                                // For now, I'll keep it consistent with the existing codebase's style but try to make it work.
+                                window.location.reload(); 
                             }}
                             style={{
                                 padding: '10px 18px', borderRadius: 12, border: 'none', fontWeight: 800, fontSize: 12,

@@ -17,7 +17,6 @@ import AgentPage from './pages/AgentPage';
 import StorePage from './pages/StorePage';
 import Referrals from './pages/Referrals';
 import PaymentStatus from './pages/PaymentStatus';
-import AnalysisDashboard from './pages/AnalysisDashboard';
 
 const ProtectedRoute = ({ children }) => {
     const { user, loading } = useAuth();
@@ -74,7 +73,6 @@ function AppContent() {
                 <Route path="/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                 <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-                <Route path="/analysis" element={<ProtectedRoute><AnalysisDashboard /></ProtectedRoute>} />
                 <Route path="/agent" element={<ProtectedRoute><AgentPage /></ProtectedRoute>} />
                 <Route path="/referrals" element={<ProtectedRoute><Referrals /></ProtectedRoute>} />
                 <Route path="/store/:slug" element={<StorePage />} />
