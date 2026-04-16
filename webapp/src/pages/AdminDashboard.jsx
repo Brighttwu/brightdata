@@ -351,7 +351,7 @@ const AdminDashboard = () => {
                 )}
 
                 {/* Global Tab Navigation */}
-                <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 12, marginBottom: 24, margin: '0 -4px', padding: '0 4px' }} className="hide-scrollbar">
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24, padding: '0 4px' }}>
                     {[['stats', '📊 Stats'], ['analysis', '🤖 Analysis'], ['users', '👥 Users'], ['pricing', '💰 Prices'], ['orders', '📦 Orders'], ['transactions', '💸 Billing'], ['reports', '⚠ Reports'], ['withdrawals', '🏧 Payouts'], ['stores', '🏪 Stores'], ['settings', '⚙ Setup']].map(([t, label]) => (
                         <button 
                             key={t}
@@ -359,9 +359,6 @@ const AdminDashboard = () => {
                                 const params = new URLSearchParams();
                                 params.set('tab', t);
                                 window.history.pushState({}, '', `?${params.toString()}`);
-                                // We don't need a reload if we use state properly, but the current code uses searchParams.get('tab')
-                                // To make it smooth without reload, we'd need to use useSearchParams' set function.
-                                // For now, I'll keep it consistent with the existing codebase's style but try to make it work.
                                 window.location.reload(); 
                             }}
                             style={{
@@ -369,8 +366,7 @@ const AdminDashboard = () => {
                                 whiteSpace: 'nowrap', cursor: 'pointer', transition: 'all 0.2s',
                                 background: tab === t ? '#4f46e5' : '#fff',
                                 color: tab === t ? '#fff' : '#64748b',
-                                boxShadow: tab === t ? '0 4px 12px rgba(79, 70, 229, 0.3)' : 'none',
-                                flex: '0 0 auto'
+                                boxShadow: tab === t ? '0 4px 12px rgba(79, 70, 229, 0.3)' : 'none'
                             }}
                         >
                             {label}
@@ -724,6 +720,74 @@ const AdminDashboard = () => {
                         ))}
                     </div>
                 )}
+
+                {/* Analysis/Intelligence Tab Content */}
+                {tab === 'analysis' && analysisData && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+                            <div style={cardStyle}>
+                                <div style={{ fontSize: 13, fontWeight: 700, color: '#64748b' }}>Revenue (30D)</div>
+                                <div style={{ fontSize: 24, fontWeight: 900, color: '#0f172a', marginTop: 4 }}>₵{analysisData.summary.revenue.toFixed(2)}</div>
+                            </div>
+                            <div style={cardStyle}>
+                                <div style={{ fontSize: 13, fontWeight: 700, color: '#64748b' }}>Profit (30D)</div>
+                                <div style={{ fontSize: 24, fontWeight: 900, color: '#10b981', marginTop: 4 }}>₵{analysisData.summary.profit.toFixed(2)}</div>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }} className="mobile-stack">
+                            <div style={cardStyle}>
+                                <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 16 }}>Top Products</div>
+                                {analysisData.topProducts.map((p, i) => (
+                                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f8fafc' }}>
+                                        <div style={{ fontWeight: 700, fontSize: 13 }}>{p._id.name}</div>
+                                        <div style={{ fontWeight: 800, fontSize: 13, color: '#10b981' }}>₵{p.revenue.toFixed(2)}</div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div style={cardStyle}>
+                                <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 16 }}>Top Customers</div>
+                                {analysisData.topUsers.map((u, i) => (
+                                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f8fafc' }}>
+                                        <div style={{ fontWeight: 700, fontSize: 13 }}>{u.name}</div>
+                                        <div style={{ fontWeight: 800, fontSize: 13 }}>₵{u.totalSpent.toFixed(2)}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Analysis Chat */}
+                        <div style={{ ...cardStyle, background: '#0f172a', color: '#fff', padding: 0, overflow: 'hidden' }}>
+                            <div style={{ padding: '20px 24px', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: 12 }}>
+                                <Sparkles size={20} color="#4f46e5" />
+                                <div style={{ fontWeight: 900, fontSize: 16 }}>Intelligence Assistant</div>
+                            </div>
+                            <div style={{ height: 300, overflowY: 'auto', padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }} className="hide-scrollbar">
+                                {messages.map((m, i) => (
+                                    <div key={i} style={{ alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '80%' }}>
+                                        <div style={{ 
+                                            padding: '12px 16px', borderRadius: 16, fontSize: 13, fontWeight: 600,
+                                            background: m.role === 'user' ? '#4f46e5' : 'rgba(255,255,255,0.1)',
+                                            color: '#fff'
+                                        }}>{m.text}</div>
+                                    </div>
+                                ))}
+                                <div ref={chatEndRef} />
+                            </div>
+                            <form onSubmit={handleSendMessage} style={{ padding: 16, borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', gap: 8 }}>
+                                <input 
+                                    type="text" 
+                                    value={analysisInput}
+                                    onChange={e => setAnalysisInput(e.target.value)}
+                                    placeholder="Ask about sales, trends, or customers..."
+                                    style={{ flex: 1, padding: '12px 16px', borderRadius: 10, border: 'none', background: 'rgba(255,255,255,0.1)', color: '#fff', fontWeight: 600, outline: 'none' }}
+                                />
+                                <button type="submit" style={{ padding: '0 16px', borderRadius: 10, background: '#4f46e5', color: '#fff', border: 'none', fontWeight: 800, cursor: 'pointer' }}>Ask</button>
+                            </form>
+                        </div>
+                    </div>
+                )}
+
 
                 {/* Stores Management */}
                 {tab === 'stores' && !loading && (
