@@ -385,7 +385,8 @@ router.post('/public/:slug/buy-init', checkMaintenance, async (req, res) => {
             phoneNumber: recipient_phone,
             amount: sellingPrice,
             externalReference: reference,
-            status: 'pending_payment'
+            status: 'pending_payment',
+            source: 'store'
         });
 
         res.json({ authorization_url: paystackRes.data.data.authorization_url, reference });
@@ -445,7 +446,8 @@ router.get('/public/verify/:reference', checkMaintenance, async (req, res) => {
                 phoneNumber: recipientPhone,
                 amount: sellingPrice,
                 externalReference: reference,
-                status: 'pending'
+                status: 'pending',
+                source: 'store'
             });
         }
 

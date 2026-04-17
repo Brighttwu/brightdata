@@ -396,10 +396,37 @@ router.get('/analysis', adminAuth, async (req, res) => {
             { $group: { 
                 _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }, 
                 revenue: { $sum: "$amount" },
-                cost: { $sum: "$cost" },
                 count: { $sum: 1 }
             }},
             { $sort: { _id: 1 } }
+        ]);
+
+        // Service Distribution (API vs Store vs Dashboard)
+        // Since many orders might not have 'source' field yet, we use a fallback based on externalReference prefix
+        const sourceStats = await Order.aggregate([
+            { $match: { status: 'completed', createdAt: { $gte: thirtyDaysAgo } } },
+            { $group: { 
+                _id: { 
+                    $cond: [
+                        { $ifNull: ["$source", false] }, 
+                        "$source", 
+                        { $cond: [{ $regexMatch: { input: "$externalReference", regex: /^API-/i } }, "api", { $cond: [{ $regexMatch: { input: "$externalReference", regex: /^STORE_/i } }, "store", "dashboard"] }] }
+                    ]
+                },
+                count: { $sum: 1 },
+                revenue: { $sum: "$amount" }
+            }}
+        ]);
+
+        // Network Distribution (Popularity)
+        const networkStats = await Order.aggregate([
+            { $match: { status: 'completed', createdAt: { $gte: thirtyDaysAgo } } },
+            { $group: { 
+                _id: "$network", 
+                count: { $sum: 1 },
+                revenue: { $sum: "$amount" }
+            }},
+            { $sort: { count: -1 } }
         ]);
 
         // User growth trend
@@ -421,7 +448,7 @@ router.get('/analysis', adminAuth, async (req, res) => {
                 revenue: { $sum: "$amount" }
             }},
             { $sort: { count: -1 } },
-            { $limit: 5 }
+            { $limit: 8 }
         ]);
 
         // Top Spending Users
@@ -439,6 +466,10 @@ router.get('/analysis', adminAuth, async (req, res) => {
             { $project: { name: "$userDetails.name", email: "$userDetails.email", totalSpent: 1, orderCount: 1 } }
         ]);
 
+        // Merchant Stats (Agents)
+        const totalAgents = await User.countDocuments({ role: { $in: ['agent', 'store'] } });
+        const newAgents = await User.countDocuments({ role: { $in: ['agent', 'store'] }, createdAt: { $gte: thirtyDaysAgo } });
+
         // Summary for AI/Chat Explanation
         const stats = await Order.aggregate([
             { $match: { status: 'completed', createdAt: { $gte: thirtyDaysAgo } } },
@@ -454,12 +485,14 @@ router.get('/analysis', adminAuth, async (req, res) => {
             revenue: stats[0]?.totalRevenue || 0,
             profit: (stats[0]?.totalRevenue || 0) - (stats[0]?.totalCost || 0),
             orders: stats[0]?.totalOrders || 0,
-            avgOrderValue: stats[0]?.totalRevenue ? (stats[0].totalRevenue / stats[0].totalOrders) : 0
+            avgOrderValue: stats[0]?.totalRevenue ? (stats[0].totalRevenue / stats[0].totalOrders) : 0,
+            totalAgents,
+            newAgents
         };
 
-        res.json({ salesTrend, userTrend, topProducts, topUsers, summary });
+        res.json({ salesTrend, userTrend, topProducts, topUsers, summary, sourceStats, networkStats });
     } catch (err) {
-        console.error(err);
+        console.error('Analysis failed:', err);
         res.status(500).json({ message: 'Analysis failed' });
     }
 });

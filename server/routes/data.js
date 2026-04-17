@@ -238,7 +238,8 @@ router.post('/buy', checkMaintenance, (req, res, next) => {
             externalReference: external_reference,
             orderId: apiData.order_id,
             apiResponse: response.data,
-            status: (apiData.status === 'failed' || response.data.success === false) ? 'failed' : 'pending'
+            status: (apiData.status === 'failed' || response.data.success === false) ? 'failed' : 'pending',
+            source: 'dashboard'
         });
 
         const orderFailed = apiData.status === 'failed' || response.data.success === false;
@@ -329,7 +330,8 @@ router.post('/buy-paystack-init', checkMaintenance, auth, async (req, res) => {
             amount: amount,
             cost: apiPrice,
             externalReference: reference,
-            status: 'pending_payment'
+            status: 'pending_payment',
+            source: 'dashboard'
         });
         await order.save();
 

@@ -12,6 +12,7 @@ const OrderSchema = new mongoose.Schema({
     externalReference: { type: String, required: true, unique: true },
     orderId: { type: String }, // From Bossu API
     apiResponse: { type: Object },
+    source: { type: String, enum: ['dashboard', 'api', 'store'], default: 'dashboard' },
     isReported: { type: Boolean, default: false },
     reportReason: { type: String },
     createdAt: { type: Date, default: Date.now },

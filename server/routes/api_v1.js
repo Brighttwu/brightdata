@@ -185,7 +185,8 @@ router.post('/buy', transactionLimiter, apiKeyAuth, async (req, res) => {
                 status: 'completed',
                 externalReference: externalRef,
                 orderId: buyRes.data.order_id || buyRes.data.orderId,
-                apiResponse: buyRes.data
+                apiResponse: buyRes.data,
+                source: 'api'
             });
             await newOrder.save();
 
