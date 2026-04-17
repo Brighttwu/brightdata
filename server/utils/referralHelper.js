@@ -12,8 +12,10 @@ const handleReferralCommission = async (buyerId, amount, orderRef) => {
 
         if (commission <= 0) return;
 
-        referrer.referralBalance = Number((referrer.referralBalance + commission).toFixed(2));
-        await referrer.save();
+        await User.updateOne(
+            { _id: referrer._id },
+            { $inc: { referralBalance: commission } }
+        );
 
         await Transaction.create({
             user: referrer._id,

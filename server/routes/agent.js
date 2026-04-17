@@ -587,11 +587,12 @@ router.get('/referral-stats', auth, async (req, res) => {
         // For each referred user, sum up commission the referrer earned from them
         const referralsWithCommission = await Promise.all(referrals.map(async (r) => {
             // Transactions created by referralHelper use description like "Referral Commission from <name>"
-            // and reference like "REF_<orderRef>". We match on user (referrer) + description containing buyer name.
+            // and reference like "REF_<orderRef>". We match on user (referrer) + specific description.
             const commissionTxns = await Transaction.find({
                 user: user._id,
                 type: 'deposit',
-                description: { $regex: `Referral Commission from ${r.name}`, $options: 'i' }
+                status: 'success',
+                description: { $regex: `^Referral Commission from ${r.name} \\(Order:`, $options: 'i' }
             }).select('amount');
             const totalCommission = commissionTxns.reduce((sum, t) => sum + (t.amount || 0), 0);
             return {
@@ -604,7 +605,10 @@ router.get('/referral-stats', auth, async (req, res) => {
         }));
 
         const totalCommissionEarned = referralsWithCommission.reduce((s, r) => s + r.commissionEarned, 0);
-
+        
+        // Safety: If referralBalance is zero but we have commissions, and user says they haven't withdrawn, 
+        // it might be a legacy sync issue. We don't auto-fix it here but we ensure the stats shown are correct.
+        
         res.json({
             referralCode: user.referralCode,
             referralBalance: user.referralBalance,

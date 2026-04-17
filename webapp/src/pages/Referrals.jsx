@@ -5,6 +5,7 @@ import { Users, Copy, Gift, Wallet, ArrowUpRight, CheckCircle2, AlertCircle, Ref
 
 const Referrals = () => {
     const { user } = useAuth();
+    const [showAll, setShowAll] = useState(false);
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [withdrawLoading, setWithdrawLoading] = useState(false);
@@ -55,7 +56,8 @@ const Referrals = () => {
         </div>
     );
 
-    const referrals = stats?.referrals || [];
+    const fullReferrals = stats?.referrals || [];
+    const referrals = showAll ? fullReferrals : fullReferrals.slice(0, 5);
     const avatarHue = (name) => ((name?.charCodeAt(0) || 65) * 5) % 360;
 
     return (
@@ -152,88 +154,104 @@ const Referrals = () => {
                     </div>
                 </div>
 
-                {referrals.length === 0 ? (
+                {fullReferrals.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '36px 16px' }}>
                         <div style={{ fontSize: 44, marginBottom: 10 }}>👥</div>
                         <div style={{ fontWeight: 800, color: '#0f172a', fontSize: 15, marginBottom: 5 }}>No referrals yet</div>
                         <div style={{ color: '#94a3b8', fontSize: 13 }}>Share your link above to start earning!</div>
                     </div>
                 ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 
-                        {/* Desktop table header (hidden on mobile via CSS) */}
-                        <div className="ref-table-header">
-                            <span>User</span>
-                            <span style={{ textAlign: 'center' }}>Orders</span>
-                            <span style={{ textAlign: 'center' }}>Commission</span>
-                            <span style={{ textAlign: 'right' }}>Joined</span>
-                        </div>
+                            {/* Desktop table header (hidden on mobile via CSS) */}
+                            <div className="ref-table-header">
+                                <span>User</span>
+                                <span style={{ textAlign: 'center' }}>Orders</span>
+                                <span style={{ textAlign: 'center' }}>Commission</span>
+                                <span style={{ textAlign: 'right' }}>Joined</span>
+                            </div>
 
-                        {referrals.map((r, i) => (
-                            <div key={r._id || i} className="ref-row" style={{ background: i % 2 === 0 ? '#fafafa' : '#fff' }}>
-                                {/* Avatar + name — always visible */}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                    <div style={{
-                                        width: 38, height: 38, borderRadius: '50%', flexShrink: 0,
-                                        background: `hsl(${avatarHue(r.name)}, 55%, 90%)`,
-                                        color: `hsl(${avatarHue(r.name)}, 55%, 32%)`,
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        fontWeight: 900, fontSize: 15
-                                    }}>
-                                        {(r.name || '?').charAt(0).toUpperCase()}
-                                    </div>
-                                    <div>
-                                        <div style={{ fontWeight: 800, color: '#0f172a', fontSize: 14 }}>{r.name}</div>
-                                        {/* Mobile-only: show date under name */}
-                                        <div className="ref-mobile-date">
-                                            {new Date(r.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' })}
+                            {referrals.map((r, i) => (
+                                <div key={r._id || i} className="ref-row" style={{ background: i % 2 === 0 ? '#fafafa' : '#fff' }}>
+                                    {/* Avatar + name — always visible */}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                        <div style={{
+                                            width: 38, height: 38, borderRadius: '50%', flexShrink: 0,
+                                            background: `hsl(${avatarHue(r.name)}, 55%, 90%)`,
+                                            color: `hsl(${avatarHue(r.name)}, 55%, 32%)`,
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            fontWeight: 900, fontSize: 15
+                                        }}>
+                                            {(r.name || '?').charAt(0).toUpperCase()}
+                                        </div>
+                                        <div>
+                                            <div style={{ fontWeight: 800, color: '#0f172a', fontSize: 14 }}>{r.name}</div>
+                                            {/* Mobile-only: show date under name */}
+                                            <div className="ref-mobile-date">
+                                                {new Date(r.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' })}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                {/* Mobile-only pill row (orders + commission) */}
-                                <div className="ref-mobile-pills">
-                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#f0f9ff', color: '#0284c7', borderRadius: 8, padding: '4px 9px', fontSize: 12, fontWeight: 800 }}>
-                                        <ShoppingBag size={11} /> {r.orderCount || 0} orders
-                                    </span>
-                                    <span style={{ display: 'inline-block', borderRadius: 8, padding: '4px 10px', fontSize: 12, fontWeight: 900, background: r.commissionEarned > 0 ? '#f0fdf4' : '#f8fafc', color: r.commissionEarned > 0 ? '#16a34a' : '#94a3b8' }}>
-                                        ₵{(r.commissionEarned || 0).toFixed(2)}
-                                    </span>
-                                </div>
+                                    {/* Mobile-only pill row (orders + commission) */}
+                                    <div className="ref-mobile-pills">
+                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#f0f9ff', color: '#0284c7', borderRadius: 8, padding: '4px 9px', fontSize: 12, fontWeight: 800 }}>
+                                            <ShoppingBag size={11} /> {r.orderCount || 0} orders
+                                        </span>
+                                        <span style={{ display: 'inline-block', borderRadius: 8, padding: '4px 10px', fontSize: 12, fontWeight: 900, background: r.commissionEarned > 0 ? '#f0fdf4' : '#f8fafc', color: r.commissionEarned > 0 ? '#16a34a' : '#94a3b8' }}>
+                                            ₵{(r.commissionEarned || 0).toFixed(2)}
+                                        </span>
+                                    </div>
 
-                                {/* Desktop-only: orders column */}
-                                <div className="ref-desktop-col" style={{ textAlign: 'center' }}>
-                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#f0f9ff', color: '#0284c7', borderRadius: 8, padding: '4px 9px', fontSize: 12, fontWeight: 800 }}>
-                                        <ShoppingBag size={11} /> {r.orderCount || 0}
-                                    </span>
-                                </div>
+                                    {/* Desktop-only: orders column */}
+                                    <div className="ref-desktop-col" style={{ textAlign: 'center' }}>
+                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#f0f9ff', color: '#0284c7', borderRadius: 8, padding: '4px 9px', fontSize: 12, fontWeight: 800 }}>
+                                            <ShoppingBag size={11} /> {r.orderCount || 0}
+                                        </span>
+                                    </div>
 
-                                {/* Desktop-only: commission column */}
-                                <div className="ref-desktop-col" style={{ textAlign: 'center' }}>
-                                    <span style={{ display: 'inline-block', borderRadius: 8, padding: '4px 10px', fontSize: 12, fontWeight: 900, background: r.commissionEarned > 0 ? '#f0fdf4' : '#f8fafc', color: r.commissionEarned > 0 ? '#16a34a' : '#94a3b8' }}>
-                                        ₵{(r.commissionEarned || 0).toFixed(2)}
-                                    </span>
-                                </div>
+                                    {/* Desktop-only: commission column */}
+                                    <div className="ref-desktop-col" style={{ textAlign: 'center' }}>
+                                        <span style={{ display: 'inline-block', borderRadius: 8, padding: '4px 10px', fontSize: 12, fontWeight: 900, background: r.commissionEarned > 0 ? '#f0fdf4' : '#f8fafc', color: r.commissionEarned > 0 ? '#16a34a' : '#94a3b8' }}>
+                                            ₵{(r.commissionEarned || 0).toFixed(2)}
+                                        </span>
+                                    </div>
 
-                                {/* Desktop-only: date column */}
-                                <div className="ref-desktop-col" style={{ textAlign: 'right', fontSize: 12, color: '#94a3b8', fontWeight: 600 }}>
-                                    {new Date(r.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' })}
+                                    {/* Desktop-only: date column */}
+                                    <div className="ref-desktop-col" style={{ textAlign: 'right', fontSize: 12, color: '#94a3b8', fontWeight: 600 }}>
+                                        {new Date(r.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' })}
+                                    </div>
                                 </div>
+                            ))}
+
+                            {/* Totals footer */}
+                            <div className="ref-totals-row">
+                                <span style={{ fontSize: 13, fontWeight: 900 }}>TOTAL</span>
+                                <span className="ref-desktop-col" style={{ textAlign: 'center', fontSize: 13, fontWeight: 800 }}>
+                                    {fullReferrals.reduce((s, r) => s + (r.orderCount || 0), 0)} orders
+                                </span>
+                                <span style={{ textAlign: 'center', fontSize: 14, fontWeight: 900 }}>
+                                    ₵{(stats?.totalCommissionEarned || 0).toFixed(2)}
+                                </span>
+                                <span className="ref-desktop-col" />
                             </div>
-                        ))}
-
-                        {/* Totals footer */}
-                        <div className="ref-totals-row">
-                            <span style={{ fontSize: 13, fontWeight: 900 }}>TOTAL</span>
-                            <span className="ref-desktop-col" style={{ textAlign: 'center', fontSize: 13, fontWeight: 800 }}>
-                                {referrals.reduce((s, r) => s + (r.orderCount || 0), 0)} orders
-                            </span>
-                            <span style={{ textAlign: 'center', fontSize: 14, fontWeight: 900 }}>
-                                ₵{(stats?.totalCommissionEarned || 0).toFixed(2)}
-                            </span>
-                            <span className="ref-desktop-col" />
                         </div>
-                    </div>
+
+                        {fullReferrals.length > 5 && (
+                            <div style={{ textAlign: 'center', marginTop: 16 }}>
+                                <button 
+                                    onClick={() => setShowAll(!showAll)}
+                                    style={{ 
+                                        padding: '8px 20px', borderRadius: '10px', border: '1px solid #e2e8f0', 
+                                        background: '#fff', color: '#4f46e5', fontWeight: 800, fontSize: 13, cursor: 'pointer' 
+                                    }}
+                                >
+                                    {showAll ? 'Show Less' : `View All (${fullReferrals.length})`}
+                                </button>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
 

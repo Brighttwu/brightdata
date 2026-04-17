@@ -9,6 +9,7 @@ const DeveloperPage = () => {
     const [generating, setGenerating] = useState(false);
     const [copied, setCopied] = useState(false);
     const [activeSnippet, setActiveSnippet] = useState('curl');
+    const [selectedEndpoint, setSelectedEndpoint] = useState('buy');
     
     useEffect(() => {
         if (user?.apiKey) setApiKey(user.apiKey);
@@ -54,17 +55,106 @@ const DeveloperPage = () => {
         }
     ];
 
-    const snippets = {
-        curl: `curl -X POST ${API_BASE}/buy \\
-  -H "x-api-key: ${apiKey || 'YOUR_API_KEY'}" \\
+    const endpointsList = [
+        { id: 'user', m: 'GET', p: '/user', d: 'Check wallet balance', c: '#10b981' },
+        { id: 'packages', m: 'GET', p: '/packages/:network', d: 'List available plans', c: '#8b5cf6' },
+        { id: 'buy', m: 'POST', p: '/buy', d: 'Purchase data bundle', c: '#6366f1' },
+        { id: 'order', m: 'GET', p: '/order/:orderId', d: 'Track order status', c: '#f59e0b' },
+    ];
+
+    const generateSnippets = (endpointId) => {
+        const apiKeyVal = apiKey || 'YOUR_API_KEY';
+        const baseUrl = API_BASE;
+        
+        switch(endpointId) {
+            case 'user':
+                return {
+                    curl: `curl -X GET ${baseUrl}/user \\
+  -H "x-api-key: ${apiKeyVal}"`,
+                    php: `<?php
+$url = "${baseUrl}/user";
+$ch = curl_init($url);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+  "x-api-key: ${apiKeyVal}"
+]);
+
+$response = curl_exec($ch);
+curl_close($ch);
+echo $response;
+?>`,
+                    node: `const axios = require('axios');
+
+async function getBalance() {
+  try {
+    const res = await axios.get('${baseUrl}/user', {
+      headers: { 'x-api-key': '${apiKeyVal}' }
+    });
+    console.log('Balance info:', res.data);
+  } catch (err) {
+    console.error('Error:', err.response.data);
+  }
+}
+
+getBalance();`,
+                    python: `import requests
+
+url = "${baseUrl}/user"
+headers = { "x-api-key": "${apiKeyVal}" }
+
+res = requests.get(url, headers=headers)
+print(res.json())`
+                };
+            case 'packages':
+                return {
+                    curl: `curl -X GET ${baseUrl}/packages/mtn \\
+  -H "x-api-key: ${apiKeyVal}"`,
+                    php: `<?php
+$url = "${baseUrl}/packages/mtn";
+$ch = curl_init($url);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+  "x-api-key: ${apiKeyVal}"
+]);
+
+$response = curl_exec($ch);
+curl_close($ch);
+echo $response;
+?>`,
+                    node: `const axios = require('axios');
+
+async function getPackages() {
+  try {
+    const res = await axios.get('${baseUrl}/packages/mtn', {
+      headers: { 'x-api-key': '${apiKeyVal}' }
+    });
+    console.log('Available Packages:', res.data);
+  } catch (err) {
+    console.error('Error:', err.response.data);
+  }
+}
+
+getPackages();`,
+                    python: `import requests
+
+url = "${baseUrl}/packages/mtn"
+headers = { "x-api-key": "${apiKeyVal}" }
+
+res = requests.get(url, headers=headers)
+print(res.json())`
+                };
+            case 'buy':
+                return {
+                    curl: `curl -X POST ${baseUrl}/buy \\
+  -H "x-api-key: ${apiKeyVal}" \\
   -H "Content-Type: application/json" \\
   -d '{
     "network": "mtn",
     "package_key": "mtn_500mb",
     "phone": "0240000001"
   }'`,
-        php: `<?php
-$url = "${API_BASE}/buy";
+                    php: `<?php
+$url = "${baseUrl}/buy";
 $data = [
   "network" => "mtn",
   "package_key" => "mtn_500mb",
@@ -76,7 +166,7 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
-  "x-api-key: ${apiKey || 'YOUR_API_KEY'}",
+  "x-api-key: ${apiKeyVal}",
   "Content-Type: application/json"
 ]);
 
@@ -84,21 +174,19 @@ $response = curl_exec($ch);
 curl_close($ch);
 echo $response;
 ?>`,
-        node: `const axios = require('axios');
+                    node: `const axios = require('axios');
 
 async function buyData() {
   try {
     const res = await axios.post(
-      '${API_BASE}/buy',
+      '${baseUrl}/buy',
       {
         network: 'mtn',
         package_key: 'mtn_500mb',
         phone: '0240000001'
       },
       {
-        headers: {
-          'x-api-key': '${apiKey || 'YOUR_API_KEY'}'
-        }
+        headers: { 'x-api-key': '${apiKeyVal}' }
       }
     );
     console.log('Success:', res.data);
@@ -108,11 +196,11 @@ async function buyData() {
 }
 
 buyData();`,
-        python: `import requests
+                    python: `import requests
 
-url = "${API_BASE}/buy"
+url = "${baseUrl}/buy"
 headers = {
-  "x-api-key": "${apiKey || 'YOUR_API_KEY'}",
+  "x-api-key": "${apiKeyVal}",
   "Content-Type": "application/json"
 }
 payload = {
@@ -123,7 +211,50 @@ payload = {
 
 res = requests.post(url, json=payload, headers=headers)
 print(res.json())`
+                };
+            case 'order':
+                return {
+                    curl: `curl -X GET ${baseUrl}/order/6618300000000 \\
+  -H "x-api-key: ${apiKeyVal}"`,
+                    php: `<?php
+$url = "${baseUrl}/order/6618300000000";
+$ch = curl_init($url);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+  "x-api-key: ${apiKeyVal}"
+]);
+
+$response = curl_exec($ch);
+curl_close($ch);
+echo $response;
+?>`,
+                    node: `const axios = require('axios');
+
+async function getOrder() {
+  try {
+    const res = await axios.get('${baseUrl}/order/6618300000000', {
+      headers: { 'x-api-key': '${apiKeyVal}' }
+    });
+    console.log('Order Status:', res.data);
+  } catch (err) {
+    console.error('Error:', err.response.data);
+  }
+}
+
+getOrder();`,
+                    python: `import requests
+
+url = "${baseUrl}/order/6618300000000"
+headers = { "x-api-key": "${apiKeyVal}" }
+
+res = requests.get(url, headers=headers)
+print(res.json())`
+                };
+            default: return {};
+        }
     };
+
+    const currentSnippets = generateSnippets(selectedEndpoint);
 
     return (
         <div className="dev-page">
@@ -241,13 +372,13 @@ print(res.json())`
                         <div className="dev-card">
                             <h2 className="dev-card-title" style={{ marginBottom: 16 }}>All Endpoints</h2>
                             <div className="dev-endpoints-list">
-                                {[
-                                    { m: 'GET', p: '/user', d: 'Check wallet balance', c: '#10b981' },
-                                    { m: 'GET', p: '/packages/:network', d: 'List available plans', c: '#8b5cf6' },
-                                    { m: 'POST', p: '/buy', d: 'Purchase data bundle', c: '#6366f1' },
-                                    { m: 'GET', p: '/order/:orderId', d: 'Track order status', c: '#f59e0b' },
-                                ].map((e, i) => (
-                                    <div key={i} className="dev-endpoint-item">
+                                {endpointsList.map((e, i) => (
+                                    <div 
+                                        key={i} 
+                                        className={`dev-endpoint-item ${selectedEndpoint === e.id ? 'active' : ''}`}
+                                        onClick={() => setSelectedEndpoint(e.id)}
+                                        style={{ cursor: 'pointer', padding: '8px', borderRadius: '10px', transition: 'all 0.2s' }}
+                                    >
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                             <span className="dev-method-badge" style={{ background: `${e.c}18`, color: e.c }}>{e.m}</span>
                                             <code className="dev-endpoint-path">{e.p}</code>
@@ -263,11 +394,16 @@ print(res.json())`
                     <div className="dev-right">
                         <div className="dev-code-box">
                             <div className="dev-code-header">
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                    <span className="dev-dot" style={{ background: '#ef4444' }} />
-                                    <span className="dev-dot" style={{ background: '#f59e0b' }} />
-                                    <span className="dev-dot" style={{ background: '#10b981' }} />
-                                    <span className="dev-code-label">Code Samples</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'space-between' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <span className="dev-dot" style={{ background: '#ef4444' }} />
+                                        <span className="dev-dot" style={{ background: '#f59e0b' }} />
+                                        <span className="dev-dot" style={{ background: '#10b981' }} />
+                                        <span className="dev-code-label">Code Samples</span>
+                                    </div>
+                                    <div className="dev-endpoint-tag">
+                                        {endpointsList.find(e => e.id === selectedEndpoint)?.p}
+                                    </div>
                                 </div>
                             </div>
                             
@@ -284,8 +420,8 @@ print(res.json())`
                             </div>
 
                             <div className="dev-code-body">
-                                <pre className="dev-pre">{snippets[activeSnippet]}</pre>
-                                <button className="dev-code-copy" onClick={() => handleCopy(snippets[activeSnippet])}>
+                                <pre className="dev-pre">{currentSnippets[activeSnippet]}</pre>
+                                <button className="dev-code-copy" onClick={() => handleCopy(currentSnippets[activeSnippet])}>
                                     <Copy size={14} color="#fff" />
                                 </button>
                             </div>
@@ -495,6 +631,13 @@ print(res.json())`
                 /* Scrollbar hide */
                 .hide-scrollbar::-webkit-scrollbar { display: none; }
                 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+                .dev-endpoint-item.active { background: #f1f5f9; border-left: 2px solid #4f46e5; }
+                .dev-endpoint-tag {
+                    color: #4f46e5; background: rgba(79,70,229,0.1);
+                    padding: 4px 10px; border-radius: 6px; font-size: 11px;
+                    font-weight: 800; font-family: monospace;
+                }
 
                 /* Footer */
                 .dev-footer-cta {
