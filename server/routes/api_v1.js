@@ -5,6 +5,7 @@ const Order = require('../models/Order');
 const Pricing = require('../models/Pricing');
 const axios = require('axios');
 const rateLimit = require('express-rate-limit');
+const { sendAdminFundAlert } = require('../utils/emailHelper');
 
 const API_KEY = process.env.BOSSU_API_KEY;
 const API_URL = 'https://bossudatahub.com/api/v1/data';
@@ -151,8 +152,7 @@ router.post('/buy', transactionLimiter, apiKeyAuth, async (req, res) => {
         const providerBalance = Number(balRes.data.balance || 0);
 
         if (providerBalance < basePkg.price) {
-            // Handle secondary order if needed, but for simplicity we'll just fail or mark as awaiting
-            // For now, let's keep it simple and fail.
+            await sendAdminFundAlert('Bossu Data Hub (API Endpoint)', providerBalance);
             return res.status(503).json({ status: false, message: 'System API balance low. Try again later.' });
         }
 
@@ -198,6 +198,10 @@ router.post('/buy', transactionLimiter, apiKeyAuth, async (req, res) => {
                 new_balance: user.balance
             });
         } else {
+            const apiMsg = (buyRes.data.message || "").toLowerCase();
+            if (apiMsg.includes('insufficient') || apiMsg.includes('balance')) {
+                await sendAdminFundAlert('Bossu Data Hub (API Buy)', 0);
+            }
             res.status(400).json({ status: false, message: buyRes.data.message || 'API order failed' });
         }
     } catch (err) {
