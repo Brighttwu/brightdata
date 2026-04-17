@@ -16,12 +16,16 @@ const AgentPage = () => {
     const [storeForm, setStoreForm] = useState({ slug: '', name: '', description: '', whatsapp: '', groupLink: '', logo: '', theme: 'classic' });
     const [customPrices, setCustomPrices] = useState({});
     const [withdrawals, setWithdrawals] = useState([]);
-    const [withdrawForm, setWithdrawForm] = useState({ amount: '', phone: '', network: 'mtn' });
+    const [withdrawForm, setWithdrawForm] = useState({ amount: '', phone: user?.momoNumber || '', network: 'mtn' });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [upgrading, setUpgrading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
     const [copiedLink, setCopiedLink] = useState(false);
+    
+    // Limits for lists
+    const [showAllSales, setShowAllSales] = useState(false);
+    const [showAllAwaiting, setShowAllAwaiting] = useState(false);
     
     // Store Manual Verification
     const [verifyRef, setVerifyRef] = useState('');
@@ -306,27 +310,48 @@ const AgentPage = () => {
                             </div>
                         </div>
                         <div style={cardStyle}>
-                            <div style={{ fontWeight: 900, fontSize: 18, color: '#0f172a', marginBottom: 16 }}>Recent Sales</div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                                <div style={{ fontWeight: 900, fontSize: 18, color: '#0f172a' }}>Recent Sales</div>
+                                {dashboard.profits.length > 3 && (
+                                    <button 
+                                        onClick={() => setShowAllSales(!showAllSales)}
+                                        style={{ background: 'none', border: 'none', color: '#4f46e5', fontWeight: 800, fontSize: 13, cursor: 'pointer' }}
+                                    >
+                                        {showAllSales ? 'Show Less' : 'View All'}
+                                    </button>
+                                )}
+                            </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                                {dashboard.profits.map((p, i) => (
+                                {(showAllSales ? dashboard.profits : dashboard.profits.slice(0, 3)).map((p, i) => (
                                     <div key={i} style={{ padding: 14, background: '#f8fafc', borderRadius: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <div><div style={{ fontWeight: 800 }}>{p.network?.toUpperCase()} {p.packageName}</div><div style={{ fontSize: 12, color: '#64748b' }}>{p.customerPhone} • {new Date(p.createdAt).toLocaleDateString()}</div></div>
                                         <div style={{ fontWeight: 900, color: '#16a34a' }}>+₵{p.profit.toFixed(2)}</div>
                                     </div>
                                 ))}
+                                {dashboard.profits.length === 0 && <div style={{ textAlign: 'center', padding: 10, color: '#94a3b8', fontSize: 13 }}>No recent sales</div>}
                             </div>
                         </div>
                         {/* Unverified Orders (Initiated but not confirmed) */}
                         {dashboard.unverifiedOrders && dashboard.unverifiedOrders.length > 0 && (
                             <div style={cardStyle}>
-                                <div style={{ fontWeight: 900, fontSize: 18, color: '#f59e0b', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                                    <AlertCircle size={20} /> Awaiting Verification
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                                    <div style={{ fontWeight: 900, fontSize: 18, color: '#f59e0b', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                        <AlertCircle size={20} /> Awaiting Verification
+                                    </div>
+                                    {dashboard.unverifiedOrders.length > 3 && (
+                                        <button 
+                                            onClick={() => setShowAllAwaiting(!showAllAwaiting)}
+                                            style={{ background: 'none', border: 'none', color: '#4f46e5', fontWeight: 800, fontSize: 13, cursor: 'pointer' }}
+                                        >
+                                            {showAllAwaiting ? 'Show Less' : 'View All'}
+                                        </button>
+                                    )}
                                 </div>
                                 <div style={{ fontSize: 13, color: '#64748b', marginBottom: 16 }}>
                                     These customers started a purchase but didn't complete it or weren't redirected. Check if you received payment and click Verify.
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                                    {dashboard.unverifiedOrders.map(order => (
+                                    {(showAllAwaiting ? dashboard.unverifiedOrders : dashboard.unverifiedOrders.slice(0, 3)).map(order => (
                                         <div key={order._id} style={{ 
                                             padding: 16, background: '#fffbeb', borderRadius: 14, border: '1px solid #fde68a',
                                             display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12

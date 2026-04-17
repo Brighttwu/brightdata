@@ -67,11 +67,14 @@ router.get('/stats', adminAuth, async (req, res) => {
         const ProfitModel = require('../models/Profit');
         const agentStoreProfits = await ProfitModel.aggregate([
             { $match: { createdAt: { $gte: dateLimit } } },
+            { $lookup: { from: 'users', localField: 'agent', foreignField: '_id', as: 'agentUser' } },
+            { $unwind: '$agentUser' },
+            { $match: { 'agentUser.role': { $ne: 'admin' } } },
             { $group: { _id: null, total: { $sum: '$profit' } } }
         ]);
         const storeProfits = agentStoreProfits[0]?.total || 0;
 
-        // Calculate Referral Commissions paid out in timeframe
+        // Calculate Referral Commissions paid out in timeframe (excluding admins)
         const referralCommissions = await Transaction.aggregate([
             { $match: { 
                 type: 'deposit', 
@@ -79,6 +82,9 @@ router.get('/stats', adminAuth, async (req, res) => {
                 description: { $regex: /Referral Commission/i },
                 createdAt: { $gte: dateLimit } 
             } },
+            { $lookup: { from: 'users', localField: 'user', foreignField: '_id', as: 'theUser' } },
+            { $unwind: '$theUser' },
+            { $match: { 'theUser.role': { $ne: 'admin' } } },
             { $group: { _id: null, total: { $sum: '$amount' } } }
         ]);
         const refComms = referralCommissions[0]?.total || 0;
@@ -501,6 +507,9 @@ router.get('/analysis', adminAuth, async (req, res) => {
         const ProfitModel = require('../models/Profit');
         const storeProfitsData = await ProfitModel.aggregate([
             { $match: { createdAt: { $gte: thirtyDaysAgo } } },
+            { $lookup: { from: 'users', localField: 'agent', foreignField: '_id', as: 'agentUser' } },
+            { $unwind: '$agentUser' },
+            { $match: { 'agentUser.role': { $ne: 'admin' } } },
             { $group: { _id: null, total: { $sum: '$profit' } } }
         ]);
         const thirtyDayStoreProfits = storeProfitsData[0]?.total || 0;
@@ -512,6 +521,9 @@ router.get('/analysis', adminAuth, async (req, res) => {
                 description: { $regex: /Referral Commission/i },
                 createdAt: { $gte: thirtyDaysAgo } 
             } },
+            { $lookup: { from: 'users', localField: 'user', foreignField: '_id', as: 'theUser' } },
+            { $unwind: '$theUser' },
+            { $match: { 'theUser.role': { $ne: 'admin' } } },
             { $group: { _id: null, total: { $sum: '$amount' } } }
         ]);
         const thirtyDayRefComms = refCommsData[0]?.total || 0;

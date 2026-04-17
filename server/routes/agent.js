@@ -573,6 +573,16 @@ router.post('/request-withdrawal', auth, async (req, res) => {
     }
 });
 
+// ─── GET MY WITHDRAWALS ───────────────────────────────────────────────────────
+router.get('/my-withdrawals', auth, async (req, res) => {
+    try {
+        const withdrawals = await Withdrawal.find({ user: req.user._id, type: 'agent' }).sort({ createdAt: -1 });
+        res.json(withdrawals);
+    } catch (err) {
+        res.status(500).json({ message: 'Error fetching withdrawals' });
+    }
+});
+
 // ─── REFERRAL SYSTEM ROUTES ───────────────────────────────────────────────────
 router.get('/referral-stats', auth, async (req, res) => {
     try {

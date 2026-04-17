@@ -110,9 +110,9 @@ const Profile = () => {
                                 style={{ width: '100%', padding: '14px 16px', borderRadius: 12, border: '2px solid #f1f5f9', outline: 'none', fontWeight: 700, boxSizing: 'border-box' }} />
                         </div>
                         <div>
-                            <label style={{ display: 'block', fontSize: 12, fontWeight: 800, color: '#64748b', marginBottom: 8, textTransform: 'uppercase' }}>MoMo Number</label>
-                            <input type="text" value={profileForm.momoNumber} onChange={e => setProfileForm({ ...profileForm, momoNumber: e.target.value })} required
-                                style={{ width: '100%', padding: '14px 16px', borderRadius: 12, border: '2px solid #f1f5f9', outline: 'none', fontWeight: 700, boxSizing: 'border-box' }} />
+                            <label style={{ display: 'block', fontSize: 12, fontWeight: 800, color: '#64748b', marginBottom: 8, textTransform: 'uppercase' }}>MoMo Number (For Withdrawals)</label>
+                            <input type="text" value={profileForm.momoNumber} onChange={e => setProfileForm({ ...profileForm, momoNumber: e.target.value })} 
+                                style={{ width: '100%', padding: '14px 16px', borderRadius: 12, border: '2px solid #f1f5f9', outline: 'none', fontWeight: 700, boxSizing: 'border-box' }} placeholder="Not set" />
                         </div>
                         <div>
                             <label style={{ display: 'block', fontSize: 12, fontWeight: 800, color: '#64748b', marginBottom: 8, textTransform: 'uppercase' }}>Primary Phone Number</label>
