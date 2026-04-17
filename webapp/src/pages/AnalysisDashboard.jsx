@@ -54,20 +54,20 @@ const AnalysisDashboard = () => {
             const q = userMsg.toLowerCase();
 
             if (q.includes('revenue') || q.includes('money') || q.includes('earn')) {
-                response = `In the last 30 days, your gross revenue is ₵${data.summary.revenue.toFixed(2)}. Dashboard users contributed the most, followed by ${data.sourceStats.find(s=>s._id==='api')?.count || 0} API orders.`;
+                response = `In the last 30 days, your gross revenue is ₵${data.summary.revenue.toFixed(2)}. Out of this, your net platform profit is ₵${data.summary.profit.toFixed(2)}, while agents earned ₵${data.summary.agentProfit.toFixed(2)} in total.`;
             } else if (q.includes('service') || q.includes('channel') || q.includes('source')) {
                 const api = data.sourceStats.find(s => s._id === 'api')?.count || 0;
                 const store = data.sourceStats.find(s => s._id === 'store')?.count || 0;
                 const dash = data.sourceStats.find(s => s._id === 'dashboard')?.count || 0;
                 response = `Distribution breakdown: Dashboard (${dash} orders), Developer API (${api} orders), and Agent Storefronts (${store} orders). API volume is currently ${((api/(api+store+dash))*100).toFixed(1)}% of total traffic.`;
             } else if (q.includes('agent') || q.includes('merchant') || q.includes('paid')) {
-                response = `You currently have ${data.summary.totalAgents} merchants on the platform. ${data.summary.newAgents} of these joined in the last 30 days. Their stores have processed ₵${data.sourceStats.find(s=>s._id==='store')?.revenue.toFixed(2) || '0.00'} in volume.`;
+                response = `You currently have ${data.summary.totalAgents} merchants on the platform. ${data.summary.newAgents} of these joined in the last 30 days. Their stores have processed ₵${data.sourceStats.find(s=>s._id==='store')?.revenue.toFixed(2) || '0.00'} in volume, earning them ₵${data.summary.agentProfit.toFixed(2)} in combined profit.`;
             } else if (q.includes('top') || q.includes('product') || q.includes('best')) {
                 const top = data.topProducts[0];
                 response = `The best selling service overall is ${top?._id.name} on ${top?._id.network.toUpperCase()}. Your most popular network is ${data.networkStats[0]?._id.toUpperCase()} with ${data.networkStats[0]?.count} successful orders.`;
             } else if (q.includes('how') && q.includes('doing')) {
                 const profitMargin = (data.summary.profit / data.summary.revenue) * 100;
-                response = `The platform is healthy! Profit margin is ${profitMargin.toFixed(1)}%. Service diversity is good: ${data.networkStats.length} different networks are being used. Growth is primarily driven by ${data.sourceStats.sort((a,b)=>b.count-a.count)[0]?._id} orders.`;
+                response = `The platform is healthy! Net profit is ₵${data.summary.profit.toFixed(2)} (${profitMargin.toFixed(1)}% margin). You've also shared ₵${data.summary.agentProfit.toFixed(2)} with your network of ${data.summary.totalAgents} agents. Growth is primarily driven by ${data.sourceStats.sort((a,b)=>b.count-a.count)[0]?._id} orders.`;
             } else {
                 response = "I can explain your service distribution (API vs Store), network popularity, merchant growth, or revenue trends. What's on your mind?";
             }
@@ -134,13 +134,21 @@ const AnalysisDashboard = () => {
                             </div>
 
                             <div style={cardStyle}>
+                                <div style={{ width: 44, height: 44, borderRadius: 14, background: '#fff7ed', color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                                    <Users size={22} />
+                                </div>
+                                <div style={{ fontSize: 13, fontWeight: 700, color: '#64748b' }}>Total Agent Earnings</div>
+                                <div style={{ fontSize: 30, fontWeight: 900, color: '#f59e0b', marginTop: 4 }}>₵{data.summary.agentProfit.toFixed(2)}</div>
+                            </div>
+
+                            <div style={cardStyle}>
                                 <div style={{ width: 44, height: 44, borderRadius: 14, background: '#ede9fe', color: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
                                     <Store size={22} />
                                 </div>
                                 <div style={{ fontSize: 13, fontWeight: 700, color: '#64748b' }}>Active Merchants</div>
                                 <div style={{ fontSize: 30, fontWeight: 900, color: '#0f172a', marginTop: 4, display: 'flex', alignItems: 'center', gap: 10 }}>
                                     {data.summary.totalAgents}
-                                    <span style={{ fontSize: 12, background: '#f8fafc', padding: '4px 8px', borderRadius: 6, color: '#7c3aed' }}>+{data.summary.newAgents} new</span>
+                                    <span style={{ fontSize: 12, background: '#f8fafc', padding: '4px 8px', borderRadius: 6, color: '#7c3aed' }}>+{data.summary.newAgents}</span>
                                 </div>
                             </div>
                         </div>

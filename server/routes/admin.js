@@ -35,7 +35,7 @@ router.get('/stats', adminAuth, async (req, res) => {
         dateLimit.setDate(dateLimit.getDate() - timeframe);
 
         const totalUsers = await User.countDocuments();
-        const totalAgents = await User.countDocuments({ role: 'agent' });
+        const totalAgents = await User.countDocuments({ role: { $in: ['agent', 'store'] } });
         const totalOrders = await Order.countDocuments();
         
         // Sum of all user balances
@@ -49,10 +49,10 @@ router.get('/stats', adminAuth, async (req, res) => {
             { $group: { _id: null, total: { $sum: '$amount' } } }
         ]);
 
-        // Calculate Admin Profit: Revenue - Cost (only for successful data orders)
-        const adminProfitData = await Order.aggregate([
+        // Calculate Gross Platform Profit: Revenue - Cost (only for successful data orders)
+        const orderData = await Order.aggregate([
             { $match: { 
-                status: { $in: ['completed', 'pending'] }, 
+                status: 'completed', 
                 createdAt: { $gte: dateLimit } 
             } },
             { $group: { 
@@ -61,14 +61,30 @@ router.get('/stats', adminAuth, async (req, res) => {
                 cost: { $sum: '$cost' }
             } }
         ]);
-        const adminProfit = (adminProfitData[0]?.revenue || 0) - (adminProfitData[0]?.cost || 0);
+        const grossProfit = (orderData[0]?.revenue || 0) - (orderData[0]?.cost || 0);
 
-        // Calculate Agent Profit: Sum of all profits in the Profit model within timeframe
+        // Calculate Agent Store Profit: Sum of all profits in the Profit model within timeframe
         const ProfitModel = require('../models/Profit');
-        const agentProfits = await ProfitModel.aggregate([
+        const agentStoreProfits = await ProfitModel.aggregate([
             { $match: { createdAt: { $gte: dateLimit } } },
             { $group: { _id: null, total: { $sum: '$profit' } } }
         ]);
+        const storeProfits = agentStoreProfits[0]?.total || 0;
+
+        // Calculate Referral Commissions paid out in timeframe
+        const referralCommissions = await Transaction.aggregate([
+            { $match: { 
+                type: 'deposit', 
+                status: 'success', 
+                description: { $regex: /Referral Commission/i },
+                createdAt: { $gte: dateLimit } 
+            } },
+            { $group: { _id: null, total: { $sum: '$amount' } } }
+        ]);
+        const refComms = referralCommissions[0]?.total || 0;
+
+        const totalAgentProfit = storeProfits + refComms;
+        const netAdminProfit = grossProfit - totalAgentProfit;
 
         // Get Bossu API balance
         let apiBalance = 0;
@@ -97,8 +113,8 @@ router.get('/stats', adminAuth, async (req, res) => {
             totalOrders,
             totalWalletBalance: walletTotals[0]?.total || 0,
             totalEarnings: earnings[0]?.total || 0, // Revenue in timeframe
-            adminProfit: Number(adminProfit.toFixed(2)),
-            agentProfit: agentProfits[0]?.total || 0,
+            adminProfit: Number(netAdminProfit.toFixed(2)),
+            agentProfit: Number(totalAgentProfit.toFixed(2)),
             apiBalance,
             timeframe
         });
@@ -470,6 +486,26 @@ router.get('/analysis', adminAuth, async (req, res) => {
         const totalAgents = await User.countDocuments({ role: { $in: ['agent', 'store'] } });
         const newAgents = await User.countDocuments({ role: { $in: ['agent', 'store'] }, createdAt: { $gte: thirtyDaysAgo } });
 
+        // Calculate Agent & Referral Profits for the last 30 days
+        const ProfitModel = require('../models/Profit');
+        const storeProfitsData = await ProfitModel.aggregate([
+            { $match: { createdAt: { $gte: thirtyDaysAgo } } },
+            { $group: { _id: null, total: { $sum: '$profit' } } }
+        ]);
+        const thirtyDayStoreProfits = storeProfitsData[0]?.total || 0;
+
+        const refCommsData = await Transaction.aggregate([
+            { $match: { 
+                type: 'deposit', 
+                status: 'success', 
+                description: { $regex: /Referral Commission/i },
+                createdAt: { $gte: thirtyDaysAgo } 
+            } },
+            { $group: { _id: null, total: { $sum: '$amount' } } }
+        ]);
+        const thirtyDayRefComms = refCommsData[0]?.total || 0;
+        const thirtyDayAgentProfit = thirtyDayStoreProfits + thirtyDayRefComms;
+
         // Summary for AI/Chat Explanation
         const stats = await Order.aggregate([
             { $match: { status: 'completed', createdAt: { $gte: thirtyDaysAgo } } },
@@ -481,9 +517,13 @@ router.get('/analysis', adminAuth, async (req, res) => {
             }}
         ]);
 
+        const grossProfit30 = (stats[0]?.totalRevenue || 0) - (stats[0]?.totalCost || 0);
+        const netAdminProfit30 = grossProfit30 - thirtyDayAgentProfit;
+
         const summary = {
             revenue: stats[0]?.totalRevenue || 0,
-            profit: (stats[0]?.totalRevenue || 0) - (stats[0]?.totalCost || 0),
+            profit: Number(netAdminProfit30.toFixed(2)),
+            agentProfit: Number(thirtyDayAgentProfit.toFixed(2)),
             orders: stats[0]?.totalOrders || 0,
             avgOrderValue: stats[0]?.totalRevenue ? (stats[0].totalRevenue / stats[0].totalOrders) : 0,
             totalAgents,
