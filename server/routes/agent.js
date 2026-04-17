@@ -11,7 +11,7 @@ const { handleReferralCommission } = require('../utils/referralHelper');
 const checkMaintenance = require('../utils/maintenanceMiddleware');
 const cloudinary = require('../utils/cloudinary');
 const { verifyPaystackTransaction } = require('../utils/paystackHelper');
-const { sendStoreOrderNotification, sendAdminFundAlert } = require('../utils/emailHelper');
+const { sendStoreOrderNotification, sendAdminFundAlert, sendWithdrawalAlert } = require('../utils/emailHelper');
 
 const API_URL = process.env.BOSSU_API_URL;
 const API_KEY = process.env.BOSSU_API_KEY;
@@ -568,6 +568,13 @@ router.post('/request-withdrawal', auth, async (req, res) => {
         });
 
         res.json({ message: 'Withdrawal request submitted!', withdrawal: w, commissionBalance: user.commissionBalance });
+        
+        // Notify Admin
+        await sendWithdrawalAlert(user.name, {
+            amount: Number(amount),
+            type: 'agent',
+            paymentDetails
+        });
     } catch (err) {
         res.status(500).json({ message: 'Error submitting withdrawal' });
     }
@@ -655,6 +662,13 @@ router.post('/request-referral-withdrawal', auth, async (req, res) => {
         });
 
         res.json({ message: 'Referral withdrawal request submitted!', withdrawal: w, referralBalance: user.referralBalance });
+        
+        // Notify Admin
+        await sendWithdrawalAlert(user.name, {
+            amount: Number(amount),
+            type: 'referral',
+            paymentDetails: `Referral Payout: ${user.momoNumber}`
+        });
     } catch (err) {
         res.status(500).json({ message: 'Error submitting withdrawal' });
     }

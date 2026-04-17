@@ -108,9 +108,43 @@ const sendAdminFundAlert = async (apiName, currentBalance) => {
     }
 };
 
+/**
+ * Notify Admin of New Withdrawal Request
+ */
+const sendWithdrawalAlert = async (userName, withdrawalDetails) => {
+    try {
+        const adminEmail = process.env.ADMIN_EMAIL || 'brightdatahub@gmail.com'; 
+        
+        await resend.emails.send({
+            from: FROM_EMAIL,
+            to: adminEmail,
+            subject: '💸 New Withdrawal Request Received!',
+            html: `
+                <div style="font-family: sans-serif; padding: 20px; color: #333;">
+                    <h2 style="color: #4f46e5;">New Payout Request</h2>
+                    <p>A new withdrawal request has been submitted by <b>${userName}</b>.</p>
+                    <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4f46e5;">
+                        <p><b>User:</b> ${userName}</p>
+                        <p><b>Amount:</b> ₵${withdrawalDetails.amount.toFixed(2)}</p>
+                        <p><b>Type:</b> ${withdrawalDetails.type.toUpperCase()}</p>
+                        <p><b>Payment Details:</b> ${withdrawalDetails.paymentDetails}</p>
+                        <p><b>Submitted:</b> ${new Date().toLocaleString()}</p>
+                    </div>
+                    <p>Please log in to the admin dashboard to review and process this request.</p>
+                    <hr />
+                    <p style="font-size: 12px; color: #999;">Bright Data - Automated Payout Monitoring</p>
+                </div>
+            `
+        });
+    } catch (error) {
+        console.error('Email Error (Withdrawal Alert):', error);
+    }
+};
+
 module.exports = {
     sendOtpEmail,
     sendReferralNotification,
     sendStoreOrderNotification,
-    sendAdminFundAlert
+    sendAdminFundAlert,
+    sendWithdrawalAlert
 };
