@@ -605,15 +605,13 @@ router.get('/referral-stats', auth, async (req, res) => {
         }));
 
         const totalCommissionEarned = referralsWithCommission.reduce((s, r) => s + r.commissionEarned, 0);
-        
-        // Safety: If referralBalance is zero but we have commissions, and user says they haven't withdrawn, 
-        // it might be a legacy sync issue. We don't auto-fix it here but we ensure the stats shown are correct.
-        
+        const sortedReferrals = referralsWithCommission.sort((a, b) => b.commissionEarned - a.commissionEarned);
+
         res.json({
             referralCode: user.referralCode,
             referralBalance: user.referralBalance,
             referralCount: referrals.length,
-            referrals: referralsWithCommission,
+            referrals: sortedReferrals,
             totalCommissionEarned: Number(totalCommissionEarned.toFixed(2))
         });
     } catch (err) {
