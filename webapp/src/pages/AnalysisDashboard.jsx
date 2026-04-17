@@ -61,13 +61,13 @@ const AnalysisDashboard = () => {
                 const dash = data.sourceStats.find(s => s._id === 'dashboard')?.count || 0;
                 response = `Distribution breakdown: Dashboard (${dash} orders), Developer API (${api} orders), and Agent Storefronts (${store} orders). API volume is currently ${((api/(api+store+dash))*100).toFixed(1)}% of total traffic.`;
             } else if (q.includes('agent') || q.includes('merchant') || q.includes('paid')) {
-                response = `You currently have ${data.summary.totalAgents} merchants on the platform. ${data.summary.newAgents} of these joined in the last 30 days. Their stores have processed ₵${data.sourceStats.find(s=>s._id==='store')?.revenue.toFixed(2) || '0.00'} in volume, earning them ₵${data.summary.agentProfit.toFixed(2)} in combined profit.`;
+                response = `You currently have ${data.summary.totalAgents} merchants on the platform. ${data.summary.newAgents} of these joined in the last 30 days. Their stores have processed ₵${data.sourceStats.find(s=>s._id==='store')?.revenue.toFixed(2) || '0.00'} in volume, earning them ₵${data.summary.agentProfit.toFixed(2)} in combined profit. Currently, ₵${data.summary.totalOwedToAgents.toFixed(2)} is available for withdrawal in their wallets.`;
             } else if (q.includes('top') || q.includes('product') || q.includes('best')) {
                 const top = data.topProducts[0];
                 response = `The best selling service overall is ${top?._id.name} on ${top?._id.network.toUpperCase()}. Your most popular network is ${data.networkStats[0]?._id.toUpperCase()} with ${data.networkStats[0]?.count} successful orders.`;
             } else if (q.includes('how') && q.includes('doing')) {
                 const profitMargin = (data.summary.profit / data.summary.revenue) * 100;
-                response = `The platform is healthy! Net profit is ₵${data.summary.profit.toFixed(2)} (${profitMargin.toFixed(1)}% margin). You've also shared ₵${data.summary.agentProfit.toFixed(2)} with your network of ${data.summary.totalAgents} agents. Growth is primarily driven by ${data.sourceStats.sort((a,b)=>b.count-a.count)[0]?._id} orders.`;
+                response = `The platform is healthy! Net profit is ₵${data.summary.profit.toFixed(2)} (${profitMargin.toFixed(1)}% margin). You've also shared ₵${data.summary.agentProfit.toFixed(2)} with your network of ${data.summary.totalAgents} agents, of which ₵${data.summary.totalOwedToAgents.toFixed(2)} is currently ready for payout. Growth is primarily driven by ${data.sourceStats.sort((a,b)=>b.count-a.count)[0]?._id} orders.`;
             } else {
                 response = "I can explain your service distribution (API vs Store), network popularity, merchant growth, or revenue trends. What's on your mind?";
             }
@@ -137,8 +137,16 @@ const AnalysisDashboard = () => {
                                 <div style={{ width: 44, height: 44, borderRadius: 14, background: '#fff7ed', color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
                                     <Users size={22} />
                                 </div>
-                                <div style={{ fontSize: 13, fontWeight: 700, color: '#64748b' }}>Total Agent Earnings</div>
-                                <div style={{ fontSize: 30, fontWeight: 900, color: '#f59e0b', marginTop: 4 }}>₵{data.summary.agentProfit.toFixed(2)}</div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                                    <div>
+                                        <div style={{ fontSize: 13, fontWeight: 700, color: '#64748b' }}>Total Agent Earnings</div>
+                                        <div style={{ fontSize: 26, fontWeight: 900, color: '#f59e0b', marginTop: 4 }}>₵{data.summary.agentProfit.toFixed(2)}</div>
+                                    </div>
+                                    <div style={{ textAlign: 'right' }}>
+                                        <div style={{ fontSize: 11, fontWeight: 800, color: '#94a3b8' }}>Available for Withdrawal</div>
+                                        <div style={{ fontSize: 14, fontWeight: 900, color: '#0f172a' }}>₵{data.summary.totalOwedToAgents.toFixed(2)}</div>
+                                    </div>
+                                </div>
                             </div>
 
                             <div style={cardStyle}>

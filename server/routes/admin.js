@@ -86,6 +86,16 @@ router.get('/stats', adminAuth, async (req, res) => {
         const totalAgentProfit = storeProfits + refComms;
         const netAdminProfit = grossProfit - totalAgentProfit;
 
+        // Calculate total funds currently available for withdrawal by agents
+        const agentBalanceData = await User.aggregate([
+            { $group: { 
+                _id: null, 
+                commissions: { $sum: '$commissionBalance' },
+                referrals: { $sum: '$referralBalance' }
+            } }
+        ]);
+        const totalOwedToAgents = (agentBalanceData[0]?.commissions || 0) + (agentBalanceData[0]?.referrals || 0);
+
         // Get Bossu API balance
         let apiBalance = 0;
         try {
@@ -115,6 +125,7 @@ router.get('/stats', adminAuth, async (req, res) => {
             totalEarnings: earnings[0]?.total || 0, // Revenue in timeframe
             adminProfit: Number(netAdminProfit.toFixed(2)),
             agentProfit: Number(totalAgentProfit.toFixed(2)),
+            totalOwedToAgents: Number(totalOwedToAgents.toFixed(2)),
             apiBalance,
             timeframe
         });
@@ -520,10 +531,19 @@ router.get('/analysis', adminAuth, async (req, res) => {
         const grossProfit30 = (stats[0]?.totalRevenue || 0) - (stats[0]?.totalCost || 0);
         const netAdminProfit30 = grossProfit30 - thirtyDayAgentProfit;
 
+        // Current liability (available for withdrawal)
+        const agentBalances = await User.aggregate([
+            { $group: { 
+                _id: null, 
+                total: { $sum: { $add: ["$commissionBalance", "$referralBalance"] } } 
+            } }
+        ]);
+
         const summary = {
             revenue: stats[0]?.totalRevenue || 0,
             profit: Number(netAdminProfit30.toFixed(2)),
             agentProfit: Number(thirtyDayAgentProfit.toFixed(2)),
+            totalOwedToAgents: Number((agentBalances[0]?.total || 0).toFixed(2)),
             orders: stats[0]?.totalOrders || 0,
             avgOrderValue: stats[0]?.totalRevenue ? (stats[0].totalRevenue / stats[0].totalOrders) : 0,
             totalAgents,
