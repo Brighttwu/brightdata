@@ -207,10 +207,7 @@ router.post('/buy', checkMaintenance, (req, res, next) => {
 
         const external_reference = `BD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
-        // Deduct balance first (can be refunded if failed)
-        user.balance -= amount;
-        await user.save();
-
+        // Call API first (as requested by user to verify no error before deducting)
         const buyParams = new URLSearchParams();
         buyParams.append('action', 'create_order');
         buyParams.append('network', network);
@@ -218,14 +215,45 @@ router.post('/buy', checkMaintenance, (req, res, next) => {
         buyParams.append('recipient_phone', recipient_phone);
         buyParams.append('external_reference', external_reference);
 
-        const response = await axios.post(API_URL, buyParams, {
-            headers: { 
-                'X-API-Key': API_KEY,
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
-        });
+        let response;
+        try {
+            response = await axios.post(API_URL, buyParams, {
+                headers: { 
+                    'X-API-Key': API_KEY,
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            });
+        } catch (apiErr) {
+            console.error('Data Order API Connection Error:', apiErr.message);
+            return res.status(500).json({ message: 'Could not connect to service provider. Balance not deducted.' });
+        }
 
-        const apiData = response.data.data || response.data; // Bossu wraps in .data
+        const apiData = response.data.data || response.data;
+        const orderFailed = (apiData.status === 'failed' || response.data.success === false);
+        const apiMsg = (response.data.message || apiData.message || "").toLowerCase();
+
+        // If API immediately fails, don't deduct balance
+        if (orderFailed) {
+            // Log the failure for admin but don't charge the user
+            if (apiMsg.includes('insufficient') || apiMsg.includes('balance')) {
+                await sendAdminFundAlert('Bossu Data Hub (Direct)', 0);
+            }
+            return res.status(400).json({ 
+                message: response.data.message || apiData.message || 'The service provider rejected the request. Your balance was not deducted.',
+                details: response.data 
+            });
+        }
+
+        // --- SUCCESS OR PENDING: NOW DEDUCT BALANCE ---
+        // Fetch fresh user data to prevent race conditions during the API call time
+        const dbUser = await User.findById(user._id);
+        if (dbUser.balance < amount) {
+            // Highly unlikely but possible if a concurrent request finished while this API call was running
+            return res.status(400).json({ message: 'Insufficient balance. Transaction cancelled.' });
+        }
+
+        dbUser.balance = Number((dbUser.balance - amount).toFixed(2));
+        await dbUser.save();
 
         const order = new Order({
             user: user._id,
@@ -234,38 +262,23 @@ router.post('/buy', checkMaintenance, (req, res, next) => {
             packageName: package_name,
             phoneNumber: recipient_phone,
             amount: amount,
-            cost: apiPrice, // Save the cost we pay to Bossu
+            cost: apiPrice,
             externalReference: external_reference,
             orderId: apiData.order_id,
             apiResponse: response.data,
-            status: (apiData.status === 'failed' || response.data.success === false) ? 'failed' : 'pending',
+            status: 'pending',
             source: 'dashboard'
         });
 
-        const orderFailed = apiData.status === 'failed' || response.data.success === false;
-        
-        // Alert admin if failure is due to low balance
-        const apiMsg = (response.data.message || apiData.message || "").toLowerCase();
-        if (orderFailed && (apiMsg.includes('insufficient') || apiMsg.includes('balance'))) {
-            await sendAdminFundAlert('Bossu Data Hub (Direct)', 0);
-        }
-
-        if (orderFailed) {
-            // Refund if API immediately fails
-            user.balance += amount;
-            await user.save();
-        }
-
-        const Transaction = require('../models/Transaction');
         await Transaction.create({
             user: user._id,
             type: 'purchase',
             amount: Number(amount),
-            status: orderFailed ? 'failed' : 'success',
+            status: 'success',
             reference: external_reference,
             description: `${network.toUpperCase()} ${package_name} - ${recipient_phone}`,
-            balanceBefore: user.balance + (orderFailed ? 0 : Number(amount)),
-            balanceAfter: user.balance
+            balanceBefore: dbUser.balance + Number(amount),
+            balanceAfter: dbUser.balance
         });
 
         await order.save();
@@ -273,7 +286,7 @@ router.post('/buy', checkMaintenance, (req, res, next) => {
         // Referral Commission
         await handleReferralCommission(user._id, amount, external_reference);
 
-        res.json({ order, balance: user.balance });
+        res.json({ order, balance: dbUser.balance });
     } catch (err) {
         console.error('Data Order Catch Error:', err.response?.data || err.message);
         res.status(500).json({ 
