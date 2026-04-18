@@ -89,11 +89,15 @@ router.post('/', async (req, res) => {
 
                 // Call Bossu API
                 try {
+                    // Normalize phone (safety)
+                    let normalizedPhone = order.phoneNumber.toString().replace(/\s/g, '');
+                    if (normalizedPhone.startsWith('233') && normalizedPhone.length === 12) normalizedPhone = '0' + normalizedPhone.substring(3);
+
                     const buyParams = new URLSearchParams({
                         action: 'create_order',
                         network: order.network,
                         package_key: order.packageKey,
-                        recipient_phone: order.phoneNumber,
+                        recipient_phone: normalizedPhone,
                         external_reference: reference
                     });
                     const bossuRes = await axios.post(API_URL, buyParams, {
@@ -199,9 +203,13 @@ router.post('/', async (req, res) => {
                 let bossuApiResponse = null;
 
                 try {
+                    // Normalize phone (safety)
+                    let normalizedStorePhone = recipientPhone.toString().replace(/\s/g, '');
+                    if (normalizedStorePhone.startsWith('233') && normalizedStorePhone.length === 12) normalizedStorePhone = '0' + normalizedStorePhone.substring(3);
+
                     const buyParams = new URLSearchParams({
                         action: 'create_order', network, package_key: packageKey,
-                        recipient_phone: recipientPhone, external_reference: reference
+                        recipient_phone: normalizedStorePhone, external_reference: reference
                     });
                     const bossuRes = await axios.post(API_URL, buyParams, {
                         headers: { 'X-API-Key': API_KEY, 'Content-Type': 'application/x-www-form-urlencoded' },

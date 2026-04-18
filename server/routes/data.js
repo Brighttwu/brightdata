@@ -165,12 +165,19 @@ router.post('/buy', checkMaintenance, (req, res, next) => {
 }, async (req, res) => {
     try {
         console.log(`[BUY REQUEST START] User: ${req.user?.email}, Network: ${req.body.network}`);
-        const { network, package_key, recipient_phone, package_name } = req.body;
+        let { network, package_key, recipient_phone, package_name } = req.body;
         const user = req.user;
         if (!user) return res.status(401).json({ message: 'Not authenticated' });
 
-        // SERVER-SIDE PRICE VALIDATION (Security)
-        const net = network.toString().toLowerCase();
+        // PHONE VALIDATION & NORMALIZATION
+        let phone = recipient_phone.toString().replace(/\s/g, '');
+        if (phone.startsWith('233') && phone.length === 12) {
+            phone = '0' + phone.substring(3);
+        }
+        if (phone.length !== 10) {
+            return res.status(400).json({ message: 'Invalid phone number! Ghana numbers must be exactly 10 digits (e.g., 0244123456).' });
+        }
+        recipient_phone = phone; // Use normalized phone
         const pkgKey = package_key.toString().trim().toLowerCase();
         const pricings = await Pricing.find({ network: { $regex: new RegExp(`^${net}$`, 'i') } });
         const pricing = pricings.find(x => (x.packageKey || '').toString().trim().toLowerCase() === pkgKey);

@@ -65,7 +65,11 @@ const Dashboard = () => {
     };
 
     const handleBuy = async (method) => {
-        if (!selectedPackage || phone.replace(/\s/g, '').length < 10) return;
+        const cleanedPhone = phone.replace(/\s/g, '');
+        if (!selectedPackage) return;
+        if (cleanedPhone.length !== 10 && !(cleanedPhone.startsWith('233') && cleanedPhone.length === 12)) {
+            return setMessage({ type: 'error', text: 'Invalid phone number. Please enter exactly 10 digits (e.g., 0244123456).' });
+        }
         setBuying(true);
         setMessage({ type: '', text: '' });
         try {
@@ -103,7 +107,8 @@ const Dashboard = () => {
     ];
     const currentNet = networks.find(n => n.id === network);
     const filtered = packages.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
-    const canBuy = selectedPackage && phone.replace(/\s/g, '').length >= 10 && !buying && !platformSettings?.isMaintenanceMode;
+    const cleaned = phone.replace(/\s/g, '');
+    const canBuy = selectedPackage && (cleaned.length === 10 || (cleaned.startsWith('233') && cleaned.length === 12)) && !buying && !platformSettings?.isMaintenanceMode;
 
     const greeting = () => {
         const h = new Date().getHours();
