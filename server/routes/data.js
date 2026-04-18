@@ -225,12 +225,19 @@ router.post('/buy', checkMaintenance, (req, res, next) => {
                 timeout: 45000 // 45 seconds timeout for better stability
             });
         } catch (apiErr) {
-            console.error('Data Order API Connection Error:', {
-                message: apiErr.message,
-                code: apiErr.code,
-                response: apiErr.response?.data
-            });
-            return res.status(500).json({ 
+            console.error('Data Order API Error:', apiErr.response?.data || apiErr.message);
+            
+            // If the server responded with an error (Status 4xx, 5xx)
+            if (apiErr.response) {
+                return res.status(apiErr.response.status || 400).json({ 
+                    message: apiErr.response.data?.message || apiErr.response.data?.error || 'The service provider returned an error.',
+                    details: apiErr.response.data,
+                    balanceDeducted: false
+                });
+            }
+            
+            // Real connection failure (Timeout, DNS, etc.)
+            return res.status(503).json({ 
                 message: 'Could not connect to service provider. Network may be unstable. Your balance was not deducted.',
                 error: apiErr.message
             });
