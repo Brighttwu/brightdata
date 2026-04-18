@@ -124,9 +124,10 @@ const OrdersPage = () => {
             <style>{`
                 @keyframes spin { to { transform: rotate(360deg); } }
                 @media (max-width: 640px) {
-                    .order-card-content { flex-direction: column !important; gap: 4px !important; }
-                    .order-actions { width: 100% !important; align-items: stretch !important; margin-top: 10px !important; padding-top: 10px !important; border-top: 1px solid #f8fafc; }
-                    .order-action-btn { width: 100% !important; justify-content: center !important; padding: 10px !important; }
+                    .order-card-content { flex-direction: column !important; gap: 0 !important; }
+                    .order-info { flex: none !important; width: 100% !important; }
+                    .order-actions { width: 100% !important; align-items: stretch !important; margin-top: 12px !important; padding-top: 12px !important; border-top: 1px solid #f1f5f9; }
+                    .order-action-btn { width: 100% !important; justify-content: center !important; padding: 10px !important; font-size: 13px !important; }
                     .order-header { flex-direction: column !important; align-items: flex-start !important; }
                     .refresh-btn { width: 100% !important; justify-content: center !important; margin-top: 8px; }
                 }
@@ -198,7 +199,7 @@ const OrdersPage = () => {
                                 }}>
                                     <div className="order-card-content" style={{ display: 'flex', gap: 16, justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                         {/* Left: Info */}
-                                        <div style={{ flex: '1 1 220px' }}>
+                                        <div className="order-info" style={{ flex: '1 1 220px' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
                                                 <span style={{
                                                     background: '#f1f5f9', color: '#475569', fontWeight: 800, fontSize: 11,
