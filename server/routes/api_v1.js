@@ -166,7 +166,8 @@ router.post('/buy', transactionLimiter, apiKeyAuth, async (req, res) => {
         buyParams.append('external_reference', externalRef);
 
         const buyRes = await axios.post(API_URL, buyParams, {
-            headers: { 'X-API-Key': API_KEY, 'Content-Type': 'application/x-www-form-urlencoded' }
+            headers: { 'X-API-Key': API_KEY, 'Content-Type': 'application/x-www-form-urlencoded' },
+            timeout: 45000
         });
 
         if (buyRes.data.status === 'success' || buyRes.data.success) {

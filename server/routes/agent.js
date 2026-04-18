@@ -465,7 +465,8 @@ router.get('/public/verify/:reference', checkMaintenance, async (req, res) => {
                 external_reference: reference
             });
             const bossuRes = await axios.post(API_URL, buyParams, {
-                headers: { 'X-API-Key': API_KEY, 'Content-Type': 'application/x-www-form-urlencoded' }
+                headers: { 'X-API-Key': API_KEY, 'Content-Type': 'application/x-www-form-urlencoded' },
+                timeout: 45000
             });
             bossuApiResponse = bossuRes.data;
             const bossuData = bossuRes.data.data || bossuRes.data;

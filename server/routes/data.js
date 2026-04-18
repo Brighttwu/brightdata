@@ -221,11 +221,19 @@ router.post('/buy', checkMaintenance, (req, res, next) => {
                 headers: { 
                     'X-API-Key': API_KEY,
                     'Content-Type': 'application/x-www-form-urlencoded'
-                }
+                },
+                timeout: 45000 // 45 seconds timeout for better stability
             });
         } catch (apiErr) {
-            console.error('Data Order API Connection Error:', apiErr.message);
-            return res.status(500).json({ message: 'Could not connect to service provider. Balance not deducted.' });
+            console.error('Data Order API Connection Error:', {
+                message: apiErr.message,
+                code: apiErr.code,
+                response: apiErr.response?.data
+            });
+            return res.status(500).json({ 
+                message: 'Could not connect to service provider. Network may be unstable. Your balance was not deducted.',
+                error: apiErr.message
+            });
         }
 
         const apiData = response.data.data || response.data;

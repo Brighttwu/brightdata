@@ -23,7 +23,7 @@ const syncAllPendingOrders = async () => {
                         'X-API-Key': process.env.BOSSU_API_KEY,
                         'Content-Type': 'application/x-www-form-urlencoded'
                     },
-                    timeout: 10000 // 10s timeout per request
+                    timeout: 30000 // 30s timeout per request
                 });
 
                 const apiData = response.data;

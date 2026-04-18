@@ -112,7 +112,8 @@ router.get('/stats', adminAuth, async (req, res) => {
                 headers: { 
                     'X-API-Key': process.env.BOSSU_API_KEY,
                     'Content-Type': 'application/x-www-form-urlencoded'
-                }
+                },
+                timeout: 30000
             });
             apiBalance = apiRes.data.balance || 
                          apiRes.data.data?.balance || 
