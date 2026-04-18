@@ -6,12 +6,33 @@ import { useState, useEffect } from 'react';
 const Home = () => {
     const { user, loading } = useAuth();
     const [scrollY, setScrollY] = useState(0);
+    const [deferredPrompt, setDeferredPrompt] = useState(null);
+    const [showInstallBtn, setShowInstallBtn] = useState(false);
 
     useEffect(() => {
         const handleScroll = () => setScrollY(window.scrollY);
         window.addEventListener('scroll', handleScroll, { passive: true });
-        return () => window.removeEventListener('scroll', handleScroll);
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            setDeferredPrompt(e);
+            setShowInstallBtn(true);
+        });
+
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+        };
     }, []);
+
+    const handleInstallClick = async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+            setShowInstallBtn(false);
+        }
+        setDeferredPrompt(null);
+    };
 
     // if (!loading && user) {
     //     return <Navigate to="/dashboard" replace />;
@@ -118,6 +139,23 @@ const Home = () => {
                                     }}>
                                         Sign In <ChevronRight size={18} />
                                     </Link>
+                                )}
+                                {showInstallBtn && (
+                                    <button 
+                                        onClick={handleInstallClick}
+                                        style={{
+                                            display: 'inline-flex', alignItems: 'center', gap: 10,
+                                            padding: '20px 32px', background: '#0f172a',
+                                            border: 'none', color: '#fff',
+                                            borderRadius: 16, fontWeight: 800, fontSize: 16,
+                                            cursor: 'pointer', transition: 'all 0.3s',
+                                            boxShadow: '0 12px 30px rgba(0,0,0,0.15)'
+                                        }}
+                                        onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-4px)'}
+                                        onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                                    >
+                                        <Smartphone size={20} /> Download App
+                                    </button>
                                 )}
                             </div>
 

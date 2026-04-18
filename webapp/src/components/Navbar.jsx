@@ -66,23 +66,28 @@ const Navbar = () => {
             }}>
                 <div style={{
                     maxWidth: 1200, margin: '0 auto', width: '100%',
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    gap: 20
                 }}>
                     {/* Logo */}
-                    <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }} onClick={() => setIsOpen(false)}>
+                    <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flexShrink: 0 }} onClick={() => setIsOpen(false)}>
                         <div style={{
-                            width: 40, height: 40, background: isAdminMode ? '#0f172a' : '#4f46e5', borderRadius: 12,
+                            width: 36, height: 36, background: isAdminMode ? '#0f172a' : '#4f46e5', borderRadius: 10,
                             display: 'flex', alignItems: 'center', justifyContent: 'center'
                         }}>
-                            {isAdminMode ? <ShieldAlert size={22} color="#fff" /> : <Smartphone size={22} color="#fff" />}
+                            {isAdminMode ? <ShieldAlert size={20} color="#fff" /> : <Smartphone size={20} color="#fff" />}
                         </div>
-                        <span style={{ fontSize: 20, fontWeight: 900, color: '#0f172a' }}>
+                        <span style={{ fontSize: 18, fontWeight: 900, color: '#0f172a' }}>
                             bright{isAdminMode ? <span style={{ color: '#ef4444' }}>Admin</span> : <span style={{ color: '#4f46e5' }}>data</span>}
                         </span>
                     </Link>
 
                     {/* Desktop Nav */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }} className="desktop-nav">
+                    <div style={{ 
+                        display: 'flex', alignItems: 'center', gap: isAdminMode ? 6 : 12, 
+                        overflowX: 'auto', padding: '10px 0', 
+                        msOverflowStyle: 'none', scrollbarWidth: 'none'
+                    }} className="desktop-nav hide-scrollbar">
                         {user ? (
                             isAdminMode ? (
                                 /* ADMIN MODE NAV */
@@ -97,18 +102,18 @@ const Navbar = () => {
                                     {desktopNavLink('/admin?tab=reports', 'Reports', 'reports')}
                                     {desktopNavLink('/admin?tab=withdrawals', 'Withdrawals', 'withdrawals')}
                                     {desktopNavLink('/admin?tab=settings', 'Settings', 'settings')}
-                                    {desktopNavLink('/developer', 'API Docs')}
+                                    {desktopNavLink('/developer', 'API')}
                                     
                                     <Link to="/dashboard" style={{
-                                        fontSize: 14, fontWeight: 800, color: '#4f46e5', textDecoration: 'none', padding: '8px 14px', borderRadius: 10, background: '#eef2ff', marginLeft: 16
-                                    }}><Home size={16} style={{marginBottom: -3}} /> Switch to User</Link>
+                                        fontSize: 13, fontWeight: 800, color: '#4f46e5', textDecoration: 'none', padding: '8px 12px', borderRadius: 8, background: '#eef2ff', marginLeft: 10, whiteSpace: 'nowrap'
+                                    }}><Home size={14} style={{marginBottom: -2}} /> Switch</Link>
 
                                     <button onClick={handleLogout} style={{
                                         background: '#f8fafc', border: '1px solid #e2e8f0',
-                                        padding: 10, borderRadius: 12, cursor: 'pointer', color: '#94a3b8',
-                                        display: 'flex', alignItems: 'center', marginLeft: 8
+                                        padding: 8, borderRadius: 10, cursor: 'pointer', color: '#94a3b8',
+                                        display: 'flex', alignItems: 'center', marginLeft: 6, flexShrink: 0
                                     }}>
-                                        <LogOut size={18} />
+                                        <LogOut size={16} />
                                     </button>
                                 </>
                             ) : (
@@ -116,24 +121,24 @@ const Navbar = () => {
                                 <>
                                     {desktopNavLink('/dashboard', 'Dashboard')}
                                     {desktopNavLink('/orders', 'Orders')}
-                                    {desktopNavLink('/agent', 'Agent Store')}
-                                    {desktopNavLink('/referrals', 'Refer & Earn')}
-                                    {desktopNavLink('/developer', 'Developers API')}
+                                    {desktopNavLink('/agent', 'Agent')}
+                                    {desktopNavLink('/referrals', 'Refer')}
+                                    {desktopNavLink('/developer', 'API')}
                                     <Link to="/wallet" style={{
                                         display: 'flex', alignItems: 'center', gap: 6,
                                         fontSize: 14, fontWeight: 700, color: location.pathname==='/wallet'?'#4f46e5':'#64748b', textDecoration: 'none', padding: '8px 14px', borderRadius: 10,
-                                        background: location.pathname==='/wallet'?'#eef2ff':'transparent'
+                                        background: location.pathname==='/wallet'?'#eef2ff':'transparent', whiteSpace: 'nowrap'
                                     }}><Wallet size={16} /> Wallet</Link>
                                     
                                     {user.role === 'admin' && (
                                         <Link to="/admin?tab=stats" style={{
-                                            fontSize: 14, fontWeight: 800, color: '#ef4444', textDecoration: 'none', padding: '8px 14px', borderRadius: 10, background: '#fef2f2', marginLeft: 16
-                                        }}><ShieldAlert size={16} style={{marginBottom: -3}} /> Admin Panel</Link>
+                                            fontSize: 14, fontWeight: 800, color: '#ef4444', textDecoration: 'none', padding: '8px 14px', borderRadius: 10, background: '#fef2f2', marginLeft: 16, whiteSpace: 'nowrap'
+                                        }}><ShieldAlert size={16} style={{marginBottom: -3}} /> Admin</Link>
                                     )}
                                     <div style={{
                                         display: 'flex', alignItems: 'center', gap: 6,
                                         background: '#4f46e5', color: '#fff',
-                                        padding: '10px 18px', borderRadius: 14, fontSize: 14, fontWeight: 800, marginLeft: 8
+                                        padding: '10px 18px', borderRadius: 14, fontSize: 14, fontWeight: 800, marginLeft: 8, whiteSpace: 'nowrap'
                                     }}>
                                         ₵{user.balance.toFixed(2)}
                                         <button onClick={handleNavbarRefresh} style={{
@@ -144,16 +149,10 @@ const Navbar = () => {
                                         </button>
                                     </div>
 
-                                    <style>{`
-                                        @keyframes spin-anim {
-                                            from { transform: rotate(0deg); }
-                                            to { transform: rotate(360deg); }
-                                        }
-                                    `}</style>
                                     <button onClick={handleLogout} style={{
                                         background: '#f8fafc', border: '1px solid #e2e8f0',
                                         padding: 10, borderRadius: 12, cursor: 'pointer', color: '#94a3b8',
-                                        display: 'flex', alignItems: 'center'
+                                        display: 'flex', alignItems: 'center', flexShrink: 0
                                     }}>
                                         <LogOut size={18} />
                                     </button>
@@ -161,11 +160,11 @@ const Navbar = () => {
                             )
                         ) : (
                             <>
-                                <Link to="/login" style={{ fontSize: 14, fontWeight: 700, color: '#64748b', textDecoration: 'none' }}>Sign In</Link>
+                                <Link to="/login" style={{ fontSize: 14, fontWeight: 700, color: '#64748b', textDecoration: 'none', whiteSpace: 'nowrap' }}>Sign In</Link>
                                 <Link to="/register" style={{
                                     fontSize: 14, fontWeight: 700, color: '#fff', textDecoration: 'none',
                                     background: '#4f46e5', padding: '10px 24px', borderRadius: 12,
-                                    display: 'flex', alignItems: 'center', gap: 8
+                                    display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap'
                                 }}>Get Started <ArrowRight size={16} /></Link>
                             </>
                         )}
@@ -175,7 +174,7 @@ const Navbar = () => {
                     <button className="mobile-toggle" onClick={() => setIsOpen(!isOpen)} style={{
                         display: 'none', background: '#f8fafc', border: '1px solid #e2e8f0',
                         borderRadius: 12, width: 44, height: 44,
-                        alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+                        alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0
                     }}>
                         {isOpen ? <X size={22} color="#0f172a" /> : <Menu size={22} color="#0f172a" />}
                     </button>
