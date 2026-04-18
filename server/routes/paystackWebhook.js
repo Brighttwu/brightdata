@@ -89,20 +89,15 @@ router.post('/', async (req, res) => {
 
                 // Call Bossu API
                 try {
-                    // Normalize phone (safety)
-                    let normalizedPhone = order.phoneNumber.toString().replace(/\s/g, '');
-                    if (normalizedPhone.startsWith('233') && normalizedPhone.length === 12) normalizedPhone = '0' + normalizedPhone.substring(3);
-
                     const buyParams = new URLSearchParams({
                         action: 'create_order',
                         network: order.network,
                         package_key: order.packageKey,
-                        recipient_phone: normalizedPhone,
+                        recipient_phone: order.phoneNumber,
                         external_reference: reference
                     });
                     const bossuRes = await axios.post(API_URL, buyParams, {
-                        headers: { 'X-API-Key': API_KEY, 'Content-Type': 'application/x-www-form-urlencoded' },
-                        timeout: 45000
+                        headers: { 'X-API-Key': API_KEY, 'Content-Type': 'application/x-www-form-urlencoded' }
                     });
 
                     const bossuData = bossuRes.data.data || bossuRes.data;
@@ -148,10 +143,7 @@ router.post('/', async (req, res) => {
                     await handleReferralCommission(targetUser._id, order.amount, reference);
                     console.log(`[Paystack Webhook] Data order provisioned: ${reference}`);
                 } catch (err) {
-                    console.error(`[Paystack Webhook] Bossu API Error: ${err.message}`, {
-                        code: err.code,
-                        response: err.response?.data
-                    });
+                    console.error(`[Paystack Webhook] Bossu API Error: ${err.message}`);
                     // Order stays in pending_payment or we mark as error? 
                     // Let's keep it robust. If it failed at API level, we should mark as failed.
                     order.status = 'failed';
@@ -203,17 +195,12 @@ router.post('/', async (req, res) => {
                 let bossuApiResponse = null;
 
                 try {
-                    // Normalize phone (safety)
-                    let normalizedStorePhone = recipientPhone.toString().replace(/\s/g, '');
-                    if (normalizedStorePhone.startsWith('233') && normalizedStorePhone.length === 12) normalizedStorePhone = '0' + normalizedStorePhone.substring(3);
-
                     const buyParams = new URLSearchParams({
                         action: 'create_order', network, package_key: packageKey,
-                        recipient_phone: normalizedStorePhone, external_reference: reference
+                        recipient_phone: recipientPhone, external_reference: reference
                     });
                     const bossuRes = await axios.post(API_URL, buyParams, {
-                        headers: { 'X-API-Key': API_KEY, 'Content-Type': 'application/x-www-form-urlencoded' },
-                        timeout: 45000
+                        headers: { 'X-API-Key': API_KEY, 'Content-Type': 'application/x-www-form-urlencoded' }
                     });
                     bossuApiResponse = bossuRes.data;
                     const bossuData = bossuRes.data.data || bossuRes.data;
@@ -227,10 +214,7 @@ router.post('/', async (req, res) => {
                         bossuStatus = 'failed';
                     }
                 } catch (bossuErr) {
-                    console.error('[Paystack Webhook] Bossu API Error (Store):', bossuErr.message, {
-                        code: bossuErr.code,
-                        response: bossuErr.response?.data
-                    });
+                    console.error('[Paystack Webhook] Bossu API Error (Store):', bossuErr.message);
                     bossuStatus = 'failed';
                     bossuApiResponse = { error: bossuErr.message };
                 }

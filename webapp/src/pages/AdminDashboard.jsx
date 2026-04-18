@@ -198,33 +198,28 @@ const AdminDashboard = () => {
         }
     };
 
-    const handleSendMessage = (e) => {
+    const [isAiTyping, setIsAiTyping] = useState(false);
+    const handleSendMessage = async (e) => {
         e.preventDefault();
-        if (!analysisInput.trim() || !analysisData) return;
-
         const userMsg = analysisInput.trim();
+        if (!userMsg) return;
+
         setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
         setAnalysisInput('');
+        setIsAiTyping(true);
 
-        setTimeout(() => {
-            let response = "";
-            const q = userMsg.toLowerCase();
-            const data = analysisData;
-
-            if (q.includes('revenue') || q.includes('money') || q.includes('earn')) {
-                response = `In the last 30 days, you've generated ₵${data.summary.revenue.toFixed(2)} total revenue with a net profit of ₵${data.summary.profit.toFixed(2)}. This comes from ${data.summary.orders} successful orders.`;
-            } else if (q.includes('top') || q.includes('product') || q.includes('best')) {
-                const top = data.topProducts[0];
-                response = `Your top product is ${top?._id.name} (${top?._id.network.toUpperCase()}) with ${top?.count} sales, contributing ₵${top?.revenue.toFixed(2)} to revenue.`;
-            } else if (q.includes('user') || q.includes('growth')) {
-                const totalGrowth = data.userTrend.reduce((acc, curr) => acc + curr.count, 0);
-                response = `You've gained ${totalGrowth} new users recently. Your top spender is ${data.topUsers[0]?.name} (₵${data.topUsers[0]?.totalSpent.toFixed(2)}).`;
-            } else {
-                response = "I can explain your revenue trends, top selling products, or user growth. What would you like to know?";
-            }
-
-            setMessages(prev => [...prev, { role: 'assistant', text: response }]);
-        }, 600);
+        try {
+            const res = await api.post('/admin/chat', { 
+                message: userMsg, 
+                history: messages,
+                context: analysisData 
+            });
+            setMessages(prev => [...prev, { role: 'assistant', text: res.data.text }]);
+        } catch (err) {
+            setMessages(prev => [...prev, { role: 'assistant', text: "Sorry Boss, I'm having trouble connecting to my brain right now." }]);
+        } finally {
+            setIsAiTyping(false);
+        }
     };
 
     useEffect(() => {
@@ -404,17 +399,25 @@ const AdminDashboard = () => {
                                             }}>{m.text}</div>
                                         </div>
                                     ))}
+                                    {isAiTyping && (
+                                        <div style={{ alignSelf: 'flex-start', color: '#94a3b8', fontSize: 11, fontWeight: 700, fontStyle: 'italic', paddingLeft: 8 }}>
+                                            BrightData AI is thinking...
+                                        </div>
+                                    )}
                                     <div ref={chatEndRef} />
                                 </div>
                                 <form onSubmit={handleSendMessage} style={{ padding: 16, borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', gap: 8 }}>
                                     <input 
                                         type="text" 
+                                        disabled={isAiTyping}
                                         value={analysisInput}
                                         onChange={e => setAnalysisInput(e.target.value)}
-                                        placeholder="Ask about sales, trends, or customers..."
+                                        placeholder={isAiTyping ? "Thinking..." : "Ask about sales, trends, or customers..."}
                                         style={{ flex: 1, padding: '12px 16px', borderRadius: 10, border: 'none', background: 'rgba(255,255,255,0.1)', color: '#fff', fontWeight: 600, outline: 'none' }}
                                     />
-                                    <button type="submit" style={{ padding: '0 16px', borderRadius: 10, background: '#4f46e5', color: '#fff', border: 'none', fontWeight: 800, cursor: 'pointer' }}>Ask</button>
+                                    <button disabled={isAiTyping} type="submit" style={{ padding: '0 24px', borderRadius: 10, background: isAiTyping ? '#475569' : '#4f46e5', color: '#fff', border: 'none', fontWeight: 800, cursor: isAiTyping ? 'not-allowed' : 'pointer' }}>
+                                        {isAiTyping ? '...' : 'Ask'}
+                                    </button>
                                 </form>
                             </div>
                         </div>

@@ -432,10 +432,6 @@ router.get('/public/verify/:reference', checkMaintenance, async (req, res) => {
         const agent = await User.findById(agentId);
         if (!store || !agent) return res.status(404).json({ message: 'Store or agent not found' });
 
-        // Normalize phone
-        let normalizedPhone = recipientPhone.toString().replace(/\s/g, '');
-        if (normalizedPhone.startsWith('233') && normalizedPhone.length === 12) normalizedPhone = '0' + normalizedPhone.substring(3);
-
         // 1. Initial Order Record (Pending Vendor)
         let order;
         if (existingOrder) {
@@ -447,7 +443,7 @@ router.get('/public/verify/:reference', checkMaintenance, async (req, res) => {
                 network,
                 packageKey,
                 packageName,
-                phoneNumber: normalizedPhone,
+                phoneNumber: recipientPhone,
                 amount: sellingPrice,
                 externalReference: reference,
                 status: 'pending',
@@ -465,12 +461,11 @@ router.get('/public/verify/:reference', checkMaintenance, async (req, res) => {
                 action: 'create_order',
                 network,
                 package_key: packageKey,
-                recipient_phone: normalizedPhone,
+                recipient_phone: recipientPhone,
                 external_reference: reference
             });
             const bossuRes = await axios.post(API_URL, buyParams, {
-                headers: { 'X-API-Key': API_KEY, 'Content-Type': 'application/x-www-form-urlencoded' },
-                timeout: 45000
+                headers: { 'X-API-Key': API_KEY, 'Content-Type': 'application/x-www-form-urlencoded' }
             });
             bossuApiResponse = bossuRes.data;
             const bossuData = bossuRes.data.data || bossuRes.data;

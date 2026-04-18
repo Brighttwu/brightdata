@@ -114,11 +114,6 @@ router.post('/buy', transactionLimiter, apiKeyAuth, async (req, res) => {
         const net = network.toLowerCase();
         const pkgKey = package_key.toString().trim();
 
-        // Phone Normalization
-        let normalizedPhone = phone.toString().replace(/\s/g, '');
-        if (normalizedPhone.startsWith('233') && normalizedPhone.length === 12) normalizedPhone = '0' + normalizedPhone.substring(3);
-        if (normalizedPhone.length !== 10) return res.status(400).json({ status: false, message: 'Invalid phone number! Ghana numbers must be exactly 10 digits.' });
-
         // 1. Get current prices from API & DB
         const pkgParams = new URLSearchParams();
         pkgParams.append('action', 'packages');
@@ -167,12 +162,11 @@ router.post('/buy', transactionLimiter, apiKeyAuth, async (req, res) => {
         buyParams.append('action', 'buy');
         buyParams.append('network', net);
         buyParams.append('package_key', pkgKey);
-        buyParams.append('recipient_phone', normalizedPhone);
+        buyParams.append('recipient_phone', phone);
         buyParams.append('external_reference', externalRef);
 
         const buyRes = await axios.post(API_URL, buyParams, {
-            headers: { 'X-API-Key': API_KEY, 'Content-Type': 'application/x-www-form-urlencoded' },
-            timeout: 45000
+            headers: { 'X-API-Key': API_KEY, 'Content-Type': 'application/x-www-form-urlencoded' }
         });
 
         if (buyRes.data.status === 'success' || buyRes.data.success) {

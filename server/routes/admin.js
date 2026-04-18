@@ -112,8 +112,7 @@ router.get('/stats', adminAuth, async (req, res) => {
                 headers: { 
                     'X-API-Key': process.env.BOSSU_API_KEY,
                     'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                timeout: 30000
+                }
             });
             apiBalance = apiRes.data.balance || 
                          apiRes.data.data?.balance || 
@@ -567,6 +566,49 @@ router.get('/analysis', adminAuth, async (req, res) => {
     } catch (err) {
         console.error('Analysis failed:', err);
         res.status(500).json({ message: 'Analysis failed' });
+    }
+});
+
+// Google Gemini AI Assistant
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_KEY);
+
+router.post('/chat', adminAuth, async (req, res) => {
+    try {
+        const { message, history, context } = req.body; 
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+        const systemPrompt = `You are BrightData AI, the expert executive assistant for the BrightData Data & VTU platform.
+        You assist the boss (admin) in managing the business. 
+        Recent 30-day analytics context for your knowledge:
+        - Total Revenue: ₵${context?.summary?.revenue || 0}
+        - Admin Net Profit: ₵${context?.summary?.profit || 0}
+        - Agent/Referral Paid: ₵${context?.summary?.agentProfit || 0}
+        - Successful Orders: ${context?.summary?.orders || 0}
+        - Total Scale: ${context?.summary?.totalAgents || 0} agents/users.
+        
+        Guidelines:
+        1. Always greet the admin as 'Boss'.
+        2. Stay professional, bold, and help drive business growth.
+        3. Explain trends using the numbers provided above if asked.`;
+
+        // Start chat with history
+        const chat = model.startChat({
+            history: (history || []).map(h => ({
+                role: h.role === 'user' ? 'user' : 'model',
+                parts: [{ text: h.text }]
+            }))
+        });
+
+        const prompt = `${systemPrompt}\n\nBoss says: ${message}`;
+        const result = await chat.sendMessage(prompt);
+        const response = await result.response;
+        const text = response.text();
+
+        res.json({ text });
+    } catch (err) {
+        console.error('Gemini AI Error:', err);
+        res.status(500).json({ message: 'The Gemini assistant is having technical difficulties.' });
     }
 });
 
