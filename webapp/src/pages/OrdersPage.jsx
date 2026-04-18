@@ -25,6 +25,23 @@ const StatusBadge = ({ status }) => {
     );
 };
 
+const SourceBadge = ({ source }) => {
+    const config = {
+        dashboard: { label: 'Dashboard', bg: '#f1f5f9', color: '#475569' },
+        api: { label: 'API Endpoint', bg: '#eef2ff', color: '#4f46e5' },
+        store: { label: 'Agent Store', bg: '#f0fdf4', color: '#16a34a' }
+    };
+    const cfg = config[source] || config.dashboard;
+    return (
+        <span style={{
+            padding: '3px 10px', borderRadius: 8, fontSize: 10, fontWeight: 800,
+            background: cfg.bg, color: cfg.color, textTransform: 'uppercase', letterSpacing: '0.05em'
+        }}>
+            {cfg.label}
+        </span>
+    );
+};
+
 const OrdersPage = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -178,6 +195,7 @@ const OrdersPage = () => {
                                                     padding: '3px 10px', borderRadius: 8, textTransform: 'uppercase'
                                                 }}>{order.network}</span>
                                                 <StatusBadge status={order.status} />
+                                                <SourceBadge source={order.source} />
                                                 {order.isReported && (
                                                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#fee2e2', color: '#dc2626', fontSize: 11, fontWeight: 800, padding: '3px 10px', borderRadius: 8 }}>
                                                         <ShieldAlert size={12} /> Reported

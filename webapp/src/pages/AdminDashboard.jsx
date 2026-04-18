@@ -661,6 +661,12 @@ const AdminDashboard = () => {
                                 </div>
                                 <div style={{ fontSize: 13, color: '#64748b' }}>
                                     User: {o.user?.email} • Net: {o.network} • 
+                                    Source: <span style={{ 
+                                        fontWeight: 800, padding: '2px 8px', borderRadius: 6, fontSize: 10,
+                                        background: o.source === 'store' ? '#f0fdf4' : (o.source === 'api' ? '#eef2ff' : '#f1f5f9'),
+                                        color: o.source === 'store' ? '#16a34a' : (o.source === 'api' ? '#4f46e5' : '#475569'),
+                                        textTransform: 'uppercase', marginRight: 8
+                                    }}>{o.source || 'dashboard'}</span>
                                     Status: <b style={{ textTransform: 'capitalize', color: o.status === 'completed' ? '#16a34a' : (o.status === 'failed' ? '#dc2626' : (o.status === 'pending_payment' ? '#f59e0b' : '#d97706')) }}>{o.status}</b>
                                     {o.status === 'pending_payment' && (
                                         <button 
