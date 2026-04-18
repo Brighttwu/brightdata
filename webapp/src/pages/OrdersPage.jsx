@@ -121,15 +121,25 @@ const OrdersPage = () => {
     return (
         <div style={{ background: '#f0f2f8', minHeight: 'calc(100vh - 72px)', padding: '24px 16px', fontFamily: "'Inter', sans-serif" }}>
             <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+            <style>{`
+                @keyframes spin { to { transform: rotate(360deg); } }
+                @media (max-width: 640px) {
+                    .order-card-content { flex-direction: column !important; }
+                    .order-actions { width: 100% !important; align-items: stretch !important; margin-top: 16px; border-top: 1px solid #f1f5f9; padding-top: 16px; }
+                    .order-action-btn { width: 100% !important; justify-content: center !important; padding: 12px !important; }
+                    .order-header { flex-direction: column !important; align-items: flex-start !important; }
+                    .refresh-btn { width: 100% !important; justify-content: center !important; margin-top: 8px; }
+                }
+            `}</style>
             <div style={{ maxWidth: 900, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
                 {/* Header */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+                <div className="order-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
                     <div>
                         <h1 style={{ fontSize: 26, fontWeight: 900, color: '#0f172a', margin: 0 }}>My Orders</h1>
                         <p style={{ fontSize: 14, color: '#94a3b8', fontWeight: 600, margin: '4px 0 0' }}>Track and manage your data purchases</p>
                     </div>
-                    <button onClick={fetchOrders} style={{
+                    <button onClick={fetchOrders} className="refresh-btn" style={{
                         display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px',
                         background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 12,
                         fontWeight: 700, cursor: 'pointer', fontSize: 13
@@ -186,10 +196,10 @@ const OrdersPage = () => {
                                     border: order.isReported ? '1.5px solid #fecaca' : '1px solid #f1f5f9',
                                     boxShadow: '0 2px 12px rgba(0,0,0,0.04)'
                                 }}>
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                    <div className="order-card-content" style={{ display: 'flex', gap: 16, justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                         {/* Left: Info */}
                                         <div style={{ flex: '1 1 220px' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
                                                 <span style={{
                                                     background: '#f1f5f9', color: '#475569', fontWeight: 800, fontSize: 11,
                                                     padding: '3px 10px', borderRadius: 8, textTransform: 'uppercase'
@@ -220,15 +230,16 @@ const OrdersPage = () => {
                                         </div>
 
                                         {/* Right: Actions */}
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
+                                        <div className="order-actions" style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end', flexShrink: 0 }}>
                                             <button
                                                 onClick={() => handleCheckStatus(order)}
                                                 disabled={isLoading}
+                                                className="order-action-btn"
                                                 style={{
                                                     padding: '9px 18px', borderRadius: 10, border: 'none',
                                                     background: '#eef2ff', color: '#4f46e5', fontWeight: 800, fontSize: 12,
                                                     cursor: isLoading ? 'not-allowed' : 'pointer',
-                                                    display: 'flex', alignItems: 'center', gap: 6
+                                                    display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap'
                                                 }}>
                                                 <RefreshCw size={12} style={{ animation: isLoading ? 'spin 0.8s linear infinite' : 'none' }} />
                                                 Check Status
@@ -237,12 +248,13 @@ const OrdersPage = () => {
                                                 <button
                                                     onClick={() => handleReport(order)}
                                                     disabled={isLoading}
+                                                    className="order-action-btn"
                                                     style={{
                                                         padding: '9px 18px', borderRadius: 10,
                                                         border: '1px solid #fecaca', background: '#fff',
                                                         color: '#ef4444', fontWeight: 800, fontSize: 12,
                                                         cursor: isLoading ? 'not-allowed' : 'pointer',
-                                                        display: 'flex', alignItems: 'center', gap: 6
+                                                        display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap'
                                                     }}>
                                                     <ShieldAlert size={12} /> Report Issue
                                                 </button>
@@ -251,13 +263,14 @@ const OrdersPage = () => {
                                                 <button
                                                     onClick={() => handleVerifyPaystackOrder(order)}
                                                     disabled={isLoading}
+                                                    className="order-action-btn"
                                                     style={{
                                                         padding: '9px 18px', borderRadius: 10,
                                                         border: 'none', background: '#f59e0b',
                                                         color: '#fff', fontWeight: 800, fontSize: 12,
                                                         cursor: isLoading ? 'not-allowed' : 'pointer',
                                                         display: 'flex', alignItems: 'center', gap: 6,
-                                                        boxShadow: '0 4px 12px rgba(245,158,11,0.3)'
+                                                        boxShadow: '0 4px 12px rgba(245,158,11,0.3)', whiteSpace: 'nowrap'
                                                     }}>
                                                     <RefreshCw size={12} style={{ animation: isLoading ? 'spin 0.8s linear infinite' : 'none' }} />
                                                     Verify Payment
@@ -271,7 +284,6 @@ const OrdersPage = () => {
                     </div>
                 )}
             </div>
-            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
     );
 };
