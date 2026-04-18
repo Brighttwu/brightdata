@@ -653,49 +653,82 @@ const AdminDashboard = () => {
                                                 o.externalReference?.toLowerCase().includes(searchTerm.toLowerCase());
                             const matchesFilter = statusFilter === 'all' || o.status === statusFilter;
                             return matchesSearch && matchesFilter;
-                        }).map(o => (
-                            <div key={o._id} style={{ ...cardStyle }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-                                    <span style={{ fontWeight: 900, fontSize: 18 }}>{o.packageName}</span>
-                                    <span style={{ fontWeight: 900, color: '#4f46e5' }}>₵{(o.amount || 0).toFixed(2)}</span>
+                        }).map(o => {
+                            const statusColor = o.status === 'completed' ? '#16a34a' : (o.status === 'failed' ? '#dc2626' : (o.status === 'pending_payment' ? '#f59e0b' : '#d97706'));
+                            return (
+                                <div key={o._id} style={{ 
+                                    ...cardStyle, borderLeft: `5px solid ${statusColor}`, 
+                                    display: 'flex', flexDirection: 'column', gap: 12 
+                                }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                        <div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                                                <span style={{
+                                                    background: '#f1f5f9', color: '#475569', fontWeight: 800, fontSize: 10,
+                                                    padding: '2px 8px', borderRadius: 6, textTransform: 'uppercase'
+                                                }}>{o.network}</span>
+                                                <span style={{ 
+                                                    fontWeight: 800, padding: '2px 8px', borderRadius: 6, fontSize: 10,
+                                                    background: o.source === 'store' ? '#f0fdf4' : (o.source === 'api' ? '#eef2ff' : '#f8fafc'),
+                                                    color: o.source === 'store' ? '#16a34a' : (o.source === 'api' ? '#4f46e5' : '#64748b'),
+                                                    textTransform: 'uppercase'
+                                                }}>{o.source || 'dashboard'}</span>
+                                            </div>
+                                            <div style={{ fontWeight: 900, fontSize: 18, color: '#0f172a' }}>{o.packageName}</div>
+                                        </div>
+                                        <div style={{ textAlign: 'right' }}>
+                                            <div style={{ fontWeight: 900, fontSize: 18, color: '#4f46e5' }}>₵{(o.amount || 0).toFixed(2)}</div>
+                                            <div style={{ fontSize: 11, fontWeight: 800, color: statusColor, textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 4 }}>
+                                                {o.status.replace('_', ' ')}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, borderTop: '1px solid #f1f5f9', paddingTop: 12 }}>
+                                        <div>
+                                            <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', marginBottom: 2 }}>User Account</div>
+                                            <div style={{ fontSize: 13, fontWeight: 700, color: '#1e293b', wordBreak: 'break-all' }}>{o.user?.email}</div>
+                                        </div>
+                                        <div>
+                                            <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', marginBottom: 2 }}>Recipient Number</div>
+                                            <div style={{ fontSize: 14, fontWeight: 900, color: '#0f172a' }}>{o.phoneNumber}</div>
+                                        </div>
+                                        <div>
+                                            <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', marginBottom: 2 }}>Order Time</div>
+                                            <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b' }}>{new Date(o.createdAt).toLocaleString()}</div>
+                                        </div>
+                                    </div>
+
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+                                        <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600 }}>Ref: {o.externalReference}</div>
+                                        {o.status === 'pending_payment' && (
+                                            <button 
+                                                onClick={async () => {
+                                                    const ref = o.externalReference;
+                                                    let endpoint = '';
+                                                    if (ref.startsWith('BD_PAY_')) endpoint = `/data/buy-paystack-verify/${ref}`;
+                                                    else if (ref.startsWith('STORE_')) endpoint = `/agent/public/verify/${ref}`;
+                                                    
+                                                    if (!endpoint) return alert('Cannot verify this order type automatically.');
+                                                    
+                                                    try {
+                                                        const res = await api.get(endpoint);
+                                                        alert(res.data.message || 'Verified!');
+                                                        fetchData();
+                                                    } catch (e) {
+                                                        alert('Verification failed: ' + (e.response?.data?.message || e.message));
+                                                    }
+                                                }}
+                                                style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: '#f59e0b', color: '#fff', fontSize: 11, fontWeight: 800, cursor: 'pointer', boxShadow: '0 2px 6px rgba(245,158,11,0.3)' }}
+                                            >
+                                                Verify Payment
+                                            </button>
+                                        )}
+                                    </div>
+                                    {o.isReported && <div style={{ marginTop: 4, padding: '8px 12px', background: '#fef2f2', borderRadius: 10, fontSize: 12, fontWeight: 700, color: '#dc2626', border: '1px solid #fecaca' }}>⚠ Reported: {o.reportReason}</div>}
                                 </div>
-                                <div style={{ fontSize: 13, color: '#64748b' }}>
-                                    User: {o.user?.email} • Net: {o.network} • 
-                                    Source: <span style={{ 
-                                        fontWeight: 800, padding: '2px 8px', borderRadius: 6, fontSize: 10,
-                                        background: o.source === 'store' ? '#f0fdf4' : (o.source === 'api' ? '#eef2ff' : '#f1f5f9'),
-                                        color: o.source === 'store' ? '#16a34a' : (o.source === 'api' ? '#4f46e5' : '#475569'),
-                                        textTransform: 'uppercase', marginRight: 8
-                                    }}>{o.source || 'dashboard'}</span>
-                                    Status: <b style={{ textTransform: 'capitalize', color: o.status === 'completed' ? '#16a34a' : (o.status === 'failed' ? '#dc2626' : (o.status === 'pending_payment' ? '#f59e0b' : '#d97706')) }}>{o.status}</b>
-                                    {o.status === 'pending_payment' && (
-                                        <button 
-                                            onClick={async () => {
-                                                const ref = o.externalReference;
-                                                let endpoint = '';
-                                                if (ref.startsWith('BD_PAY_')) endpoint = `/data/buy-paystack-verify/${ref}`;
-                                                else if (ref.startsWith('STORE_')) endpoint = `/agent/public/verify/${ref}`;
-                                                
-                                                if (!endpoint) return alert('Cannot verify this order type automatically.');
-                                                
-                                                try {
-                                                    const res = await api.get(endpoint);
-                                                    alert(res.data.message || 'Verified!');
-                                                    fetchData();
-                                                } catch (e) {
-                                                    alert('Verification failed: ' + (e.response?.data?.message || e.message));
-                                                }
-                                            }}
-                                            style={{ marginLeft: 12, padding: '4px 10px', borderRadius: 6, border: 'none', background: '#f59e0b', color: '#fff', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}
-                                        >
-                                            Verify Payment
-                                        </button>
-                                    )}
-                                </div>
-                                <div style={{ fontSize: 14, fontWeight: 700, marginTop: 8, color: '#0f172a' }}>To: {o.phoneNumber}</div>
-                                {o.isReported && <div style={{ marginTop: 8, padding: '6px 12px', background: '#fef2f2', borderRadius: 8, fontSize: 12, fontWeight: 700, color: '#dc2626' }}>⚠ Reported: {o.reportReason}</div>}
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
 
