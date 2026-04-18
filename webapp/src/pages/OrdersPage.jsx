@@ -124,9 +124,9 @@ const OrdersPage = () => {
             <style>{`
                 @keyframes spin { to { transform: rotate(360deg); } }
                 @media (max-width: 640px) {
-                    .order-card-content { flex-direction: column !important; }
-                    .order-actions { width: 100% !important; align-items: stretch !important; margin-top: 16px; border-top: 1px solid #f1f5f9; padding-top: 16px; }
-                    .order-action-btn { width: 100% !important; justify-content: center !important; padding: 12px !important; }
+                    .order-card-content { flex-direction: column !important; gap: 4px !important; }
+                    .order-actions { width: 100% !important; align-items: stretch !important; margin-top: 10px !important; padding-top: 10px !important; border-top: 1px solid #f8fafc; }
+                    .order-action-btn { width: 100% !important; justify-content: center !important; padding: 10px !important; }
                     .order-header { flex-direction: column !important; align-items: flex-start !important; }
                     .refresh-btn { width: 100% !important; justify-content: center !important; margin-top: 8px; }
                 }
