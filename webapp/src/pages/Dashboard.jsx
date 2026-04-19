@@ -333,7 +333,11 @@ const Dashboard = () => {
                             inputMode="numeric"
                             placeholder="0240 000 000"
                             value={phone}
-                            onChange={e => setPhone(e.target.value)}
+                            maxLength={10}
+                            onChange={e => {
+                                const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                setPhone(val);
+                            }}
                             style={{
                                 width: '100%', padding: '16px 20px', borderRadius: 14,
                                 border: '1.5px solid #f1f5f9', outline: 'none', boxSizing: 'border-box',

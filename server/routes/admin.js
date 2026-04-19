@@ -367,7 +367,7 @@ const Store = require('../models/Store');
 
 router.get('/stores', adminAuth, async (req, res) => {
     try {
-        const stores = await Store.find().populate('agent', 'name email').sort({ createdAt: -1 });
+        const stores = await Store.find().populate('agent', 'name email commissionBalance referralBalance').sort({ createdAt: -1 });
         res.json(stores);
     } catch (err) {
         res.status(500).json({ message: 'Error fetching stores' });
@@ -576,7 +576,7 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_KEY);
 router.post('/chat', adminAuth, async (req, res) => {
     try {
         const { message, history, context } = req.body; 
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
         const systemPrompt = `You are BrightData AI, the expert executive assistant for the BrightData Data & VTU platform.
         You assist the boss (admin) in managing the business. 

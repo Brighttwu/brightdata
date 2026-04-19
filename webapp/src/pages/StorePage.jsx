@@ -653,7 +653,10 @@ const StorePage = () => {
                         <div className="store-inputs" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 14, marginBottom: 18 }}>
                             <div>
                                 <label style={{ display: 'block', fontSize: 10, fontWeight: 900, color: t.muted, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Recipient Number</label>
-                                <input type="tel" placeholder="024 000 0000" value={phone} onChange={e => setPhone(e.target.value)} style={inputStyle} />
+                                <input type="tel" placeholder="024 000 0000" value={phone} maxLength={10} onChange={e => {
+                                    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                    setPhone(val);
+                                }} style={inputStyle} />
                             </div>
                             <div>
                                 <label style={{ display: 'block', fontSize: 10, fontWeight: 900, color: t.muted, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Your Email</label>
