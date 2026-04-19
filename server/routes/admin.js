@@ -92,8 +92,9 @@ router.get('/stats', adminAuth, async (req, res) => {
         const totalAgentProfit = storeProfits + refComms;
         const netAdminProfit = grossProfit - totalAgentProfit;
 
-        // Calculate total funds currently available for withdrawal by agents
+        // Calculate total funds currently available for withdrawal by agents (EXCLUDING ADMINS)
         const agentBalanceData = await User.aggregate([
+            { $match: { role: { $ne: 'admin' } } },
             { $group: { 
                 _id: null, 
                 commissions: { $sum: '$commissionBalance' },
@@ -101,6 +102,17 @@ router.get('/stats', adminAuth, async (req, res) => {
             } }
         ]);
         const totalOwedToAgents = (agentBalanceData[0]?.commissions || 0) + (agentBalanceData[0]?.referrals || 0);
+
+        // Calculate Lifetime Agent Profits (Sum of all stores + all historical referral transactions)
+        const storeLifetime = await Store.aggregate([{ $group: { _id: null, total: { $sum: '$totalProfit' } } }]);
+        const refLifetime = await Transaction.aggregate([
+            { $match: { type: 'deposit', status: 'success', description: { $regex: /Referral Commission/i } } },
+            { $lookup: { from: 'users', localField: 'user', foreignField: '_id', as: 'theUser' } },
+            { $unwind: '$theUser' },
+            { $match: { 'theUser.role': { $ne: 'admin' } } },
+            { $group: { _id: null, total: { $sum: '$amount' } } }
+        ]);
+        const agentProfitLifetime = (storeLifetime[0]?.total || 0) + (refLifetime[0]?.total || 0);
 
         // Get Bossu API balance
         let apiBalance = 0;
@@ -131,6 +143,7 @@ router.get('/stats', adminAuth, async (req, res) => {
             totalEarnings: earnings[0]?.total || 0, // Revenue in timeframe
             adminProfit: Number(netAdminProfit.toFixed(2)),
             agentProfit: Number(totalAgentProfit.toFixed(2)),
+            agentProfitLifetime: Number(agentProfitLifetime.toFixed(2)),
             totalOwedToAgents: Number(totalOwedToAgents.toFixed(2)),
             apiBalance,
             timeframe
