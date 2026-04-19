@@ -778,12 +778,16 @@ const AdminDashboard = () => {
                                     <div style={{ display: 'flex', gap: 8 }}>
                                         <button onClick={async () => {
                                             if (!window.confirm(`Refund ₵${(o.amount||0).toFixed(2)} to ${o.user?.name}?`)) return;
-                                            await axios.post(`${API_URL}/resolve-report/${o._id}`, { action: 'refund' }, { headers: { Authorization: `Bearer ${token}` } });
-                                            fetchData();
+                                            try {
+                                                await api.post(`/admin/resolve-report/${o._id}`, { action: 'refund' });
+                                                fetchData();
+                                            } catch (e) { alert('Refund failed'); }
                                         }} style={{ padding: '10px 16px', borderRadius: 10, border: 'none', background: '#16a34a', color: '#fff', fontWeight: 800, cursor: 'pointer' }}>Refund</button>
                                         <button onClick={async () => {
-                                            await axios.post(`${API_URL}/resolve-report/${o._id}`, { action: 'dismiss' }, { headers: { Authorization: `Bearer ${token}` } });
-                                            fetchData();
+                                            try {
+                                                await api.post(`/admin/resolve-report/${o._id}`, { action: 'dismiss' });
+                                                fetchData();
+                                            } catch (e) { alert('Action failed'); }
                                         }} style={{ padding: '10px 16px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#fff', color: '#64748b', fontWeight: 800, cursor: 'pointer' }}>Dismiss</button>
                                     </div>
                                 </div>
