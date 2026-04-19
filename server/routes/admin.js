@@ -101,7 +101,8 @@ router.get('/stats', adminAuth, async (req, res) => {
                 referrals: { $sum: '$referralBalance' }
             } }
         ]);
-        const totalOwedToAgents = (agentBalanceData[0]?.commissions || 0) + (agentBalanceData[0]?.referrals || 0);
+        const totalCommissionsOwed = agentBalanceData[0]?.commissions || 0;
+        const totalReferralsOwed = agentBalanceData[0]?.referrals || 0;
 
         // Calculate Lifetime Agent Profits (Sum of all stores + all historical referral transactions)
         const storeLifetime = await Store.aggregate([{ $group: { _id: null, total: { $sum: '$totalProfit' } } }]);
@@ -146,7 +147,8 @@ router.get('/stats', adminAuth, async (req, res) => {
             agentProfitLifetime: Number(agentProfitLifetime.toFixed(2)),
             storeLifetimeProfit: Number((storeLifetime[0]?.total || 0).toFixed(2)),
             referralLifetimeProfit: Number((refLifetime[0]?.total || 0).toFixed(2)),
-            totalOwedToAgents: Number(totalOwedToAgents.toFixed(2)),
+            totalCommissionsOwed: Number(totalCommissionsOwed.toFixed(2)),
+            totalReferralsOwed: Number(totalReferralsOwed.toFixed(2)),
             apiBalance,
             timeframe
         });
