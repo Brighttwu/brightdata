@@ -380,9 +380,33 @@ const Store = require('../models/Store');
 
 router.get('/stores', adminAuth, async (req, res) => {
     try {
-        const stores = await Store.find().populate('agent', 'name email commissionBalance').sort({ createdAt: -1 });
-        res.json(stores);
+        const stores = await Store.find().populate('agent', 'name email commissionBalance referralBalance').sort({ createdAt: -1 });
+        
+        // Enrich stores with lifetime profit (Store Profit + Referral Profits)
+        const enrichedStores = await Promise.all(stores.map(async (s) => {
+            const storeObj = s.toObject();
+            if (s.agent) {
+                // Calculate total referral commissions earned by this agent
+                const refProfits = await Transaction.aggregate([
+                    { $match: { 
+                        user: s.agent._id, 
+                        type: 'deposit', 
+                        status: 'success', 
+                        description: { $regex: /Referral Commission/i } 
+                    } },
+                    { $group: { _id: null, total: { $sum: '$amount' } } }
+                ]);
+                const totalRefProfit = refProfits[0]?.total || 0;
+                storeObj.lifetimeProfit = Number(((s.totalProfit || 0) + totalRefProfit).toFixed(2));
+            } else {
+                storeObj.lifetimeProfit = s.totalProfit || 0;
+            }
+            return storeObj;
+        }));
+
+        res.json(enrichedStores);
     } catch (err) {
+        console.error('Error fetching enriched stores:', err);
         res.status(500).json({ message: 'Error fetching stores' });
     }
 });
