@@ -341,6 +341,12 @@ const AdminDashboard = () => {
                                 <div style={{ fontSize: 28, fontWeight: 900, color: '#f59e0b' }}>₵{(stats.agentProfit || 0).toFixed(2)}</div>
                                 <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>Total agent commissions</div>
                             </div>
+                            <div style={{ ...cardStyle, border: '1px solid #fde68a', background: '#fffcf0' }}>
+                                <Wallet size={24} color="#d97706" />
+                                <div style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', marginTop: 12 }}>Total Available for Withdrawal</div>
+                                <div style={{ fontSize: 28, fontWeight: 900, color: '#d97706' }}>₵{(stats.totalOwedToAgents || 0).toFixed(2)}</div>
+                                <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>Current total agent liability</div>
+                            </div>
                         </div>
                     </>
                 )}
