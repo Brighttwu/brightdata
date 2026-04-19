@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import api from '../api/axios';
-import { Users, ShoppingBag, DollarSign, Wallet, ShieldAlert, Ban, PlusCircle, MinusCircle, Search, Store, ExternalLink, Power, Settings as SettingsIcon, Bell, Truck, Save, Smartphone, RefreshCw, Sparkles } from 'lucide-react';
+import { Users, ShoppingBag, DollarSign, Wallet, ShieldAlert, Ban, PlusCircle, MinusCircle, Search, Store, ExternalLink, Power, Settings as SettingsIcon, Bell, Truck, Save, Smartphone, RefreshCw, Sparkles, TrendingUp } from 'lucide-react';
 
 const AdminDashboard = () => {
     const [searchParams] = useSearchParams();
