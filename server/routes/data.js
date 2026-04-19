@@ -581,9 +581,13 @@ router.post('/report-order/:id', auth, async (req, res) => {
         order.reportReason = reason || 'No reason provided';
         await order.save();
 
+        // 8. Notify Admin
+        const { sendReportAlert } = require('../utils/emailHelper');
+        sendReportAlert(req.user.name, order);
+
         res.json({ message: 'Order reported successfully to the admin.', order });
     } catch (err) {
-        console.error(err);
+        console.error('Report Error:', err);
         res.status(500).json({ message: 'Error reporting order' });
     }
 });

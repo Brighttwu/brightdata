@@ -141,10 +141,45 @@ const sendWithdrawalAlert = async (userName, withdrawalDetails) => {
     }
 };
 
+/**
+ * Notify Admin of Reported Order
+ */
+const sendReportAlert = async (userName, order) => {
+    try {
+        const adminEmail = 'twumasibright966@gmail.com'; 
+        
+        await resend.emails.send({
+            from: FROM_EMAIL,
+            to: adminEmail,
+            subject: '⚠ New Order Report Received!',
+            html: `
+                <div style="font-family: sans-serif; padding: 20px; color: #333;">
+                    <h2 style="color: #dc2626;">Order Report Alert</h2>
+                    <p>User <b>${userName}</b> has reported an issue with an order.</p>
+                    <div style="background: #fef2f2; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc2626;">
+                        <p><b>Order Ref:</b> ${order.externalReference}</p>
+                        <p><b>Package:</b> ${order.network.toUpperCase()} ${order.packageName}</p>
+                        <p><b>Recipient Phone:</b> ${order.phoneNumber}</p>
+                        <p><b>Amount Paid:</b> ₵${order.amount.toFixed(2)}</p>
+                        <p><b>Order Time:</b> ${new Date(order.createdAt).toLocaleString()}</p>
+                        <p><b>Report Reason:</b> ${order.reportReason}</p>
+                    </div>
+                    <p>Please log in to the admin dashboard to investigate this claim.</p>
+                    <hr />
+                    <p style="font-size: 12px; color: #999;">Bright Data - Automated Order Support System</p>
+                </div>
+            `
+        });
+    } catch (error) {
+        console.error('Email Error (Report Alert):', error);
+    }
+};
+
 module.exports = {
     sendOtpEmail,
     sendReferralNotification,
     sendStoreOrderNotification,
     sendAdminFundAlert,
-    sendWithdrawalAlert
+    sendWithdrawalAlert,
+    sendReportAlert
 };

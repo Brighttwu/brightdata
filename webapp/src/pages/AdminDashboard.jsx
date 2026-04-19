@@ -771,6 +771,8 @@ const AdminDashboard = () => {
                                     <div>
                                         <div style={{ fontWeight: 900, fontSize: 17 }}>{o.network?.toUpperCase()} {o.packageName} — ₵{(o.amount || 0).toFixed(2)}</div>
                                         <div style={{ fontSize: 13, color: '#64748b' }}>User: {o.user?.name} ({o.user?.email})</div>
+                                        <div style={{ fontSize: 13, color: '#0f172a', marginTop: 4, fontWeight: 700 }}>Recipient: {o.phoneNumber}</div>
+                                        <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>Ordered: {new Date(o.createdAt).toLocaleString()}</div>
                                         <div style={{ marginTop: 8, padding: '8px 12px', background: '#fef2f2', borderRadius: 10, fontSize: 13, fontWeight: 700, color: '#dc2626' }}>Issue: {o.reportReason}</div>
                                     </div>
                                     <div style={{ display: 'flex', gap: 8 }}>
