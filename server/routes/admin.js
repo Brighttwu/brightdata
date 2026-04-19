@@ -144,6 +144,8 @@ router.get('/stats', adminAuth, async (req, res) => {
             adminProfit: Number(netAdminProfit.toFixed(2)),
             agentProfit: Number(totalAgentProfit.toFixed(2)),
             agentProfitLifetime: Number(agentProfitLifetime.toFixed(2)),
+            storeLifetimeProfit: Number((storeLifetime[0]?.total || 0).toFixed(2)),
+            referralLifetimeProfit: Number((refLifetime[0]?.total || 0).toFixed(2)),
             totalOwedToAgents: Number(totalOwedToAgents.toFixed(2)),
             apiBalance,
             timeframe

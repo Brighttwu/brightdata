@@ -336,10 +336,16 @@ const AdminDashboard = () => {
                                 <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>Revenue: ₵{(stats.totalEarnings || 0).toFixed(2)}</div>
                             </div>
                             <div style={cardStyle}>
-                                <DollarSign size={24} color="#f59e0b" />
-                                <div style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', marginTop: 12 }}>Gross Agent Profit (Life-Time)</div>
-                                <div style={{ fontSize: 28, fontWeight: 900, color: '#f59e0b' }}>₵{(stats.agentProfitLifetime || 0).toFixed(2)}</div>
-                                <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>Total earnings (withdrawals included)</div>
+                                <ShoppingBag size={24} color="#f59e0b" />
+                                <div style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', marginTop: 12 }}>Store Profits (Life-Time)</div>
+                                <div style={{ fontSize: 28, fontWeight: 900, color: '#f59e0b' }}>₵{(stats.storeLifetimeProfit || 0).toFixed(2)}</div>
+                                <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>Total earned via shop sales</div>
+                            </div>
+                            <div style={cardStyle}>
+                                <TrendingUp size={24} color="#8b5cf6" />
+                                <div style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', marginTop: 12 }}>Referral Profits (Life-Time)</div>
+                                <div style={{ fontSize: 28, fontWeight: 900, color: '#8b5cf6' }}>₵{(stats.referralLifetimeProfit || 0).toFixed(2)}</div>
+                                <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>Total earned via referrals</div>
                             </div>
                             <div style={{ ...cardStyle, border: '1px solid #fde68a', background: '#fffcf0' }}>
                                 <Wallet size={24} color="#d97706" />
@@ -844,10 +850,11 @@ const AdminDashboard = () => {
                                         <div style={{ fontSize: 13, color: '#64748b', marginTop: 4 }}>
                                             Agent: <b>{s.agent?.name}</b> ({s.agent?.email})
                                         </div>
-                                        <div style={{ display: 'flex', gap: 12, marginTop: 4, fontSize: 13, fontWeight: 700 }}>
-                                            <span style={{ color: '#16a34a' }}>Sales: {s.totalSales || 0}</span>
-                                            <span style={{ color: '#4f46e5' }}>Life-Profit: ₵{(s.lifetimeProfit || 0).toFixed(2)}</span>
-                                            <span style={{ color: '#f59e0b' }}>Available: ₵{((s.agent?.commissionBalance || 0) + (s.agent?.referralBalance || 0)).toFixed(2)}</span>
+                                        <div style={{ display: 'flex', gap: 10, marginTop: 8, fontSize: 11, fontWeight: 800, flexWrap: 'wrap' }}>
+                                            <span style={{ color: '#16a34a', background: '#f0fdf4', padding: '2px 8px', borderRadius: 6, border: '1px solid #dcfce7' }}>Sales: {s.totalSales || 0}</span>
+                                            <span style={{ color: '#4f46e5', background: '#eff6ff', padding: '2px 8px', borderRadius: 6, border: '1px solid #dbeafe' }}>Store: ₵{(s.totalProfit || 0).toFixed(2)}</span>
+                                            <span style={{ color: '#8b5cf6', background: '#f5f3ff', padding: '2px 8px', borderRadius: 6, border: '1px solid #ede9fe' }}>Referral: ₵{((s.lifetimeProfit || 0) - (s.totalProfit || 0)).toFixed(2)}</span>
+                                            <span style={{ color: '#d97706', background: '#fffbeb', padding: '2px 8px', borderRadius: 6, border: '1px solid #fef3c7' }}>Available: ₵{((s.agent?.commissionBalance || 0) + (s.agent?.referralBalance || 0)).toFixed(2)}</span>
                                         </div>
                                     </div>
                                 </div>
