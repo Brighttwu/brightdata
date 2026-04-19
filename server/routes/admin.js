@@ -367,7 +367,7 @@ const Store = require('../models/Store');
 
 router.get('/stores', adminAuth, async (req, res) => {
     try {
-        const stores = await Store.find().populate('agent', 'name email commissionBalance referralBalance').sort({ createdAt: -1 });
+        const stores = await Store.find().populate('agent', 'name email commissionBalance').sort({ createdAt: -1 });
         res.json(stores);
     } catch (err) {
         res.status(500).json({ message: 'Error fetching stores' });

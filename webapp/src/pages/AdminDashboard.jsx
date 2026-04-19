@@ -838,10 +838,10 @@ const AdminDashboard = () => {
                                         <div style={{ fontSize: 13, color: '#64748b', marginTop: 4 }}>
                                             Agent: <b>{s.agent?.name}</b> ({s.agent?.email})
                                         </div>
-                                        <div style={{ display: 'flex', gap: 12, marginTop: 4, fontSize: 13, fontWeight: 700, flexWrap: 'wrap' }}>
+                                        <div style={{ display: 'flex', gap: 12, marginTop: 4, fontSize: 13, fontWeight: 700 }}>
                                             <span style={{ color: '#16a34a' }}>Sales: {s.totalSales || 0}</span>
-                                            <span style={{ color: '#4f46e5' }}>Total Profit: ₵{(s.totalProfit || 0).toFixed(2)}</span>
-                                            <span style={{ color: '#f59e0b', background: '#fffbeb', padding: '0 6px', borderRadius: 4 }}>Available: ₵{((s.agent?.commissionBalance || 0) + (s.agent?.referralBalance || 0)).toFixed(2)}</span>
+                                            <span style={{ color: '#4f46e5' }}>Profit: ₵{(s.totalProfit || 0).toFixed(2)}</span>
+                                            <span style={{ color: '#f59e0b' }}>Available: ₵{(s.agent?.commissionBalance || 0).toFixed(2)}</span>
                                         </div>
                                     </div>
                                 </div>
