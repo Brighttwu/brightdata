@@ -2,6 +2,7 @@ const { Resend } = require('resend');
 const resend = new Resend(process.env.RESEND_API_KEY || 're_Tj6d9cB9_Kd8ShyyQqJzXkicuuoth6gzx');
 
 const FROM_EMAIL = 'Bright Data <onboarding@brightdatahub.store>'; // Updated to verified domain
+const ADMIN_EMAIL = 'twumasibright966@gail.com'; 
 
 /**
  * Send Password Reset OTP
@@ -86,12 +87,9 @@ const sendStoreOrderNotification = async (email, name, orderDetails) => {
  */
 const sendAdminFundAlert = async (apiName, currentBalance) => {
     try {
-        // Find admin email or use env
-        const adminEmail = process.env.ADMIN_EMAIL || 'brightdatahub@gmail.com'; 
-        
         await resend.emails.send({
             from: FROM_EMAIL,
-            to: adminEmail,
+            to: ADMIN_EMAIL,
             subject: '⚠ URGENT: Insufficient API Funds!',
             html: `
                 <div style="font-family: sans-serif; padding: 20px; color: #333; border: 2px solid red;">
@@ -113,11 +111,9 @@ const sendAdminFundAlert = async (apiName, currentBalance) => {
  */
 const sendWithdrawalAlert = async (userName, withdrawalDetails) => {
     try {
-        const adminEmail = process.env.ADMIN_EMAIL || 'brightdatahub@gmail.com'; 
-        
         await resend.emails.send({
             from: FROM_EMAIL,
-            to: adminEmail,
+            to: ADMIN_EMAIL,
             subject: '💸 New Withdrawal Request Received!',
             html: `
                 <div style="font-family: sans-serif; padding: 20px; color: #333;">
@@ -146,11 +142,9 @@ const sendWithdrawalAlert = async (userName, withdrawalDetails) => {
  */
 const sendReportAlert = async (userName, order) => {
     try {
-        const adminEmail = 'twumasibright966@gmail.com'; 
-        
         await resend.emails.send({
             from: FROM_EMAIL,
-            to: adminEmail,
+            to: ADMIN_EMAIL,
             subject: '⚠ New Order Report Received!',
             html: `
                 <div style="font-family: sans-serif; padding: 20px; color: #333;">

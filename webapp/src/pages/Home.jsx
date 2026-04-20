@@ -8,10 +8,13 @@ const Home = () => {
     const [scrollY, setScrollY] = useState(0);
     const [deferredPrompt, setDeferredPrompt] = useState(null);
     const [showInstallBtn, setShowInstallBtn] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
         const handleScroll = () => setScrollY(window.scrollY);
         window.addEventListener('scroll', handleScroll, { passive: true });
+
+        setIsMobile(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
 
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
@@ -26,12 +29,13 @@ const Home = () => {
 
     const handleInstallClick = async () => {
         if (!deferredPrompt) return;
+        
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
         if (outcome === 'accepted') {
             setShowInstallBtn(false);
+            setDeferredPrompt(null);
         }
-        setDeferredPrompt(null);
     };
 
     // if (!loading && user) {
@@ -140,7 +144,7 @@ const Home = () => {
                                         Sign In <ChevronRight size={18} />
                                     </Link>
                                 )}
-                                {showInstallBtn && (
+                                {(showInstallBtn || isMobile) && (
                                     <button 
                                         onClick={handleInstallClick}
                                         style={{
