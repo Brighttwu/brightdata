@@ -16,6 +16,7 @@ const Dashboard = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [platformSettings, setPlatformSettings] = useState(null);
     const [refreshing, setRefreshing] = useState(false);
+    const [showNotif, setShowNotif] = useState(false);
  
     const fetchPackages = useCallback(async () => {
         setLoading(true);
@@ -42,10 +43,25 @@ const Dashboard = () => {
             try {
                 const res = await api.get('/admin/settings');
                 setPlatformSettings(res.data);
+                
+                // Check if notification should be shown
+                if (res.data.globalNotification) {
+                    const dismissed = localStorage.getItem('dismissed_global_notif');
+                    if (dismissed !== res.data.globalNotification) {
+                        setShowNotif(true);
+                    }
+                }
             } catch (err) { console.error(err); }
         };
         fetchSettings();
     }, []);
+
+    const handleDismissNotif = () => {
+        if (platformSettings?.globalNotification) {
+            localStorage.setItem('dismissed_global_notif', platformSettings.globalNotification);
+        }
+        setShowNotif(false);
+    };
 
     useEffect(() => {
         // Full profile sync when dashboard is opened
@@ -140,14 +156,75 @@ const Dashboard = () => {
                                     <span style={{ fontSize: 13, fontWeight: 700 }}>Platform is under maintenance — purchases temporarily disabled</span>
                                 </div>
                             )}
-                            {platformSettings.globalNotification && (
-                                <div style={{ 
-                                    background: 'rgba(251,191,36,0.1)', borderRadius: 16, padding: '14px 20px',
-                                    display: 'flex', alignItems: 'center', gap: 12, color: '#fcd34d',
-                                    border: '1px solid rgba(251,191,36,0.15)', backdropFilter: 'blur(10px)'
-                                }}>
-                                    <Bell size={16} />
-                                    <span style={{ fontSize: 13, fontWeight: 600 }}>{platformSettings.globalNotification}</span>
+                            {showNotif && platformSettings?.globalNotification && (
+                                <div style={{
+                                    position: 'fixed',
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    background: 'rgba(15, 23, 42, 0.8)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    zIndex: 10000,
+                                    padding: 20,
+                                    backdropFilter: 'blur(8px)',
+                                    animation: 'fadeIn 0.3s ease-out'
+                                }} onClick={handleDismissNotif}>
+                                    <div 
+                                        style={{
+                                            background: '#fff',
+                                            borderRadius: 24,
+                                            padding: '40px 32px',
+                                            maxWidth: 400,
+                                            width: '100%',
+                                            textAlign: 'center',
+                                            boxShadow: '0 20px 50px rgba(0,0,0,0.3)',
+                                            position: 'relative',
+                                            animation: 'slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                                        }}
+                                        onClick={e => e.stopPropagation()}
+                                    >
+                                        <div style={{
+                                            width: 64,
+                                            height: 64,
+                                            background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
+                                            borderRadius: '50%',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            margin: '0 auto 24px',
+                                            color: '#fff',
+                                            boxShadow: '0 8px 24px rgba(79,70,229,0.3)'
+                                        }}>
+                                            <Bell size={32} />
+                                        </div>
+                                        <h3 style={{ fontSize: 24, fontWeight: 900, color: '#0f172a', marginBottom: 12 }}>New Update</h3>
+                                        <p style={{ fontSize: 16, color: '#475569', lineHeight: 1.6, marginBottom: 32 }}>
+                                            {platformSettings.globalNotification}
+                                        </p>
+                                        <button 
+                                            onClick={handleDismissNotif}
+                                            style={{
+                                                width: '100%',
+                                                padding: '16px',
+                                                background: '#0f172a',
+                                                color: '#fff',
+                                                border: 'none',
+                                                borderRadius: 16,
+                                                fontWeight: 800,
+                                                fontSize: 16,
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s',
+                                                boxShadow: '0 8px 20px rgba(0,0,0,0.1)'
+                                            }}
+                                            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
+                                            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                                        >
+                                            Got it
+                                        </button>
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -469,6 +546,8 @@ const Dashboard = () => {
             </div>
 
             <style>{`
+                @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+                @keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
                 @keyframes spin { to { transform: rotate(360deg); } }
                 @keyframes spin-anim { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
                 @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.4); } 100% { opacity: 1; transform: scale(1); } }
