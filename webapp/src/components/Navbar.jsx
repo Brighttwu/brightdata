@@ -140,7 +140,7 @@ const Navbar = () => {
                                         background: '#4f46e5', color: '#fff',
                                         padding: '10px 18px', borderRadius: 14, fontSize: 14, fontWeight: 800, marginLeft: 8, whiteSpace: 'nowrap'
                                     }}>
-                                        ₵{user.balance.toFixed(2)}
+                                        ₵{(user?.balance || 0).toFixed(2)}
                                         <button onClick={handleNavbarRefresh} style={{
                                             background: 'transparent', border: 'none', color: '#fff', padding: 0,
                                             marginLeft: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', opacity: 0.8
@@ -228,7 +228,7 @@ const Navbar = () => {
                             <>
                                 <div style={{ background: '#4f46e5', padding: '24px', borderRadius: 20, color: '#fff', marginBottom: 24 }}>
                                     <div style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.15em', opacity: 0.6, marginBottom: 6 }}>Balance</div>
-                                    <div style={{ fontSize: 32, fontWeight: 900 }}>GH₵{user.balance.toFixed(2)}</div>
+                                    <div style={{ fontSize: 32, fontWeight: 900 }}>GH₵{(user?.balance || 0).toFixed(2)}</div>
                                 </div>
 
                                 {navLink('/dashboard', 'Dashboard', <Smartphone size={20} style={{ color: '#4f46e5' }} />)}
