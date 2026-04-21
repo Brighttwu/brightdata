@@ -209,14 +209,36 @@ router.post('/user-role/:id', adminAuth, async (req, res) => {
 
 router.post('/user-balance/:id', adminAuth, async (req, res) => {
     try {
-        const { amount, action } = req.body; // action: 'add' or 'subtract'
+        const { amount, action, reason } = req.body; // action: 'add' or 'subtract'
         const user = await User.findById(req.params.id);
-        if (action === 'add') user.balance += Number(amount);
-        else user.balance -= Number(amount);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        const balanceBefore = user.balance;
+        
+        if (action === 'add') {
+            user.balance += Number(amount);
+        } else {
+            user.balance -= Number(amount);
+        }
+        
         await user.save();
+
+        // Create audit transaction record
+        await Transaction.create({
+            user: user._id,
+            type: action === 'add' ? 'deposit' : 'purchase',
+            amount: Number(amount),
+            status: 'success',
+            reference: `ADM_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+            description: `Admin manual adjustment: ${reason || 'No reason provided'}`,
+            balanceBefore,
+            balanceAfter: user.balance,
+            processedBy: req.user._id // The admin who made the change
+        });
+
         res.json({ balance: user.balance });
     } catch (err) {
-        res.status(500).json({ message: 'Error updating balance' });
+        res.status(500).json({ message: 'Error adjusting balance' });
     }
 });
 

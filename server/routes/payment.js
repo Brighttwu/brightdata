@@ -69,7 +69,7 @@ router.post('/initialize', auth, async (req, res) => {
 });
 
 // Verify Paystack Payment
-router.get('/verify/:reference', async (req, res) => {
+router.get('/verify/:reference', auth, async (req, res) => {
     try {
         const { reference } = req.params;
 
@@ -78,10 +78,14 @@ router.get('/verify/:reference', async (req, res) => {
             const transaction = await Transaction.findOne({ reference });
             if (!transaction) return res.status(404).json({ message: 'Transaction record not found. Please contact support.' });
             
+            // Ownership check
+            if (transaction.user.toString() !== req.user._id.toString()) {
+                return res.status(403).json({ message: 'Unauthorized verification attempt' });
+            }
+
             // Check if already processed
             if (transaction.status === 'success') {
-                const alreadyUser = await User.findById(transaction.user);
-                return res.json({ message: 'Already verified', balance: alreadyUser?.balance || 0 });
+                return res.json({ message: 'Already verified', balance: req.user.balance });
             }
 
             // Amount validation: ensure Paystack received enough (with 5% tolerance for fees/calc)

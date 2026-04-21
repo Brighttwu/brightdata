@@ -9,6 +9,8 @@ const TransactionSchema = new mongoose.Schema({
     description: { type: String },
     balanceBefore: { type: Number },
     balanceAfter: { type: Number },
+    processedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Tracking who initialized this
+    metadata: { type: Map, of: String },
     createdAt: { type: Date, default: Date.now }
 });
 

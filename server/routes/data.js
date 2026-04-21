@@ -365,13 +365,13 @@ router.post('/buy-paystack-init', checkMaintenance, auth, async (req, res) => {
     }
 });
 
-// Verify Paystack order and execute
-router.get('/buy-paystack-verify/:reference', async (req, res) => {
+router.get('/buy-paystack-verify/:reference', auth, async (req, res) => {
     try {
         const { reference } = req.params;
         const order = await Order.findOne({ externalReference: reference });
         
         if (!order) return res.status(404).json({ message: 'Order not found' });
+        if (order.user.toString() !== req.user._id.toString()) return res.status(403).json({ message: 'Unauthorized verification attempt' });
         if (order.status !== 'pending_payment') return res.json({ message: 'Order already processed', order });
 
         const data = await verifyPaystackTransaction(reference);
@@ -473,31 +473,8 @@ router.get('/buy-paystack-verify/:reference', async (req, res) => {
     }
 });
 
-// Webhook for Bossu API (to update status)
-router.post('/webhook', async (req, res) => {
-    try {
-        const { data } = req.body; // status: completed, failed, cancelled
-        const order = await Order.findOne({ externalReference: data.reference });
-        
-        if (order && order.status === 'pending') {
-            const user = await User.findById(order.user);
-            
-            if (data.status === 'failed' || data.status === 'cancelled') {
-                // Refund user
-                user.balance += order.amount;
-                await user.save();
-            }
-            
-            order.status = data.status;
-            order.updatedAt = Date.now();
-            await order.save();
-        }
-        res.status(200).send('OK');
-    } catch (err) {
-        console.error('Webhook error:', err);
-        res.status(500).send('Error');
-    }
-});
+// Webhook removal: Redundant and insecure without verification. 
+// Handled by the secure, authenticated pull mechanism in utils/orderSyncer.js
 
 // Get all orders for user
 router.get('/orders', auth, async (req, res) => {
