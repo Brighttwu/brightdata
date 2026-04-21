@@ -130,6 +130,77 @@ const Dashboard = () => {
 
     return (
         <div style={{ background: '#f8fafc', minHeight: 'calc(100vh - 72px)', fontFamily: "'Inter', sans-serif" }}>
+            {showNotif && platformSettings?.globalNotification && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(15, 23, 42, 0.8)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 100000,
+                    padding: 20,
+                    backdropFilter: 'blur(8px)',
+                    animation: 'fadeIn 0.3s ease-out'
+                }} onClick={handleDismissNotif}>
+                    <div 
+                        style={{
+                            background: '#fff',
+                            borderRadius: 24,
+                            padding: '40px 32px',
+                            maxWidth: 400,
+                            width: '100%',
+                            textAlign: 'center',
+                            boxShadow: '0 20px 50px rgba(0,0,0,0.3)',
+                            position: 'relative',
+                            animation: 'slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                        }}
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div style={{
+                            width: 64,
+                            height: 64,
+                            background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            margin: '0 auto 24px',
+                            color: '#fff',
+                            boxShadow: '0 8px 24px rgba(79,70,229,0.3)'
+                        }}>
+                            <Bell size={32} />
+                        </div>
+                        <h3 style={{ fontSize: 24, fontWeight: 900, color: '#0f172a', marginBottom: 12 }}>New Update</h3>
+                        <p style={{ fontSize: 16, color: '#475569', lineHeight: 1.6, marginBottom: 32 }}>
+                            {platformSettings.globalNotification}
+                        </p>
+                        <button 
+                            onClick={handleDismissNotif}
+                            style={{
+                                width: '100%',
+                                padding: '16px',
+                                background: '#0f172a',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: 16,
+                                fontWeight: 800,
+                                fontSize: 16,
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                boxShadow: '0 8px 20px rgba(0,0,0,0.1)'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
+                            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                        >
+                            Got it
+                        </button>
+                    </div>
+                </div>
+            )}
             <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
 
             {/* Hero Balance Section */}
@@ -154,77 +225,6 @@ const Dashboard = () => {
                                 }}>
                                     <ShieldAlert size={18} />
                                     <span style={{ fontSize: 13, fontWeight: 700 }}>Platform is under maintenance — purchases temporarily disabled</span>
-                                </div>
-                            )}
-                            {showNotif && platformSettings?.globalNotification && (
-                                <div style={{
-                                    position: 'fixed',
-                                    top: 0,
-                                    left: 0,
-                                    right: 0,
-                                    bottom: 0,
-                                    background: 'rgba(15, 23, 42, 0.8)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    zIndex: 10000,
-                                    padding: 20,
-                                    backdropFilter: 'blur(8px)',
-                                    animation: 'fadeIn 0.3s ease-out'
-                                }} onClick={handleDismissNotif}>
-                                    <div 
-                                        style={{
-                                            background: '#fff',
-                                            borderRadius: 24,
-                                            padding: '40px 32px',
-                                            maxWidth: 400,
-                                            width: '100%',
-                                            textAlign: 'center',
-                                            boxShadow: '0 20px 50px rgba(0,0,0,0.3)',
-                                            position: 'relative',
-                                            animation: 'slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
-                                        }}
-                                        onClick={e => e.stopPropagation()}
-                                    >
-                                        <div style={{
-                                            width: 64,
-                                            height: 64,
-                                            background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
-                                            borderRadius: '50%',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            margin: '0 auto 24px',
-                                            color: '#fff',
-                                            boxShadow: '0 8px 24px rgba(79,70,229,0.3)'
-                                        }}>
-                                            <Bell size={32} />
-                                        </div>
-                                        <h3 style={{ fontSize: 24, fontWeight: 900, color: '#0f172a', marginBottom: 12 }}>New Update</h3>
-                                        <p style={{ fontSize: 16, color: '#475569', lineHeight: 1.6, marginBottom: 32 }}>
-                                            {platformSettings.globalNotification}
-                                        </p>
-                                        <button 
-                                            onClick={handleDismissNotif}
-                                            style={{
-                                                width: '100%',
-                                                padding: '16px',
-                                                background: '#0f172a',
-                                                color: '#fff',
-                                                border: 'none',
-                                                borderRadius: 16,
-                                                fontWeight: 800,
-                                                fontSize: 16,
-                                                cursor: 'pointer',
-                                                transition: 'all 0.2s',
-                                                boxShadow: '0 8px 20px rgba(0,0,0,0.1)'
-                                            }}
-                                            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
-                                            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-                                        >
-                                            Got it
-                                        </button>
-                                    </div>
                                 </div>
                             )}
                         </div>
