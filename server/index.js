@@ -64,6 +64,7 @@ app.use('/api/payment', require('./routes/payment'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/agent', require('./routes/agent'));
 app.use('/api/v1', require('./routes/api_v1'));
+app.use('/api/support', require('./routes/support'));
 
 app.get('/', (req, res) => res.send('brightdata API Running'));
 

@@ -549,10 +549,11 @@ const Withdrawal = require('../models/Withdrawal');
 
 router.post('/request-withdrawal', auth, async (req, res) => {
     try {
-        const { amount, paymentDetails } = req.body;
+        const { amount, paymentDetails, accountName } = req.body;
         const user = req.user;
 
         if (amount < 10) return res.status(400).json({ message: 'Minimum withdrawal is ₵10.00' });
+        if (!accountName) return res.status(400).json({ message: 'Account name is required' });
         if (user.commissionBalance < amount) return res.status(400).json({ message: 'Insufficient commission balance' });
 
         // Deduct from commission balance immediately upon request
@@ -563,6 +564,7 @@ router.post('/request-withdrawal', auth, async (req, res) => {
             user: user._id,
             amount: Number(amount),
             type: 'agent',
+            accountName,
             paymentDetails,
             status: 'pending'
         });
@@ -573,6 +575,7 @@ router.post('/request-withdrawal', auth, async (req, res) => {
         await sendWithdrawalAlert(user.name, {
             amount: Number(amount),
             type: 'agent',
+            accountName,
             paymentDetails
         });
     } catch (err) {
@@ -642,10 +645,11 @@ router.get('/referral-stats', auth, async (req, res) => {
 
 router.post('/request-referral-withdrawal', auth, async (req, res) => {
     try {
-        const { amount } = req.body;
+        const { amount, accountName } = req.body;
         const user = req.user;
 
         if (amount < 10) return res.status(400).json({ message: 'Minimum withdrawal is ₵10.00' });
+        if (!accountName) return res.status(400).json({ message: 'Account name is required' });
         if (user.referralBalance < amount) return res.status(400).json({ message: 'Insufficient referral balance' });
         if (!user.momoNumber) return res.status(400).json({ message: 'Please update your MoMo number in profile first' });
 
@@ -657,6 +661,7 @@ router.post('/request-referral-withdrawal', auth, async (req, res) => {
             user: user._id,
             amount: Number(amount),
             type: 'referral',
+            accountName,
             paymentDetails: `Referral Payout: ${user.momoNumber}`,
             status: 'pending'
         });
@@ -667,6 +672,7 @@ router.post('/request-referral-withdrawal', auth, async (req, res) => {
         await sendWithdrawalAlert(user.name, {
             amount: Number(amount),
             type: 'referral',
+            accountName,
             paymentDetails: `Referral Payout: ${user.momoNumber}`
         });
     } catch (err) {

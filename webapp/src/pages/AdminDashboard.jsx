@@ -539,6 +539,12 @@ const AdminDashboard = () => {
                                     </div>
                                 </div>
                                 <div style={{ display: 'flex', gap: 8 }} className="mobile-full-width">
+                                    <button 
+                                        onClick={() => window.location.href = `/admin/support?user=${u._id}`}
+                                        style={{ flex: 1, border: 'none', background: '#eff6ff', color: '#4f46e5', padding: '10px 12px', borderRadius: 8, cursor: 'pointer', fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                                    >
+                                        <MessageSquare size={14} /> Chat
+                                    </button>
                                     <button onClick={() => handleBalance(u._id, 'add')} style={{ flex: 1, border: 'none', background: '#f0fdf4', color: '#16a34a', padding: '10px 12px', borderRadius: 8, cursor: 'pointer', fontWeight: 700, fontSize: 13 }}>Add ₵</button>
                                     <button onClick={() => handleBlock(u._id)} style={{ flex: 1, border: 'none', background: u.isBlocked ? '#0f172a' : '#f1f5f9', color: u.isBlocked ? '#fff' : '#64748b', padding: '10px 12px', borderRadius: 8, cursor: 'pointer', fontWeight: 700, fontSize: 13 }}>
                                         {u.isBlocked ? 'Unblock' : 'Block'}
@@ -845,6 +851,12 @@ const AdminDashboard = () => {
                                         <div style={{ marginTop: 8, padding: '8px 12px', background: '#fef2f2', borderRadius: 10, fontSize: 13, fontWeight: 700, color: '#dc2626' }}>Issue: {o.reportReason}</div>
                                     </div>
                                     <div style={{ display: 'flex', gap: 8 }}>
+                                        <button 
+                                            onClick={() => window.location.href = `/admin/support?user=${o.user?._id}`}
+                                            style={{ padding: '10px 16px', borderRadius: 10, border: 'none', background: '#eff6ff', color: '#4f46e5', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                                        >
+                                            <MessageSquare size={16} /> Chat
+                                        </button>
                                         <button onClick={async () => {
                                             if (!window.confirm(`Refund ₵${(o.amount||0).toFixed(2)} to ${o.user?.name}?`)) return;
                                             try {
@@ -883,7 +895,19 @@ const AdminDashboard = () => {
                                     <div>
                                         <div style={{ fontWeight: 900, fontSize: 18, color: '#0f172a' }}>₵{w.amount.toFixed(2)}</div>
                                         <div style={{ fontSize: 13, color: '#64748b', marginTop: 4 }}>Agent: <b>{w.user?.name}</b> ({w.user?.email})</div>
-                                        <div style={{ fontSize: 13, color: '#4f46e5', fontWeight: 700, marginTop: 4 }}>Payout to: {w.paymentDetails}</div>
+                                        <div style={{ fontSize: 14, color: '#0f172a', fontWeight: 900, marginTop: 4 }}>Name: {w.accountName}</div>
+                                        <div style={{ fontSize: 14, color: '#4f46e5', fontWeight: 800, marginTop: 4, display: 'flex', alignItems: 'center', gap: 10 }}>
+                                            <span>Payout: {w.paymentDetails}</span>
+                                            <button 
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(w.paymentDetails);
+                                                    alert('Payment details copied!');
+                                                }}
+                                                style={{ background: '#eef2ff', border: 'none', color: '#4f46e5', padding: '4px 8px', borderRadius: 6, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 800 }}
+                                            >
+                                                <Copy size={12} /> Copy
+                                            </button>
+                                        </div>
                                         <div style={{ 
                                             display: 'inline-block', marginTop: 8, padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 800, textTransform: 'uppercase',
                                             background: w.status === 'pending' ? '#fef3c7' : w.status === 'approved' ? '#dcfce7' : '#fee2e2',

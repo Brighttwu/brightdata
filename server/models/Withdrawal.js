@@ -6,6 +6,7 @@ const WithdrawalSchema = new mongoose.Schema({
     type: { type: String, enum: ['agent', 'referral'], default: 'agent' },
     status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
     paymentMethod: { type: String, default: 'Mobile Money' },
+    accountName: { type: String, required: true }, // Added field
     paymentDetails: { type: String, required: true }, // e.g., "MTN: 0244000000"
     adminNote: { type: String },
     createdAt: { type: Date, default: Date.now },

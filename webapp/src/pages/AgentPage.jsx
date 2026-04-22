@@ -16,7 +16,7 @@ const AgentPage = () => {
     const [storeForm, setStoreForm] = useState({ slug: '', name: '', description: '', whatsapp: '', groupLink: '', logo: '', theme: 'classic', notification: '' });
     const [customPrices, setCustomPrices] = useState({});
     const [withdrawals, setWithdrawals] = useState([]);
-    const [withdrawForm, setWithdrawForm] = useState({ amount: '', phone: user?.momoNumber || '', network: 'mtn' });
+    const [withdrawForm, setWithdrawForm] = useState({ amount: '', phone: user?.momoNumber || '', network: 'mtn', accountName: '' });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [upgrading, setUpgrading] = useState(false);
@@ -68,7 +68,7 @@ const AgentPage = () => {
     }, []);
 
     const submitWithdrawal = async () => {
-        if (!withdrawForm.amount || !withdrawForm.phone) return;
+        if (!withdrawForm.amount || !withdrawForm.phone || !withdrawForm.accountName) return;
         if (Number(withdrawForm.amount) < 10) return setMessage({ type: 'error', text: 'Minimum withdrawal is ₵10.00' });
         
         setSaving(true);
@@ -76,7 +76,7 @@ const AgentPage = () => {
             const combined = `${withdrawForm.network.toUpperCase()}: ${withdrawForm.phone}`;
             const res = await api.post('/agent/request-withdrawal', { ...withdrawForm, paymentDetails: combined });
             setMessage({ type: 'success', text: res.data.message });
-            setWithdrawForm({ amount: '', phone: '', network: 'mtn' });
+            setWithdrawForm({ amount: '', phone: '', network: 'mtn', accountName: '' });
             fetchWithdrawals();
             window.location.reload(); 
         } catch (err) {
@@ -543,6 +543,10 @@ const AgentPage = () => {
                                     <input type="number" min="10" value={withdrawForm.amount} onChange={e => setWithdrawForm(p => ({ ...p, amount: e.target.value }))} placeholder="10.00" style={{ width: '100%', padding: 14, borderRadius: 12, border: '2px solid #f1f5f9', outline: 'none', fontWeight: 700, fontSize: 16, boxSizing: 'border-box' }} />
                                 </div>
                                 <div>
+                                    <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 6 }}>Account Name</label>
+                                    <input value={withdrawForm.accountName} onChange={e => setWithdrawForm(p => ({ ...p, accountName: e.target.value }))} placeholder="Full Name on Account" style={{ width: '100%', padding: 14, borderRadius: 12, border: '2px solid #f1f5f9', outline: 'none', fontWeight: 700, fontSize: 16, boxSizing: 'border-box' }} />
+                                </div>
+                                <div>
                                     <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 6 }}>Mobile Money Number</label>
                                     <input value={withdrawForm.phone} onChange={e => setWithdrawForm(p => ({ ...p, phone: e.target.value }))} placeholder="024XXXXXXX" style={{ width: '100%', padding: 14, borderRadius: 12, border: '2px solid #f1f5f9', outline: 'none', fontWeight: 700, fontSize: 16, boxSizing: 'border-box' }} />
                                 </div>
@@ -575,7 +579,10 @@ const AgentPage = () => {
                                     <div key={i} style={{ padding: 16, background: '#f8fafc', borderRadius: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <div>
                                             <div style={{ fontWeight: 800, fontSize: 15 }}>₵{w.amount.toFixed(2)}</div>
-                                            <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{w.paymentDetails} • {new Date(w.createdAt).toLocaleDateString()}</div>
+                                            <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
+                                                <b>{w.accountName}</b> <br/>
+                                                {w.paymentDetails} • {new Date(w.createdAt).toLocaleDateString()}
+                                            </div>
                                         </div>
                                         <div style={{ 
                                             padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 800, textTransform: 'uppercase',

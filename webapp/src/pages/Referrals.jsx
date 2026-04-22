@@ -11,6 +11,7 @@ const Referrals = () => {
     const [withdrawLoading, setWithdrawLoading] = useState(false);
     const [amount, setAmount] = useState('');
     const [message, setMessage] = useState({ type: '', text: '' });
+    const [accountName, setAccountName] = useState('');
     const [copied, setCopied] = useState(false);
 
     const fetchStats = async () => {
@@ -36,12 +37,14 @@ const Referrals = () => {
     const handleWithdraw = async (e) => {
         e.preventDefault();
         if (Number(amount) < 10) return setMessage({ type: 'error', text: 'Minimum withdrawal is ₵10.00' });
+        if (!accountName) return setMessage({ type: 'error', text: 'Account name is required' });
         setWithdrawLoading(true);
         setMessage({ type: '', text: '' });
         try {
-            const res = await api.post('/agent/request-referral-withdrawal', { amount: Number(amount) });
+            const res = await api.post('/agent/request-referral-withdrawal', { amount: Number(amount), accountName });
             setMessage({ type: 'success', text: res.data.message });
             setAmount('');
+            setAccountName('');
             fetchStats();
         } catch (err) {
             setMessage({ type: 'error', text: err.response?.data?.message || 'Withdrawal failed' });
@@ -287,14 +290,24 @@ const Referrals = () => {
                             </div>
                         </div>
 
-                        <div style={{ position: 'relative' }}>
-                            <div style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', fontWeight: 900, color: '#94a3b8', fontSize: 15 }}>₵</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
+                            <div style={{ position: 'relative' }}>
+                                <div style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', fontWeight: 900, color: '#94a3b8', fontSize: 15 }}>₵</div>
+                                <input
+                                    type="number"
+                                    value={amount}
+                                    onChange={(e) => setAmount(e.target.value)}
+                                    placeholder="Amount (Min ₵10)"
+                                    style={{ width: '100%', padding: '15px 15px 15px 36px', background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: 14, fontWeight: 800, outline: 'none', boxSizing: 'border-box', fontSize: 15 }}
+                                    required
+                                />
+                            </div>
                             <input
-                                type="number"
-                                value={amount}
-                                onChange={(e) => setAmount(e.target.value)}
-                                placeholder="Amount to withdraw (Min ₵10)"
-                                style={{ width: '100%', padding: '15px 15px 15px 36px', background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: 14, fontWeight: 800, outline: 'none', boxSizing: 'border-box', fontSize: 15 }}
+                                type="text"
+                                value={accountName}
+                                onChange={(e) => setAccountName(e.target.value)}
+                                placeholder="Account Name (e.g. Ama Serwaa)"
+                                style={{ width: '100%', padding: '15px 18px', background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: 14, fontWeight: 800, outline: 'none', boxSizing: 'border-box', fontSize: 15 }}
                                 required
                             />
                         </div>

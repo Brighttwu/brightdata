@@ -558,11 +558,20 @@ router.post('/report-order/:id', auth, async (req, res) => {
         order.reportReason = reason || 'No reason provided';
         await order.save();
 
+        // Create a support message automatically
+        const SupportMessage = require('../models/SupportMessage');
+        await SupportMessage.create({
+            user: req.user._id,
+            sender: req.user._id,
+            message: `[REPORT] Order ${order.externalReference} (${order.packageName} - ${order.phoneNumber}) reported. Reason: ${reason || 'No reason provided'}`,
+            isAdmin: false
+        });
+
         // 8. Notify Admin
         const { sendReportAlert } = require('../utils/emailHelper');
         sendReportAlert(req.user.name, order);
 
-        res.json({ message: 'Order reported successfully to the admin.', order });
+        res.json({ message: 'Order reported successfully. You can now chat with the admin about this issue.', order });
     } catch (err) {
         console.error('Report Error:', err);
         res.status(500).json({ message: 'Error reporting order' });

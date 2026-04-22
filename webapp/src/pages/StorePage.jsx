@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import {
     Wifi, RefreshCw, CheckCircle2, MessageCircle,
-    ShieldCheck, Users2, AlertCircle, Ban, Zap, Star, Sparkles
+    ShieldCheck, Users2, AlertCircle, Ban, Zap, Star, Sparkles, Download, X
 } from 'lucide-react';
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -217,6 +217,20 @@ const StorePage = () => {
     const [message, setMessage] = useState({ type: '', text: '' });
     const [notFound, setNotFound] = useState(false);
     const [platformSettings, setPlatformSettings] = useState(null);
+    const [showStoreNotification, setShowStoreNotification] = useState(false);
+
+    useEffect(() => {
+        // Show notification popup once per session after store loads
+        if (store?.notification && !sessionStorage.getItem(`notified_${slug}`)) {
+            const timer = setTimeout(() => setShowStoreNotification(true), 1500);
+            return () => clearTimeout(timer);
+        }
+    }, [store, slug]);
+
+    const closeNotification = () => {
+        setShowStoreNotification(false);
+        sessionStorage.setItem(`notified_${slug}`, 'true');
+    };
 
     useEffect(() => {
         const fetchStore = async () => {
@@ -386,6 +400,7 @@ const StorePage = () => {
                 ${store?.theme === 'eco' ? '.eco-section { position: relative; } .eco-section::before { content: "🌿"; position: absolute; top: -14px; left: 20px; font-size: 24px; }' : ''}
 
                 @media (max-width: 600px) {
+                    .mobile-hide { display: none !important; }
                     .store-nav { padding: 0 14px !important; }
                     .store-header { padding: 36px 16px !important; }
                     .store-content { padding: 16px 12px !important; }
@@ -417,32 +432,48 @@ const StorePage = () => {
                         {store?.name}
                     </span>
                 </div>
-                {/* Agent's own WhatsApp number — clickable link */}
-                {store?.whatsapp ? (
-                    <a
-                        href={`https://wa.me/${store.whatsapp}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="store-whatsapp-nav"
-                        style={{
-                            display: 'flex', alignItems: 'center', gap: 6,
-                            fontSize: 13, fontWeight: 800,
-                            color: t.accent,
-                            background: isOcean ? 'rgba(255,255,255,0.12)' : isDark ? `${t.accent}14` : `${t.accent}12`,
-                            padding: '6px 14px', borderRadius: '50px',
-                            border: `1px solid ${t.accent}33`,
-                            textDecoration: 'none',
-                            transition: 'opacity 0.2s',
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <button 
+                        onClick={() => {
+                            alert("To install this store on your phone:\n\n1. Tap the Share button (iOS) or Menu (Android)\n2. Select 'Add to Home Screen'\n3. Enjoy instant access!");
+                        }}
+                        title="Install App"
+                        style={{ 
+                            display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, 
+                            color: t.accent, background: isOcean ? 'rgba(255,255,255,0.12)' : isDark ? `${t.accent}14` : `${t.accent}12`, 
+                            padding: '5px 10px', borderRadius: '50px', border: `1px solid ${t.accent}33`, cursor: 'pointer' 
                         }}
                     >
-                        <MessageCircle size={14} />
-                        <span className="store-whatsapp-num">{store.whatsapp}</span>
-                    </a>
-                ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: t.accent, background: isOcean ? 'rgba(255,255,255,0.12)' : isDark ? `${t.accent}14` : `${t.accent}12`, padding: '5px 12px', borderRadius: '50px', border: `1px solid ${t.accent}33` }}>
-                        <ShieldCheck size={13} /> Secure
-                    </div>
-                )}
+                        <Download size={13} /> <span className="mobile-hide">Install</span>
+                    </button>
+
+                    {/* Agent's own WhatsApp number — clickable link */}
+                    {store?.whatsapp ? (
+                        <a
+                            href={`https://wa.me/${store.whatsapp}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="store-whatsapp-nav"
+                            style={{
+                                display: 'flex', alignItems: 'center', gap: 6,
+                                fontSize: 11, fontWeight: 800,
+                                color: t.accent,
+                                background: isOcean ? 'rgba(255,255,255,0.12)' : isDark ? `${t.accent}14` : `${t.accent}12`,
+                                padding: '5px 10px', borderRadius: '50px',
+                                border: `1px solid ${t.accent}33`,
+                                textDecoration: 'none',
+                                transition: 'opacity 0.2s',
+                            }}
+                        >
+                            <MessageCircle size={14} />
+                            <span className="store-whatsapp-num mobile-hide">{store.whatsapp}</span>
+                        </a>
+                    ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, color: t.accent, background: isOcean ? 'rgba(255,255,255,0.12)' : isDark ? `${t.accent}14` : `${t.accent}12`, padding: '5px 10px', borderRadius: '50px', border: `1px solid ${t.accent}33` }}>
+                            <ShieldCheck size={13} /> <span className="mobile-hide">Secure</span>
+                        </div>
+                    )}
+                </div>
             </nav>
 
             {/* ── HEADER — varies by theme ───────────────────────────── */}
@@ -520,11 +551,37 @@ const StorePage = () => {
             {/* ── MAIN CONTENT ──────────────────────────────────────── */}
             <div className="store-content" style={{ maxWidth: 800, margin: '0 auto', padding: '28px 16px', display: 'flex', flexDirection: 'column', gap: 20, paddingBottom: 80 }}>
 
-                {/* Agent Store Notification */}
-                {store?.notification && (
-                    <div style={{ background: isDark && !isOcean ? '#1e293b' : '#fffbeb', border: `1px solid ${isDark && !isOcean ? '#334155' : '#fcd34d'}`, borderRadius: t.radius, padding: '16px 20px', display: 'flex', alignItems: 'flex-start', gap: 12, color: isDark && !isOcean ? '#e2e8f0' : '#92400e', boxShadow: t.shadow, backdropFilter: isOcean ? 'blur(10px)' : 'none' }}>
-                        <AlertCircle size={22} color={isDark && !isOcean ? '#fcd34d' : '#ea580c'} style={{ flexShrink: 0, marginTop: 2 }} />
-                        <div style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.6 }}>{store.notification}</div>
+                {/* Agent Store Notification Popup */}
+                {showStoreNotification && (
+                    <div style={{ 
+                        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
+                        background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+                        padding: 20
+                    }}>
+                        <div style={{ 
+                            background: t.cardBg, padding: 32, borderRadius: t.radius, width: '100%', maxWidth: 420,
+                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', border: t.border,
+                            position: 'relative', textAlign: 'center', color: t.text, animation: 'fadeUp 0.3s ease'
+                        }}>
+                            <button onClick={closeNotification} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', cursor: 'pointer', color: t.muted }}>
+                                <X size={20} />
+                            </button>
+                            <div style={{ width: 64, height: 64, background: `${t.accent}22`, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+                                <AlertCircle size={32} color={t.accent} />
+                            </div>
+                            <h2 style={{ fontSize: 20, fontWeight: 900, marginBottom: 12 }}>Store Notice</h2>
+                            <p style={{ fontSize: 15, lineHeight: 1.6, fontWeight: 600, color: t.muted }}>{store.notification}</p>
+                            <button 
+                                onClick={closeNotification}
+                                style={{ 
+                                    marginTop: 24, width: '100%', padding: '14px', borderRadius: t.btnRadius, 
+                                    background: t.accent, color: t.accentText, border: 'none', fontWeight: 900, cursor: 'pointer' 
+                                }}
+                            >
+                                Got it, Boss!
+                            </button>
+                        </div>
                     </div>
                 )}
 

@@ -2,7 +2,7 @@ const { Resend } = require('resend');
 const resend = new Resend(process.env.RESEND_API_KEY || 're_Tj6d9cB9_Kd8ShyyQqJzXkicuuoth6gzx');
 
 const FROM_EMAIL = 'Bright Data <onboarding@brightdatahub.store>'; // Updated to verified domain
-const ADMIN_EMAIL = 'twumasibright966@gail.com'; 
+const ADMIN_EMAIL = 'twumasibright966@gmail.com'; 
 
 /**
  * Send Password Reset OTP
@@ -123,6 +123,7 @@ const sendWithdrawalAlert = async (userName, withdrawalDetails) => {
                         <p><b>User:</b> ${userName}</p>
                         <p><b>Amount:</b> ₵${withdrawalDetails.amount.toFixed(2)}</p>
                         <p><b>Type:</b> ${withdrawalDetails.type.toUpperCase()}</p>
+                        <p><b>Account Name:</b> ${withdrawalDetails.accountName || 'N/A'}</p>
                         <p><b>Payment Details:</b> ${withdrawalDetails.paymentDetails}</p>
                         <p><b>Submitted:</b> ${new Date().toLocaleString()}</p>
                     </div>
