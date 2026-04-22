@@ -81,7 +81,9 @@ router.get('/packages/:network', apiKeyAuth, async (req, res) => {
 
             let finalPrice = Number(p.price);
             if (rule) {
-                if (['agent', 'store', 'admin'].includes(req.user.role) && rule.retailPrice > 0) {
+                if (rule.apiUserPrice > 0) {
+                    finalPrice = rule.apiUserPrice;
+                } else if (['agent', 'store', 'admin'].includes(req.user.role) && rule.retailPrice > 0) {
                     finalPrice = rule.retailPrice;
                 } else if (rule.normalPrice > 0) {
                     finalPrice = rule.normalPrice;
@@ -131,7 +133,9 @@ router.post('/buy', transactionLimiter, apiKeyAuth, async (req, res) => {
         const pricing = await Pricing.findOne({ network: net, packageKey: pkgKey });
         let finalAmount = Number(basePkg.price);
         if (pricing) {
-            if (['agent', 'store', 'admin'].includes(user.role) && pricing.retailPrice > 0) {
+            if (pricing.apiUserPrice > 0) {
+                finalAmount = pricing.apiUserPrice;
+            } else if (['agent', 'store', 'admin'].includes(user.role) && pricing.retailPrice > 0) {
                 finalAmount = pricing.retailPrice;
             } else if (pricing.normalPrice > 0) {
                 finalAmount = pricing.normalPrice;

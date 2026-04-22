@@ -5,6 +5,7 @@ const PricingSchema = new mongoose.Schema({
     packageKey: { type: String, required: true },
     normalPrice: { type: Number, default: 0 },
     retailPrice: { type: Number, default: 0 }, // For Store & Agent
+    apiUserPrice: { type: Number, default: 0 }, // For API endpoint users
     updatedAt: { type: Date, default: Date.now }
 });
 

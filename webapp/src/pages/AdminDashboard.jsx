@@ -23,7 +23,7 @@ const AdminDashboard = () => {
     const [selectedNetwork, setSelectedNetwork] = useState('mtn');
     const [loading, setLoading] = useState(true);
     const [editModal, setEditModal] = useState(null); 
-    const [modalInputs, setModalInputs] = useState({ normal: '', retail: '' });
+    const [modalInputs, setModalInputs] = useState({ normal: '', retail: '', apiUserPrice: '' });
     
     // Analysis State
     const [analysisData, setAnalysisData] = useState(null);
@@ -164,7 +164,8 @@ const AdminDashboard = () => {
         setEditModal(pkg);
         setModalInputs({
             normal: p.normalPrice || pkg.apiPrice || '',
-            retail: p.retailPrice || pkg.apiPrice || ''
+            retail: p.retailPrice || pkg.apiPrice || '',
+            apiUserPrice: p.apiUserPrice || pkg.apiPrice || ''
         });
     };
 
@@ -175,7 +176,8 @@ const AdminDashboard = () => {
                 network: selectedNetwork, 
                 packageKey: editModal.key.toString().trim(), 
                 normalPrice: Number(modalInputs.normal), 
-                retailPrice: Number(modalInputs.retail)
+                retailPrice: Number(modalInputs.retail),
+                apiUserPrice: Number(modalInputs.apiUserPrice)
             });
             
             setEditModal(null);
@@ -249,6 +251,9 @@ const AdminDashboard = () => {
                         <div style={{ fontWeight: 900, fontSize: 20, color: '#0f172a', marginBottom: 8 }}>Edit Pricing</div>
                         <div style={{ fontSize: 14, color: '#64748b', marginBottom: 24, fontWeight: 700 }}>
                             {editModal.name} • {selectedNetwork.toUpperCase()}
+                            <div style={{ color: '#10b981', marginTop: 6, fontSize: 13, fontWeight: 800 }}>
+                                Bossu API Cost: ₵{Number(editModal.apiPrice || 0).toFixed(2)}
+                            </div>
                         </div>
                         
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -267,6 +272,15 @@ const AdminDashboard = () => {
                                     type="number" 
                                     value={modalInputs.retail}
                                     onChange={(e) => setModalInputs(prev => ({ ...prev, retail: e.target.value }))}
+                                    style={{ width: '100%', padding: '14px 18px', borderRadius: 12, border: '2px solid #f1f5f9', outline: 'none', fontWeight: 700, fontSize: 16 }}
+                                />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: 12, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8 }}>API Developers Price (₵)</label>
+                                <input 
+                                    type="number" 
+                                    value={modalInputs.apiUserPrice}
+                                    onChange={(e) => setModalInputs(prev => ({ ...prev, apiUserPrice: e.target.value }))}
                                     style={{ width: '100%', padding: '14px 18px', borderRadius: 12, border: '2px solid #f1f5f9', outline: 'none', fontWeight: 700, fontSize: 16 }}
                                 />
                             </div>
@@ -532,16 +546,18 @@ const AdminDashboard = () => {
                                             {pkg.name} <span style={{ fontSize: 10, color: '#94a3b8', fontWeight: 600 }}>ID: {pkg.key}</span>
                                         </div>
                                         <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
-                                            <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>API: ₵{(pkg.apiPrice || 0).toFixed(2)}</span>
+                                            <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>Bossu Cost: ₵{(pkg.apiPrice || 0).toFixed(2)}</span>
                                             {(() => {
                                                  const rule = pricingRules.find(x => 
                                                      (x.packageKey || '').toString().trim().toLowerCase() === (pkg.key || '').toLowerCase() && 
                                                      (x.network || '').toLowerCase() === (selectedNetwork || '').toLowerCase()
                                                  );
                                                  return rule ? (
-                                                     <span style={{ fontSize: 13, color: '#16a34a', fontWeight: 800 }}>
-                                                         Set: ₵{rule.normalPrice || 0}
-                                                     </span>
+                                                     <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                                                         <span style={{ fontSize: 13, color: '#16a34a', fontWeight: 800 }}>User: ₵{rule.normalPrice || 0}</span>
+                                                         <span style={{ fontSize: 13, color: '#f59e0b', fontWeight: 800 }}>Retail: ₵{rule.retailPrice || 0}</span>
+                                                         <span style={{ fontSize: 13, color: '#4f46e5', fontWeight: 800 }}>API: ₵{rule.apiUserPrice || 0}</span>
+                                                     </div>
                                                  ) : <span style={{ fontSize: 13, color: '#94a3b8', fontWeight: 700 }}>Not Set</span>;
                                              })()}
                                          </div>
@@ -677,7 +693,7 @@ const AdminDashboard = () => {
                         }).map(o => {
                             const statusColor = o.status === 'completed' ? '#16a34a' : (o.status === 'failed' ? '#dc2626' : (o.status === 'pending_payment' ? '#f59e0b' : '#d97706'));
                             return (
-                                <div key={o._id} style={{ 
+                                <div key={o._id} className="admin-list-card" style={{ 
                                     ...cardStyle, borderLeft: `5px solid ${statusColor}`, 
                                     display: 'flex', flexDirection: 'column', gap: 12 
                                 }}>
@@ -700,7 +716,7 @@ const AdminDashboard = () => {
                                         <div style={{ textAlign: 'right' }}>
                                             <div style={{ fontWeight: 900, fontSize: 18, color: '#4f46e5' }}>₵{(o.amount || 0).toFixed(2)}</div>
                                             <div style={{ fontSize: 11, fontWeight: 800, color: statusColor, textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 4 }}>
-                                                {o.status.replace('_', ' ')}
+                                                {o.status === 'pending' ? 'PROCESSING' : o.status.replace('_', ' ')}
                                             </div>
                                         </div>
                                     </div>
@@ -722,6 +738,25 @@ const AdminDashboard = () => {
 
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
                                         <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600 }}>Ref: {o.externalReference}</div>
+                                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                            <select 
+                                                value={o.status} 
+                                                onChange={async (e) => {
+                                                    const newStatus = e.target.value;
+                                                    try {
+                                                        await api.post(`/admin/order-status/${o._id}`, { status: newStatus });
+                                                        alert(`Order updated to ${newStatus}`);
+                                                        handleRefresh();
+                                                    } catch (err) { alert('Failed to update status'); }
+                                                }}
+                                                style={{ padding: '6px', borderRadius: 6, fontSize: 11, fontWeight: 700, border: '1px solid #e2e8f0', outline: 'none', background: '#f8fafc', color: '#0f172a' }}
+                                            >
+                                                <option value="pending_payment">Pending Payment</option>
+                                                <option value="pending">Processing</option>
+                                                <option value="completed">Completed</option>
+                                                <option value="failed">Failed</option>
+                                                <option value="cancelled">Cancelled</option>
+                                            </select>
                                         {o.status === 'pending_payment' && (
                                             <button 
                                                 onClick={async () => {
@@ -735,7 +770,7 @@ const AdminDashboard = () => {
                                                     try {
                                                         const res = await api.get(endpoint);
                                                         alert(res.data.message || 'Verified!');
-                                                        fetchData();
+                                                        handleRefresh();
                                                     } catch (e) {
                                                         alert('Verification failed: ' + (e.response?.data?.message || e.message));
                                                     }
@@ -745,6 +780,7 @@ const AdminDashboard = () => {
                                                 Verify Payment
                                             </button>
                                         )}
+                                        </div>
                                     </div>
                                     {o.isReported && <div style={{ marginTop: 4, padding: '8px 12px', background: '#fef2f2', borderRadius: 10, fontSize: 12, fontWeight: 700, color: '#dc2626', border: '1px solid #fecaca' }}>⚠ Reported: {o.reportReason}</div>}
                                 </div>
@@ -766,7 +802,7 @@ const AdminDashboard = () => {
                             o.user?.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             o.user?.name.toLowerCase().includes(searchTerm.toLowerCase())
                         ).map(o => (
-                            <div key={o._id} style={{ ...cardStyle, border: '1.5px solid #fecaca' }}>
+                            <div key={o._id} className="admin-list-card" style={{ ...cardStyle, border: '1.5px solid #fecaca' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 12 }}>
                                     <div>
                                         <div style={{ fontWeight: 900, fontSize: 17 }}>{o.network?.toUpperCase()} {o.packageName} — ₵{(o.amount || 0).toFixed(2)}</div>
@@ -809,7 +845,7 @@ const AdminDashboard = () => {
                             w.user?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             w.paymentDetails?.toLowerCase().includes(searchTerm.toLowerCase())
                         ).map(w => (
-                            <div key={w._id} style={{ ...cardStyle, border: w.status === 'pending' ? '1.5px solid #fcd34d' : '1px solid #f1f5f9' }}>
+                            <div key={w._id} className="admin-list-card" style={{ ...cardStyle, border: w.status === 'pending' ? '1.5px solid #fcd34d' : '1px solid #f1f5f9' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 12 }}>
                                     <div>
                                         <div style={{ fontWeight: 900, fontSize: 18, color: '#0f172a' }}>₵{w.amount.toFixed(2)}</div>

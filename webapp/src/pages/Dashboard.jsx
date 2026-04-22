@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
-import { Wifi, Wallet, Plus, RefreshCw, Search, CheckCircle2, XCircle, ChevronRight, Zap, ShoppingCart, Bell, Truck, Clock, ShieldAlert, Ban, Gift, User, TrendingUp, Sparkles, CreditCard, ArrowUpRight, Code } from 'lucide-react';
+import { Wifi, Wallet, Plus, RefreshCw, Search, CheckCircle2, XCircle, ChevronRight, Zap, ShoppingCart, Bell, Truck, Clock, ShieldAlert, Ban, Gift, User, TrendingUp, Sparkles, CreditCard, ArrowUpRight, Code, History } from 'lucide-react';
 
 const Dashboard = () => {
     const { user, updateBalance, refreshProfile } = useAuth();
@@ -205,85 +205,104 @@ const Dashboard = () => {
 
             {/* Hero Balance Section */}
             <div style={{
-                background: 'linear-gradient(165deg, #0f172a 0%, #1e293b 50%, #334155 100%)',
-                padding: '40px 16px 80px', position: 'relative', overflow: 'hidden'
-            }}>
-                {/* Decorative gradient orbs */}
-                <div style={{ position: 'absolute', top: -80, right: -60, width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.15), transparent 70%)' }} />
-                <div style={{ position: 'absolute', bottom: -40, left: -40, width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, rgba(124,58,237,0.1), transparent 70%)' }} />
-                <div style={{ position: 'absolute', top: 20, left: '30%', width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle, rgba(14,165,233,0.08), transparent 70%)' }} />
+                background: 'linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%)',
+                padding: '32px 16px 80px', position: 'relative', overflow: 'hidden'
+            }} className="hero-container">
+                {/* Decorative Elements */}
+                <div style={{ position: 'absolute', top: 0, right: 0, width: '100%', height: '100%', background: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.05\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }} />
+                <div style={{ position: 'absolute', top: '-10%', right: '-5%', width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,0.2), transparent 70%)', filter: 'blur(40px)' }} />
+                <div style={{ position: 'absolute', bottom: '-20%', left: '-10%', width: 250, height: 250, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,0.15), transparent 70%)', filter: 'blur(30px)' }} />
 
-                <div style={{ maxWidth: 960, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+                <div style={{ maxWidth: 960, margin: '0 auto', position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: 24 }}>
                     {/* Alerts Zone */}
-                    {platformSettings && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28 }}>
-                            {platformSettings.isMaintenanceMode && (
-                                <div style={{ 
-                                    background: 'rgba(239,68,68,0.15)', borderRadius: 16, padding: '14px 20px',
-                                    display: 'flex', alignItems: 'center', gap: 12, color: '#fca5a5',
-                                    border: '1px solid rgba(239,68,68,0.2)', backdropFilter: 'blur(10px)'
-                                }}>
-                                    <ShieldAlert size={18} />
-                                    <span style={{ fontSize: 13, fontWeight: 700 }}>Platform is under maintenance — purchases temporarily disabled</span>
-                                </div>
-                            )}
+                    {platformSettings && platformSettings.isMaintenanceMode && (
+                         <div style={{ 
+                            background: 'rgba(255,255,255,0.2)', borderRadius: 16, padding: '12px 20px',
+                            display: 'flex', alignItems: 'center', gap: 12, color: '#fff', fontWeight: 700,
+                            border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(10px)',
+                            alignSelf: 'flex-start'
+                        }}>
+                            <ShieldAlert size={18} />
+                            <span style={{ fontSize: 13 }}>Platform under maintenance — purchases disabled</span>
                         </div>
                     )}
 
-                    {/* Welcome & Balance */}
-                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 24 }} className="hero-flex">
+                    {/* Greeting & Quick Stats row */}
+                    <div className="hero-top-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
                         <div>
-                            <div style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginBottom: 4 }}>
-                                {greeting()}, {user?.name?.split(' ')[0] || 'User'} 👋
+                            <div style={{ fontSize: 16, fontWeight: 500, color: 'rgba(255,255,255,0.85)', letterSpacing: '0.02em', marginBottom: 4 }}>
+                                {greeting()},
                             </div>
-                            <div style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>
-                                Wallet Balance
+                            <div style={{ fontSize: 28, fontWeight: 900, color: '#fff', letterSpacing: '-0.02em', lineHeight: 1 }}>
+                                {user?.name?.split(' ')[0] || 'User'} 👋
                             </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                                <div style={{ fontSize: 48, fontWeight: 900, color: '#fff', lineHeight: 1, letterSpacing: '-0.03em' }}>
-                                    ₵{(user?.balance || 0).toFixed(2)}
-                                </div>
-                                <button onClick={handleRefresh} style={{
-                                    background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12,
-                                    width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    cursor: 'pointer', color: 'rgba(255,255,255,0.6)', transition: 'all 0.2s'
-                                }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
-                                   onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}>
-                                    <RefreshCw size={14} style={{ animation: refreshing ? 'spin-anim 0.8s linear infinite' : 'none' }} />
-                                </button>
-                            </div>
-
-                            {/* Delivery indicator */}
-                            {platformSettings && (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 16 }}>
-                                    <div style={{ 
-                                        width: 6, height: 6, borderRadius: '50%', 
-                                        background: platformSettings.deliveryStatus === 'fast' ? '#22c55e' : (platformSettings.deliveryStatus === 'normal' ? '#f59e0b' : '#ef4444'),
-                                    }} className="pulse-dot" />
-                                    <span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                                        Delivery: {platformSettings.deliveryStatus}
-                                    </span>
-                                </div>
-                            )}
                         </div>
 
-                        <div style={{ display: 'flex', gap: 10 }} className="hero-buttons">
-                            <Link to="/wallet" style={{
-                                display: 'flex', alignItems: 'center', gap: 8, padding: '14px 24px',
-                                background: '#fff', color: '#0f172a', borderRadius: 14, fontWeight: 800,
-                                textDecoration: 'none', fontSize: 14, boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-                                transition: 'all 0.2s'
-                            }}>
-                                <Plus size={16} /> Add Funds
-                            </Link>
-                            <Link to="/orders" style={{
-                                display: 'flex', alignItems: 'center', gap: 8, padding: '14px 20px',
-                                background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.8)', borderRadius: 14, fontWeight: 700,
-                                textDecoration: 'none', fontSize: 14, border: '1px solid rgba(255,255,255,0.1)',
-                                backdropFilter: 'blur(10px)', transition: 'all 0.2s'
-                            }}>
-                                <Clock size={14} /> History
-                            </Link>
+                        {/* Delivery indicator */}
+                        {platformSettings && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(0,0,0,0.15)', padding: '8px 16px', borderRadius: 99, backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                <div style={{ 
+                                    width: 10, height: 10, borderRadius: '50%', 
+                                    background: platformSettings.deliveryStatus === 'fast' ? '#4ade80' : (platformSettings.deliveryStatus === 'normal' ? '#fbbf24' : '#f87171'),
+                                    boxShadow: `0 0 12px ${platformSettings.deliveryStatus === 'fast' ? '#4ade80' : (platformSettings.deliveryStatus === 'normal' ? '#fbbf24' : '#f87171')}`
+                                }} className="pulse-dot" />
+                                <span style={{ fontSize: 12, fontWeight: 800, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                    {platformSettings.deliveryStatus} Delivery
+                                </span>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Balance Glass Card */}
+                    <div className="hero-balance-card" style={{
+                        background: 'rgba(255,255,255,0.15)',
+                        backdropFilter: 'blur(24px)',
+                        borderRadius: 28, padding: '32px',
+                        border: '1px solid rgba(255,255,255,0.3)',
+                        display: 'flex', flexDirection: 'column', gap: 24,
+                        boxShadow: '0 24px 48px rgba(0,0,0,0.12)'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 24 }} className="balance-wrap">
+                            <div style={{ flex: '1 1 auto' }}>
+                                <div style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.9)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <Wallet size={16} /> Total Balance
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                                    <div style={{ fontSize: 'clamp(44px, 8vw, 64px)', fontWeight: 900, color: '#fff', lineHeight: 1, letterSpacing: '-0.04em' }}>
+                                        ₵{(user?.balance || 0).toFixed(2)}
+                                    </div>
+                                    <button onClick={handleRefresh} style={{
+                                        background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '50%',
+                                        width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        cursor: 'pointer', color: '#fff', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                        flexShrink: 0
+                                    }} onMouseEnter={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#4f46e5'; e.currentTarget.style.transform = 'rotate(180deg)'; e.currentTarget.style.border = '1px solid #fff'; }}
+                                       onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.2)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'rotate(0deg)'; e.currentTarget.style.border = '1px solid rgba(255,255,255,0.1)'; }}>
+                                        <RefreshCw size={20} style={{ animation: refreshing ? 'spin-anim 0.8s linear infinite' : 'none' }} />
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div className="hero-buttons-mobile" style={{ display: 'flex', gap: 12, flexShrink: 0 }}>
+                                <Link to="/wallet" style={{
+                                    display: 'flex', alignItems: 'center', gap: 8, padding: '16px 28px',
+                                    background: '#fff', color: '#4f46e5', borderRadius: 16, fontWeight: 900,
+                                    textDecoration: 'none', fontSize: 16, boxShadow: '0 12px 24px rgba(0,0,0,0.15)',
+                                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                                }} onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 16px 32px rgba(0,0,0,0.2)'; }}
+                                   onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.15)'; }}>
+                                    <Plus size={18} /> Add Funds
+                                </Link>
+                                <Link to="/orders" style={{
+                                    display: 'flex', alignItems: 'center', gap: 8, padding: '16px 24px',
+                                    background: 'rgba(0,0,0,0.2)', color: '#fff', borderRadius: 16, fontWeight: 800,
+                                    textDecoration: 'none', fontSize: 16, border: '1px solid rgba(255,255,255,0.15)',
+                                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                                }} onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.3)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                                   onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.2)'; e.currentTarget.style.transform = 'translateY(0)'; }}>
+                                    <History size={18} /> History
+                                </Link>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -562,9 +581,11 @@ const Dashboard = () => {
                 ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 99px; }
 
                 @media (max-width: 768px) {
-                    .hero-flex { flex-direction: column !important; }
-                    .hero-buttons { width: 100% !important; }
-                    .hero-buttons a { flex: 1 !important; justify-content: center !important; }
+                    .balance-wrap { flex-direction: column !important; align-items: stretch !important; gap: 24px !important; }
+                    .hero-buttons-mobile { flex-direction: column !important; width: 100% !important; }
+                    .hero-buttons-mobile a { width: 100% !important; justify-content: center !important; text-align: center !important; flex: none !important; }
+                    .hero-top-row { flex-direction: column !important; align-items: flex-start !important; }
+
                     .quick-actions-grid { grid-template-columns: repeat(5, 1fr) !important; gap: 4px !important; }
                     .quick-actions-grid a { padding: 12px 4px !important; border-radius: 12px !important; }
                     .quick-actions-grid span { font-size: 9px !important; }

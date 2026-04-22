@@ -140,3 +140,59 @@ h1, h2, h3 {
 .reveal {
   animation: slideUpReveal 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
+
+/* Admin Dashboard Utilities */
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .admin-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mobile-stack {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .mobile-stack {
+    flex-direction: column;
+  }
+}
+
+.mobile-full-width {
+  width: auto;
+}
+
+@media (max-width: 640px) {
+  .mobile-full-width {
+    width: 100% !important;
+  }
+}
+
+.admin-list-card {
+  transition: all 0.2s ease;
+}
+
+@media (max-width: 640px) {
+  .admin-list-card {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    padding: 16px !important;
+  }
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

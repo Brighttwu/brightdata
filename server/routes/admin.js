@@ -255,7 +255,7 @@ router.get('/pricing', adminAuth, async (req, res) => {
 router.post('/pricing', adminAuth, async (req, res) => {
     try {
         console.log('Admin Received Pricing Request:', JSON.stringify(req.body));
-        const { network, packageKey, normalPrice, retailPrice } = req.body;
+        const { network, packageKey, normalPrice, retailPrice, apiUserPrice } = req.body;
         const net = network.toString().toLowerCase();
         const pKey = packageKey.toString().trim().toLowerCase();
         console.log(`ADMIN SAVE: Standardizing Pricing for Network=${net}, PackageKey=${pKey}`);
@@ -265,6 +265,7 @@ router.post('/pricing', adminAuth, async (req, res) => {
             { 
                 normalPrice: Number(normalPrice), 
                 retailPrice: Number(retailPrice),
+                apiUserPrice: Number(apiUserPrice),
                 updatedAt: Date.now() 
             },
             { upsert: true, new: true, runValidators: true }
@@ -295,6 +296,22 @@ router.get('/orders', adminAuth, async (req, res) => {
         res.json(orders);
     } catch (err) {
         res.status(500).json({ message: 'Error fetching orders' });
+    }
+});
+
+// Update order status
+router.post('/order-status/:id', adminAuth, async (req, res) => {
+    try {
+        const { status } = req.body;
+        const order = await Order.findById(req.params.id);
+        if (!order) return res.status(404).json({ message: 'Order not found' });
+        
+        order.status = status;
+        await order.save();
+        res.json({ message: `Order status updated to ${status}`, order });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Error updating order status' });
     }
 });
 

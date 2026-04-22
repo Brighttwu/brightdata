@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 
 const STATUS_CONFIG = {
     completed:        { label: 'Completed',    bg: '#dcfce7', color: '#16a34a', icon: <CheckCircle2 size={14} /> },
-    pending:          { label: 'Pending',      bg: '#fef3c7', color: '#d97706', icon: <Clock size={14} /> },
+    pending:          { label: 'Processing',   bg: '#fef3c7', color: '#d97706', icon: <Clock size={14} /> },
     pending_payment:  { label: 'Awaiting Pay', bg: '#f0f9ff', color: '#0284c7', icon: <Clock size={14} /> },
     failed:           { label: 'Failed',       bg: '#fee2e2', color: '#dc2626', icon: <XCircle size={14} /> },
     cancelled:        { label: 'Cancelled',    bg: '#f1f5f9', color: '#64748b', icon: <XCircle size={14} /> },
