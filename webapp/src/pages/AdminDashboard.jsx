@@ -474,6 +474,35 @@ const AdminDashboard = () => {
                                     }}
                                 />
                             </div>
+                            {tab === 'transactions' && (
+                                <select 
+                                    value={statusFilter}
+                                    onChange={(e) => setStatusFilter(e.target.value)}
+                                    style={{ padding: '0 16px', borderRadius: 16, border: '1px solid #e2e8f0', outline: 'none', fontWeight: 800, color: '#475569' }}
+                                    className="mobile-full-width"
+                                >
+                                    <option value="all">All Records</option>
+                                    <option value="deposit">Deposits</option>
+                                    <option value="purchase">Purchases</option>
+                                    <option value="success">Success Status</option>
+                                    <option value="failed">Failed Status</option>
+                                    <option value="pending">Pending Status</option>
+                                </select>
+                            )}
+                            {tab === 'orders' && (
+                                <select 
+                                    value={statusFilter}
+                                    onChange={(e) => setStatusFilter(e.target.value)}
+                                    style={{ padding: '0 16px', borderRadius: 16, border: '1px solid #e2e8f0', outline: 'none', fontWeight: 800, color: '#475569' }}
+                                    className="mobile-full-width"
+                                >
+                                    <option value="all">All Orders</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="pending">Processing</option>
+                                    <option value="pending_payment">Pending Payment</option>
+                                    <option value="failed">Failed</option>
+                                </select>
+                            )}
                         </div>
                     </div>
                 )}
@@ -624,11 +653,13 @@ const AdminDashboard = () => {
                             </div>
                         </div>
 
-                        {transactions.filter(tx => 
-                            tx.description?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                            tx.user?.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            tx.reference?.toLowerCase().includes(searchTerm.toLowerCase())
-                        ).map(tx => (
+                        {transactions.filter(tx => {
+                            const matchesSearch = tx.description?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                                tx.user?.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                tx.reference?.toLowerCase().includes(searchTerm.toLowerCase());
+                            const matchesFilter = statusFilter === 'all' || tx.status === statusFilter || tx.type === statusFilter;
+                            return matchesSearch && matchesFilter;
+                        }).map(tx => (
                             <div key={tx._id} style={{ ...cardStyle, display: 'flex', justifyContent: 'space-between' }}>
                                 <div>
                                     <div style={{ fontWeight: 800, color: '#0f172a' }}>{tx.description}</div>
