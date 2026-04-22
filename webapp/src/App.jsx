@@ -45,6 +45,25 @@ const ProtectedRoute = ({ children }) => {
     return children;
 };
 
+const AdminRoute = ({ children }) => {
+    const { user, loading } = useAuth();
+    if (loading) return (
+        <div style={{
+            minHeight: '100vh', display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center', background: '#f8fafc'
+        }}>
+            <div style={{
+                width: 48, height: 48, border: '4px solid #e2e8f0',
+                borderTopColor: '#ef4444', borderRadius: '50%',
+                animation: 'spin 0.8s linear infinite', marginBottom: 20
+            }}></div>
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
+    );
+    if (!user || user.role !== 'admin') return <Navigate to="/dashboard" />;
+    return children;
+};
+
 function AppContent() {
     const location = useLocation();
     const query = new URLSearchParams(location.search);
@@ -96,8 +115,8 @@ function AppContent() {
                 <Route path="/orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
                 <Route path="/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-                <Route path="/admin/support" element={<ProtectedRoute><AdminSupport /></ProtectedRoute>} />
+                <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+                <Route path="/admin/support" element={<AdminRoute><AdminSupport /></AdminRoute>} />
                 <Route path="/support" element={<ProtectedRoute><SupportPage /></ProtectedRoute>} />
                 <Route path="/agent" element={<ProtectedRoute><AgentPage /></ProtectedRoute>} />
                 <Route path="/referrals" element={<ProtectedRoute><Referrals /></ProtectedRoute>} />
