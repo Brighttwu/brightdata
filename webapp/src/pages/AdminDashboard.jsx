@@ -739,24 +739,26 @@ const AdminDashboard = () => {
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
                                         <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600 }}>Ref: {o.externalReference}</div>
                                         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                                            <select 
-                                                value={o.status} 
-                                                onChange={async (e) => {
-                                                    const newStatus = e.target.value;
-                                                    try {
-                                                        await api.post(`/admin/order-status/${o._id}`, { status: newStatus });
-                                                        alert(`Order updated to ${newStatus}`);
-                                                        handleRefresh();
-                                                    } catch (err) { alert('Failed to update status'); }
-                                                }}
-                                                style={{ padding: '6px', borderRadius: 6, fontSize: 11, fontWeight: 700, border: '1px solid #e2e8f0', outline: 'none', background: '#f8fafc', color: '#0f172a' }}
-                                            >
-                                                <option value="pending_payment">Pending Payment</option>
-                                                <option value="pending">Processing</option>
-                                                <option value="completed">Completed</option>
-                                                <option value="failed">Failed</option>
-                                                <option value="cancelled">Cancelled</option>
-                                            </select>
+                                            {(o.status === 'pending' || o.status === 'completed') && (
+                                                <button 
+                                                    onClick={async () => {
+                                                        const newStatus = o.status === 'pending' ? 'completed' : 'pending';
+                                                        if (!window.confirm(`Mark order as ${newStatus === 'completed' ? 'Completed' : 'Processing'}?`)) return;
+                                                        try {
+                                                            await api.post(`/admin/order-status/${o._id}`, { status: newStatus });
+                                                            handleRefresh();
+                                                        } catch (err) { alert('Failed to update status'); }
+                                                    }}
+                                                    style={{ 
+                                                        padding: '6px 12px', borderRadius: 8, fontSize: 11, fontWeight: 800, cursor: 'pointer', border: 'none',
+                                                        background: o.status === 'completed' ? '#16a34a' : '#e2e8f0',
+                                                        color: o.status === 'completed' ? '#fff' : '#64748b',
+                                                        transition: 'all 0.2s'
+                                                    }}
+                                                >
+                                                    {o.status === 'completed' ? '✓ Completed' : 'Mark Complete'}
+                                                </button>
+                                            )}
                                         {o.status === 'pending_payment' && (
                                             <button 
                                                 onClick={async () => {

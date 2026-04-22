@@ -36,7 +36,7 @@ router.get('/stats', adminAuth, async (req, res) => {
 
         const totalUsers = await User.countDocuments();
         const totalAgents = await User.countDocuments({ role: { $in: ['agent', 'store'] } });
-        const totalOrders = await Order.countDocuments();
+        const totalOrders = await Order.countDocuments({ status: { $in: ['completed', 'pending'] }, createdAt: { $gte: dateLimit } });
         
         // Sum of all user balances
         const walletTotals = await User.aggregate([
