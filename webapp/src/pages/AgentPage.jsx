@@ -13,7 +13,7 @@ const AgentPage = () => {
     const [dashboard, setDashboard] = useState({ profits: [], totalProfit: 0, totalSales: 0, store: null, unverifiedOrders: [], commissionBalance: 0 });
     const [packages, setPackages] = useState([]);
     const [selectedNetwork, setSelectedNetwork] = useState('mtn');
-    const [storeForm, setStoreForm] = useState({ slug: '', name: '', description: '', whatsapp: '', groupLink: '', logo: '', theme: 'classic' });
+    const [storeForm, setStoreForm] = useState({ slug: '', name: '', description: '', whatsapp: '', groupLink: '', logo: '', theme: 'classic', notification: '' });
     const [customPrices, setCustomPrices] = useState({});
     const [withdrawals, setWithdrawals] = useState([]);
     const [withdrawForm, setWithdrawForm] = useState({ amount: '', phone: user?.momoNumber || '', network: 'mtn' });
@@ -48,7 +48,8 @@ const AgentPage = () => {
                     whatsapp: res.data.store.whatsapp || '',
                     groupLink: res.data.store.groupLink || '',
                     logo: res.data.store.logo || '',
-                    theme: res.data.store.theme || 'classic'
+                    theme: res.data.store.theme || 'classic',
+                    notification: res.data.store.notification || ''
                 });
                 const priceMap = {};
                 (res.data.store.customPrices || []).forEach(cp => {
@@ -443,6 +444,7 @@ const AgentPage = () => {
                                 <input value={storeForm.groupLink} onChange={e => setStoreForm(p => ({ ...p, groupLink: e.target.value }))} placeholder="WhatsApp Community Group Link" style={{ padding: 14, borderRadius: 12, border: '2px solid #f1f5f9', outline: 'none', fontWeight: 700 }} />
                             </div>
                             <textarea value={storeForm.description} onChange={e => setStoreForm(p => ({ ...p, description: e.target.value }))} placeholder="Description..." rows={3} style={{ padding: 14, borderRadius: 12, border: '2px solid #f1f5f9', outline: 'none', fontWeight: 600 }} />
+                            <textarea value={storeForm.notification} onChange={e => setStoreForm(p => ({ ...p, notification: e.target.value }))} placeholder="Global Notification / Alert for your buyers (e.g. 'MTN data is slow today, please use AT'). Leave blank for none." rows={2} style={{ padding: 14, borderRadius: 12, border: '2px solid #f59e0b', background: '#fffbeb', outline: 'none', fontWeight: 700, marginTop: 4 }} />
                             
                             <div style={{ marginTop: 10 }}>
                                 <label style={{ display: 'block', fontSize: 13, fontWeight: 800, color: '#64748b', marginBottom: 12, textTransform: 'uppercase' }}>Store Logo</label>

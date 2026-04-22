@@ -16,6 +16,7 @@ const StoreSchema = new mongoose.Schema({
     groupLink: { type: String, default: '' }, // WhatsApp Group Link
     logo: { type: String, default: '' }, // URL or base64
     theme: { type: String, enum: ['classic', 'modern', 'dark', 'sunset', 'eco', 'ocean', 'luxury'], default: 'classic' },
+    notification: { type: String, default: '' }, // Global notification for store customers
     customPrices: [StorePricingSchema],
     totalProfit: { type: Number, default: 0 },
     totalSales: { type: Number, default: 0 },

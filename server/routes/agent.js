@@ -97,7 +97,7 @@ router.post('/store', auth, async (req, res) => {
         if (!['agent', 'store', 'admin'].includes(user.role)) {
             return res.status(403).json({ message: 'Only agents can create a store.' });
         }
-        const { slug, name, description, whatsapp, groupLink, logo, theme } = req.body;
+        const { slug, name, description, whatsapp, groupLink, logo, theme, notification } = req.body;
         if (!slug || !name) return res.status(400).json({ message: 'Store slug and name are required.' });
         
         const cleanSlug = slug.toLowerCase().replace(/[^a-z0-9-]/g, '-').trim();
@@ -119,7 +119,7 @@ router.post('/store', auth, async (req, res) => {
 
         const store = await Store.findOneAndUpdate(
             { agent: user._id },
-            { slug: cleanSlug, name, description, whatsapp, groupLink, logo: finalLogo, theme, updatedAt: Date.now() },
+            { slug: cleanSlug, name, description, whatsapp, groupLink, logo: finalLogo, theme, notification, updatedAt: Date.now() },
             { upsert: true, new: true, runValidators: true }
         );
         if (user.role === 'agent') { user.role = 'store'; await user.save(); }

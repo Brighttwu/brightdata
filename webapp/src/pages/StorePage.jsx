@@ -520,6 +520,14 @@ const StorePage = () => {
             {/* ── MAIN CONTENT ──────────────────────────────────────── */}
             <div className="store-content" style={{ maxWidth: 800, margin: '0 auto', padding: '28px 16px', display: 'flex', flexDirection: 'column', gap: 20, paddingBottom: 80 }}>
 
+                {/* Agent Store Notification */}
+                {store?.notification && (
+                    <div style={{ background: isDark && !isOcean ? '#1e293b' : '#fffbeb', border: `1px solid ${isDark && !isOcean ? '#334155' : '#fcd34d'}`, borderRadius: t.radius, padding: '16px 20px', display: 'flex', alignItems: 'flex-start', gap: 12, color: isDark && !isOcean ? '#e2e8f0' : '#92400e', boxShadow: t.shadow, backdropFilter: isOcean ? 'blur(10px)' : 'none' }}>
+                        <AlertCircle size={22} color={isDark && !isOcean ? '#fcd34d' : '#ea580c'} style={{ flexShrink: 0, marginTop: 2 }} />
+                        <div style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.6 }}>{store.notification}</div>
+                    </div>
+                )}
+
                 {/* Price protection warning */}
                 {packages.some(p => p.isPriceWarning) && (
                     <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: t.radius, padding: '14px 18px', display: 'flex', alignItems: 'flex-start', gap: 12, color: '#9a3412' }}>
