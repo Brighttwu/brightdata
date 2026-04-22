@@ -7,22 +7,6 @@ const multer = require('multer');
 const cloudinary = require('../utils/cloudinary');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: 'support_media',
-    allowed_formats: ['jpg', 'png', 'jpeg', 'gif'],
-  },
-});
-
-const upload = multer({ storage: storage });
-
-// Upload image route
-router.post('/upload', auth, upload.single('image'), (req, res) => {
-    if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
-    res.json({ imageUrl: req.file.path });
-});
-
 // Auth Middleware
 const auth = (req, res, next) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
@@ -58,6 +42,22 @@ const adminAuth = (req, res, next) => {
         res.status(401).json({ message: 'Token is not valid' });
     }
 };
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'support_media',
+    allowed_formats: ['jpg', 'png', 'jpeg', 'gif'],
+  },
+});
+
+const upload = multer({ storage: storage });
+
+// Upload image route
+router.post('/upload', auth, upload.single('image'), (req, res) => {
+    if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
+    res.json({ imageUrl: req.file.path });
+});
 
 // Send a message (User View)
 router.post('/send', auth, async (req, res) => {
