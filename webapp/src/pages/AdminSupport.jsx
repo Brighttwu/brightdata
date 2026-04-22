@@ -50,6 +50,15 @@ const AdminSupport = () => {
                     if (conv) {
                         setSelectedUser(conv.userDetails);
                         fetchMessages(conv._id);
+                    } else {
+                        // User hasn't messaged before, fetch their details directly
+                        try {
+                            const userRes = await api.get(`/admin/user/${userId}`);
+                            setSelectedUser(userRes.data);
+                            setMessages([]); // No messages yet
+                        } catch (err) {
+                            console.error('Failed to fetch user details for new chat');
+                        }
                     }
                 }
             } catch (err) {

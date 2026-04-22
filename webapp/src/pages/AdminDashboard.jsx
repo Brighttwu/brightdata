@@ -674,22 +674,30 @@ const AdminDashboard = () => {
                                         {tx.user?.email} • {new Date(tx.createdAt).toLocaleString()} • 
                                         <span style={{ fontWeight: 700, color: tx.status === 'success' ? '#16a34a' : (tx.status === 'pending' ? '#f59e0b' : '#dc2626') }}> {tx.status.toUpperCase()}</span>
                                     </div>
-                                    {tx.status === 'pending' && tx.reference?.startsWith('BH_') && (
+                                    <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
                                         <button 
-                                            onClick={async () => {
-                                                try {
-                                                    const res = await api.get(`/payment/verify/${tx.reference}`);
-                                                    alert(res.data.message || 'Verified!');
-                                                    fetchData();
-                                                } catch (e) {
-                                                    alert('Verification failed: ' + (e.response?.data?.message || e.message));
-                                                }
-                                            }}
-                                            style={{ marginTop: 8, padding: '4px 10px', borderRadius: 6, border: 'none', background: '#f59e0b', color: '#fff', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}
+                                            onClick={() => window.location.href = `/admin/support?user=${tx.user?._id || tx.user}`}
+                                            style={{ border: 'none', background: '#eff6ff', color: '#4f46e5', padding: '4px 10px', borderRadius: 6, cursor: 'pointer', fontWeight: 800, fontSize: 11, display: 'flex', alignItems: 'center', gap: 4 }}
                                         >
-                                            Verify Transaction
+                                            <MessageSquare size={11} /> Chat
                                         </button>
-                                    )}
+                                        {tx.status === 'pending' && tx.reference?.startsWith('BH_') && (
+                                            <button 
+                                                onClick={async () => {
+                                                    try {
+                                                        const res = await api.get(`/payment/verify/${tx.reference}`);
+                                                        alert(res.data.message || 'Verified!');
+                                                        fetchData();
+                                                    } catch (e) {
+                                                        alert('Verification failed: ' + (e.response?.data?.message || e.message));
+                                                    }
+                                                }}
+                                                style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: '#f59e0b', color: '#fff', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}
+                                            >
+                                                Verify
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                                 <div style={{ textAlign: 'right', fontWeight: 900, color: tx.type === 'deposit' ? '#16a34a' : '#0f172a' }}>
                                     {tx.type === 'deposit' ? '+' : '-'}₵{(tx.amount || 0).toFixed(2)}
@@ -778,6 +786,12 @@ const AdminDashboard = () => {
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
                                         <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600 }}>Ref: {o.externalReference}</div>
                                         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                            <button 
+                                                onClick={() => window.location.href = `/admin/support?user=${o.user?._id || o.user}`}
+                                                style={{ border: 'none', background: '#eff6ff', color: '#4f46e5', padding: '6px 12px', borderRadius: 8, cursor: 'pointer', fontWeight: 800, fontSize: 11, display: 'flex', alignItems: 'center', gap: 4 }}
+                                            >
+                                                <MessageSquare size={12} /> Chat
+                                            </button>
                                             {(o.status === 'pending' || o.status === 'completed') && (
                                                 <button 
                                                     onClick={async () => {
