@@ -1,16 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
-import { Send, User, ChevronRight, Search, MessageSquare, Clock, ArrowLeft, Shield, CheckCheck, Check } from 'lucide-react';
+import { Send, User, ChevronRight, Search, MessageSquare, Clock, ArrowLeft, Shield, CheckCheck, Check, Image as ImageIcon, X } from 'lucide-react';
 
 const AdminSupport = () => {
     const [conversations, setConversations] = useState([]);
     const [selectedUser, setSelectedUser] = useState(null);
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
+    const [uploadedImage, setUploadedImage] = useState('');
     const [loading, setLoading] = useState(true);
     const [messagesLoading, setMessagesLoading] = useState(false);
     const [sending, setSending] = useState(false);
+    const [uploading, setUploading] = useState(false);
     const [search, setSearch] = useState('');
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const messagesEndRef = useRef(null);
@@ -21,38 +23,12 @@ const AdminSupport = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const fetchConversations = async () => {
-        try {
-            const res = await api.get('/support/admin/conversations');
-            setConversations(res.data);
-            setLoading(false);
-
-            // Auto-select user if ID is in URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const userId = urlParams.get('user');
-            if (userId && !selectedUser) {
-                const conv = res.data.find(c => c._id === userId);
-                if (conv) {
-                    setSelectedUser(conv.userDetails);
-                    fetchMessages(conv._id);
-                } else {
-                    // If no message from user yet, we could potentially fetch user details separately
-                    // but for now let's just assume they have messages.
-                }
-            }
-        } catch (err) {
-            console.error('Failed to fetch conversations');
-            setLoading(false);
-        }
-    };
-
     const fetchMessages = async (userId) => {
         setMessagesLoading(true);
         try {
             const res = await api.get(`/support/admin/messages/${userId}`);
             setMessages(res.data);
             setMessagesLoading(false);
-            // Update conversation unread count locally
             setConversations(prev => prev.map(c => c._id === userId ? { ...c, unreadCount: 0 } : c));
         } catch (err) {
             console.error('Failed to fetch messages');
@@ -61,6 +37,27 @@ const AdminSupport = () => {
     };
 
     useEffect(() => {
+        const fetchConversations = async () => {
+            try {
+                const res = await api.get('/support/admin/conversations');
+                setConversations(res.data);
+                setLoading(false);
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const userId = urlParams.get('user');
+                if (userId) {
+                    const conv = res.data.find(c => c._id === userId);
+                    if (conv) {
+                        setSelectedUser(conv.userDetails);
+                        fetchMessages(conv._id);
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to fetch conversations');
+                setLoading(false);
+            }
+        };
+
         fetchConversations();
         const interval = setInterval(() => {
             fetchConversations();
@@ -69,7 +66,7 @@ const AdminSupport = () => {
             }
         }, 5000);
         return () => clearInterval(interval);
-    }, [selectedUser]);
+    }, [selectedUser, window.location.search]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -80,15 +77,39 @@ const AdminSupport = () => {
         fetchMessages(conv._id);
     };
 
+    const handleImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('image', file);
+
+        setUploading(true);
+        try {
+            const res = await api.post('/support/upload', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            setUploadedImage(res.data.imageUrl);
+        } catch (err) {
+            alert('Image upload failed');
+        } finally {
+            setUploading(false);
+        }
+    };
+
     const handleSendMessage = async (e) => {
         e.preventDefault();
-        if (!newMessage.trim() || !selectedUser) return;
+        if (!newMessage.trim() && !uploadedImage || !selectedUser) return;
 
         setSending(true);
         try {
-            const res = await api.post(`/support/admin-reply/${selectedUser._id}`, { message: newMessage });
+            const res = await api.post(`/support/admin-reply/${selectedUser._id}`, { 
+                message: newMessage, 
+                image: uploadedImage 
+            });
             setMessages([...messages, res.data]);
             setNewMessage('');
+            setUploadedImage('');
             setSending(false);
         } catch (err) {
             console.error('Failed to send reply');
@@ -271,6 +292,20 @@ const AdminSupport = () => {
                                                 lineHeight: 1.5,
                                                 border: isMe ? 'none' : '1px solid #e2e8f0'
                                             }}>
+                                                {msg.image && (
+                                                    <img 
+                                                        src={msg.image} 
+                                                        alt="support" 
+                                                        style={{ 
+                                                            width: '100%', 
+                                                            maxHeight: 300,
+                                                            objectFit: 'contain',
+                                                            borderRadius: 8, 
+                                                            marginBottom: msg.message ? 8 : 0,
+                                                            display: 'block'
+                                                        }} 
+                                                    />
+                                                )}
                                                 {msg.message}
                                             </div>
                                             <div style={{ fontSize: 9, color: '#94a3b8', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -287,40 +322,68 @@ const AdminSupport = () => {
                         </div>
 
                         {/* Footer Input */}
-                        <form onSubmit={handleSendMessage} style={{ padding: 16, borderTop: '1px solid #e2e8f0', display: 'flex', gap: 12 }}>
-                            <input 
-                                type="text"
-                                placeholder="Write a reply..."
-                                value={newMessage}
-                                onChange={(e) => setNewMessage(e.target.value)}
-                                style={{ 
-                                    flex: 1, 
-                                    padding: '12px 16px', 
-                                    borderRadius: 10, 
-                                    border: '1px solid #e2e8f0',
-                                    fontSize: 14,
-                                    outline: 'none'
-                                }}
-                            />
-                            <button 
-                                type="submit"
-                                disabled={sending || !newMessage.trim()}
-                                style={{ 
-                                    width: 44, 
-                                    height: 44, 
-                                    borderRadius: 10, 
-                                    background: '#4f46e5', 
-                                    color: '#fff', 
-                                    border: 'none', 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
-                                    justifyContent: 'center',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                <Send size={18} />
-                            </button>
-                        </form>
+                        <div style={{ background: '#fff', borderTop: '1px solid #e2e8f0', padding: '16px 20px' }}>
+                            <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: 12, alignItems: 'center', maxWidth: 800, margin: '0 auto' }}>
+                                {uploadedImage && (
+                                    <div style={{ position: 'relative', width: 50, height: 50, borderRadius: 10, overflow: 'hidden', border: '2px solid #4f46e5', flexShrink: 0 }}>
+                                        <img src={uploadedImage} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        <button 
+                                            type="button"
+                                            onClick={() => setUploadedImage('')}
+                                            style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(0,0,0,0.5)', color: '#fff', border: 'none', borderRadius: '50%', width: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                                        >
+                                            <X size={8} />
+                                        </button>
+                                    </div>
+                                )}
+
+                                <input 
+                                    type="file" 
+                                    id="admin-image-upload" 
+                                    hidden 
+                                    onChange={handleImageUpload} 
+                                    accept="image/*"
+                                />
+                                <label 
+                                    htmlFor="admin-image-upload"
+                                    style={{ 
+                                        width: 44, height: 44, borderRadius: '50%', background: '#f8fafc', color: '#64748b', 
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid #e2e8f0', flexShrink: 0
+                                    }}
+                                >
+                                    {uploading ? (
+                                        <div style={{ width: 18, height: 18, border: '2px solid #e2e8f0', borderTopColor: '#4f46e5', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }}></div>
+                                    ) : (
+                                        <ImageIcon size={20} />
+                                    )}
+                                </label>
+
+                                <textarea 
+                                    value={newMessage}
+                                    onChange={(e) => setNewMessage(e.target.value)}
+                                    placeholder={uploadedImage ? "Add a caption..." : "Write a reply..."}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault();
+                                            handleSendMessage(e);
+                                        }
+                                    }}
+                                    style={{ flex: 1, padding: '12px 16px', borderRadius: 14, border: '1.5px solid #e2e8f0', outline: 'none', resize: 'none', fontSize: 14, fontFamily: 'inherit', maxHeight: 100 }}
+                                />
+                                <button 
+                                    type="submit" 
+                                    disabled={sending || (!newMessage.trim() && !uploadedImage)}
+                                    style={{ 
+                                        width: 44, height: 44, borderRadius: '50%', background: sending || (!newMessage.trim() && !uploadedImage) ? '#e2e8f0' : '#4f46e5', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 
+                                    }}
+                                >
+                                    <Send size={18} />
+                                </button>
+                            </form>
+                        </div>
+                        <style>{`
+                            @keyframes spin { to { transform: rotate(360deg); } }
+                        `}</style>
                     </div>
                 ) : (
                     <div style={{ flex: 1, display: isMobile ? 'none' : 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', color: '#94a3b8' }}>

@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
-import { Send, User, Shield, ArrowLeft, MessageSquare, Clock, Check, CheckCheck } from 'lucide-react';
+import { Send, User, Shield, ArrowLeft, MessageSquare, Clock, Check, CheckCheck, Image as ImageIcon, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const SupportPage = () => {
     const { user } = useAuth();
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
+    const [uploadedImage, setUploadedImage] = useState('');
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
+    const [uploading, setUploading] = useState(false);
     const messagesEndRef = useRef(null);
     const navigate = useNavigate();
 
@@ -38,15 +40,39 @@ const SupportPage = () => {
         scrollToBottom();
     }, [messages]);
 
+    const handleImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('image', file);
+
+        setUploading(true);
+        try {
+            const res = await api.post('/support/upload', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            setUploadedImage(res.data.imageUrl);
+        } catch (err) {
+            alert('Image upload failed');
+        } finally {
+            setUploading(false);
+        }
+    };
+
     const handleSendMessage = async (e) => {
         e.preventDefault();
-        if (!newMessage.trim()) return;
+        if (!newMessage.trim() && !uploadedImage) return;
 
         setSending(true);
         try {
-            const res = await api.post('/support/send', { message: newMessage });
+            const res = await api.post('/support/send', { 
+                message: newMessage, 
+                image: uploadedImage 
+            });
             setMessages([...messages, res.data]);
             setNewMessage('');
+            setUploadedImage('');
             setSending(false);
         } catch (err) {
             console.error('Failed to send message');
@@ -152,6 +178,18 @@ const SupportPage = () => {
                                     wordBreak: 'break-word',
                                     border: isMe ? 'none' : '1px solid #e2e8f0'
                                 }} className="support-message-bubble">
+                                    {msg.image && (
+                                        <img 
+                                            src={msg.image} 
+                                            alt="upload" 
+                                            style={{ 
+                                                width: '100%', 
+                                                borderRadius: 12, 
+                                                marginBottom: msg.message ? 8 : 0,
+                                                display: 'block'
+                                            }} 
+                                        />
+                                    )}
                                     {msg.message}
                                 </div>
                                 <div style={{ 
@@ -194,10 +232,44 @@ const SupportPage = () => {
                         alignItems: 'center'
                     }}
                 >
+                    {/* Image Preview */}
+                    {uploadedImage && (
+                        <div style={{ position: 'relative', width: 60, height: 60, borderRadius: 12, overflow: 'hidden', border: '2px solid #4f46e5' }}>
+                            <img src={uploadedImage} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <button 
+                                onClick={() => setUploadedImage('')}
+                                style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(0,0,0,0.5)', color: '#fff', border: 'none', borderRadius: '50%', width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                            >
+                                <X size={10} />
+                            </button>
+                        </div>
+                    )}
+                    
+                    <input 
+                        type="file" 
+                        id="image-upload" 
+                        hidden 
+                        onChange={handleImageUpload} 
+                        accept="image/*"
+                    />
+                    <label 
+                        htmlFor="image-upload"
+                        style={{ 
+                            width: 44, height: 44, borderRadius: '50%', background: '#f8fafc', color: '#64748b', 
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid #e2e8f0'
+                        }}
+                    >
+                        {uploading ? (
+                            <div style={{ width: 18, height: 18, border: '2px solid #e2e8f0', borderTopColor: '#4f46e5', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }}></div>
+                        ) : (
+                            <ImageIcon size={20} />
+                        )}
+                    </label>
+
                     <textarea 
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
-                        placeholder="Type your message..."
+                        placeholder={uploadedImage ? "Add a caption..." : "Type your message..."}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault();
@@ -222,18 +294,18 @@ const SupportPage = () => {
                     />
                     <button 
                         type="submit"
-                        disabled={sending || !newMessage.trim()}
+                        disabled={sending || (!newMessage.trim() && !uploadedImage)}
                         style={{ 
                             width: 46, 
                             height: 46, 
                             borderRadius: '50%', 
-                            background: sending || !newMessage.trim() ? '#e2e8f0' : '#4f46e5',
+                            background: sending || (!newMessage.trim() && !uploadedImage) ? '#e2e8f0' : '#4f46e5',
                             color: '#fff',
                             border: 'none',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            cursor: sending || !newMessage.trim() ? 'default' : 'pointer',
+                            cursor: sending || (!newMessage.trim() && !uploadedImage) ? 'default' : 'pointer',
                             transition: 'all 0.2s'
                         }}
                     >
@@ -241,6 +313,9 @@ const SupportPage = () => {
                     </button>
                 </form>
             </div>
+            <style>{`
+                @keyframes spin { to { transform: rotate(360deg); } }
+            `}</style>
         </div>
     );
 };

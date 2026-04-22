@@ -856,7 +856,7 @@ const AdminDashboard = () => {
                                     </div>
                                     <div style={{ display: 'flex', gap: 8 }}>
                                         <button 
-                                            onClick={() => window.location.href = `/admin/support?user=${o.user?._id}`}
+                                            onClick={() => window.location.href = `/admin/support?user=${o.user?._id || o.user}`}
                                             style={{ padding: '10px 16px', borderRadius: 10, border: 'none', background: '#eff6ff', color: '#4f46e5', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
                                         >
                                             <MessageSquare size={16} /> Chat

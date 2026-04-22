@@ -62,7 +62,8 @@ const Navbar = ({ unreadCount = 0, communityLink = '#' }) => {
                         position: 'absolute', top: -5, right: -5,
                         background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 900,
                         width: 16, height: 16, borderRadius: '50%', display: 'flex',
-                        alignItems: 'center', justifyContent: 'center', border: '1.5px solid #fff'
+                        alignItems: 'center', justifyContent: 'center', border: '1.5px solid #fff',
+                        animation: 'pulse-red 2s infinite'
                     }}>{badge}</div>
                 )}
             </div>
@@ -89,6 +90,13 @@ const Navbar = ({ unreadCount = 0, communityLink = '#' }) => {
 
     return (
         <>
+            <style>{`
+                @keyframes pulse-red {
+                    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+                    70% { transform: scale(1.1); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+                    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+                }
+            `}</style>
             <nav style={{
                 background: 'rgba(255,255,255,0.95)',
                 backdropFilter: 'blur(12px)',
@@ -136,7 +144,6 @@ const Navbar = ({ unreadCount = 0, communityLink = '#' }) => {
                                     {desktopNavLink('/admin?tab=withdrawals', 'Withdrawals', 'withdrawals')}
                                     {desktopNavLink('/admin?tab=settings', 'Settings', 'settings')}
                                     {desktopNavLink('/admin/support', 'Support', null, unreadCount)}
-                                    {desktopNavLink(communityLink, 'Community', null, 0, true)}
                                     {desktopNavLink('/developer', 'API')}
                                     
                                     <Link to="/dashboard" style={{
@@ -159,7 +166,6 @@ const Navbar = ({ unreadCount = 0, communityLink = '#' }) => {
                                     {desktopNavLink('/agent', 'Agent')}
                                     {desktopNavLink('/referrals', 'Refer')}
                                     {desktopNavLink('/support', 'Support', null, unreadCount)}
-                                    {desktopNavLink(communityLink, 'Community', null, 0, true)}
                                     {desktopNavLink('/developer', 'API')}
                                     <Link to="/wallet" style={{
                                         display: 'flex', alignItems: 'center', gap: 6,
@@ -247,10 +253,6 @@ const Navbar = ({ unreadCount = 0, communityLink = '#' }) => {
                                 {navLink('/admin?tab=withdrawals', 'Payout Requests', <DollarSign size={20} style={{ color: '#10b981' }} />, 'withdrawals')}
                                 {navLink('/admin?tab=settings', 'Settings', <Settings size={20} style={{ color: '#64748b' }} />, 'settings')}
                                 {navLink('/admin/support', 'Support Chat', <MessageCircle size={20} style={{ color: '#4f46e5' }} />, null, unreadCount)}
-                                <a href={communityLink} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 16, fontWeight: 700, color: '#334155', textDecoration: 'none', padding: '14px 0', borderBottom: '1px solid #f1f5f9' }}>
-                                    <Globe size={20} style={{ color: '#10b981' }} /> Community Group
-                                    <ArrowRight size={16} style={{ marginLeft: 'auto', color: '#cbd5e1' }} />
-                                </a>
                                 {navLink('/developer', 'API Docs', <Code size={20} style={{ color: '#6366f1' }} />)}
                                 
                                 {navLink('/dashboard', 'Switch to User View', <Home size={20} style={{ color: '#64748b' }} />)}
@@ -280,10 +282,6 @@ const Navbar = ({ unreadCount = 0, communityLink = '#' }) => {
                                 {navLink('/referrals', 'Refer & Earn', <Gift size={20} style={{ color: '#4f46e5' }} />)}
                                 {navLink('/developer', 'Developers API', <Code size={20} style={{ color: '#6366f1' }} />)}
                                 {navLink('/support', 'Support Chat', <MessageCircle size={20} style={{ color: '#4f46e5' }} />, null, unreadCount)}
-                                <a href={communityLink} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 16, fontWeight: 700, color: '#334155', textDecoration: 'none', padding: '14px 0', borderBottom: '1px solid #f1f5f9' }}>
-                                    <Globe size={20} style={{ color: '#10b981' }} /> Community Group
-                                    <ArrowRight size={16} style={{ marginLeft: 'auto', color: '#cbd5e1' }} />
-                                </a>
                                 {navLink('/profile', 'My Profile', <User size={20} style={{ color: '#0ea5e9' }} />)}
                                 
                                 {user.role === 'admin' && navLink('/admin?tab=stats', 'Admin Panel', <ShieldAlert size={20} style={{ color: '#ef4444' }} />)}

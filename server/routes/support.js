@@ -3,6 +3,25 @@ const router = express.Router();
 const SupportMessage = require('../models/SupportMessage');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const cloudinary = require('../utils/cloudinary');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'support_media',
+    allowed_formats: ['jpg', 'png', 'jpeg', 'gif'],
+  },
+});
+
+const upload = multer({ storage: storage });
+
+// Upload image route
+router.post('/upload', auth, upload.single('image'), (req, res) => {
+    if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
+    res.json({ imageUrl: req.file.path });
+});
 
 // Auth Middleware
 const auth = (req, res, next) => {
@@ -43,13 +62,14 @@ const adminAuth = (req, res, next) => {
 // Send a message (User View)
 router.post('/send', auth, async (req, res) => {
     try {
-        const { message } = req.body;
-        if (!message) return res.status(400).json({ message: 'Message is required' });
+        const { message, image } = req.body;
+        if (!message && !image) return res.status(400).json({ message: 'Message or Image is required' });
 
         const newMessage = new SupportMessage({
             user: req.user._id,
             sender: req.user._id,
-            message,
+            message: message || '',
+            image: image || '',
             isAdmin: req.user.role === 'admin'
         });
 
@@ -64,14 +84,15 @@ router.post('/send', auth, async (req, res) => {
 // Admin Reply
 router.post('/admin-reply/:userId', adminAuth, async (req, res) => {
     try {
-        const { message } = req.body;
+        const { message, image } = req.body;
         const { userId } = req.params;
-        if (!message) return res.status(400).json({ message: 'Message is required' });
+        if (!message && !image) return res.status(400).json({ message: 'Message or Image is required' });
 
         const newMessage = new SupportMessage({
             user: userId,
             sender: req.user._id,
-            message,
+            message: message || '',
+            image: image || '',
             isAdmin: true
         });
 

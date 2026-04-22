@@ -20,6 +20,7 @@ import DeveloperPage from './pages/DeveloperPage';
 import SupportPage from './pages/SupportPage';
 import AdminSupport from './pages/AdminSupport';
 import ErrorBoundary from './components/ErrorBoundary';
+import FloatingCommunityButton from './components/FloatingCommunityButton';
 
 const ProtectedRoute = ({ children }) => {
     const { user, loading } = useAuth();
@@ -85,6 +86,7 @@ function AppContent() {
     return (
         <div style={{ minHeight: '100vh', background: '#fff' }}>
             {!isStore && <Navbar unreadCount={unreadCount} communityLink={communityLink} />}
+            {!isStore && <FloatingCommunityButton link={communityLink} />}
             <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
