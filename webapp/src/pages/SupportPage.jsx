@@ -130,7 +130,7 @@ const SupportPage = () => {
                         <p style={{ fontSize: 14 }}>Send a message to start a conversation with the admin.</p>
                     </div>
                 ) : (
-                {(Array.isArray(messages) ? messages : []).map((msg, i) => {
+                (Array.isArray(messages) ? messages : []).map((msg, i) => {
                         const isMe = msg.sender === (user.id || user._id);
                         return (
                             <div key={i} style={{ 
