@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import api from '../api/axios';
-import { Users, ShoppingBag, DollarSign, Wallet, ShieldAlert, Ban, PlusCircle, MinusCircle, Search, Store, ExternalLink, Power, Settings as SettingsIcon, Bell, Truck, Save, Smartphone, RefreshCw, Sparkles, TrendingUp } from 'lucide-react';
+import { Users, ShoppingBag, DollarSign, Wallet, ShieldAlert, Ban, PlusCircle, MinusCircle, Search, Store, ExternalLink, Power, Settings as SettingsIcon, Bell, Truck, Save, Smartphone, RefreshCw, Sparkles, TrendingUp, MessageSquare, Copy } from 'lucide-react';
 
 const AdminDashboard = () => {
     const [searchParams] = useSearchParams();
@@ -72,7 +72,7 @@ const AdminDashboard = () => {
                 const mapped = raw.map(p => ({
                     key: (p.package_key || p.key || p.id || '').toString().trim(),
                     name: p.display_name || p.name,
-                    apiPrice: Number(p.price)
+                    apiPrice: Number(p.bossuPrice || p.price)
                 })).sort((a,b) => a.apiPrice - b.apiPrice);
                 setPackages(mapped);
             } 
@@ -397,16 +397,16 @@ const AdminDashboard = () => {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }} className="mobile-stack">
                                 <div style={cardStyle}>
                                     <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 16 }}>Top Products</div>
-                                    {analysisData.topProducts.map((p, i) => (
+                                    {Array.isArray(analysisData?.topProducts) && analysisData.topProducts.map((p, i) => (
                                         <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f8fafc' }}>
-                                            <div style={{ fontWeight: 700, fontSize: 13 }}>{p._id.name}</div>
-                                            <div style={{ fontWeight: 800, fontSize: 13, color: '#10b981' }}>₵{p.revenue.toFixed(2)}</div>
+                                            <div style={{ fontWeight: 700, fontSize: 13 }}>{p?._id?.name || 'Unknown Bundle'}</div>
+                                            <div style={{ fontWeight: 800, fontSize: 13, color: '#10b981' }}>₵{(p?.revenue || 0).toFixed(2)}</div>
                                         </div>
                                     ))}
                                 </div>
                                 <div style={cardStyle}>
                                     <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 16 }}>Top Customers</div>
-                                    {analysisData.topUsers.map((u, i) => (
+                                    {Array.isArray(analysisData?.topUsers) && analysisData.topUsers.map((u, i) => (
                                         <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f8fafc' }}>
                                             <div style={{ fontWeight: 700, fontSize: 13 }}>{u.name}</div>
                                             <div style={{ fontWeight: 800, fontSize: 13 }}>₵{u.totalSpent.toFixed(2)}</div>
@@ -510,7 +510,7 @@ const AdminDashboard = () => {
                 {/* Users Management */}
                 {tab === 'users' && !loading && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                        {users.filter(u => 
+                        {Array.isArray(users) && users.filter(u => 
                             u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                             u.email.toLowerCase().includes(searchTerm.toLowerCase())
                         ).map(u => (
@@ -574,7 +574,7 @@ const AdminDashboard = () => {
                             ))}
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                            {packages.map(pkg => (
+                            {Array.isArray(packages) && packages.map(pkg => (
                                 <div key={pkg.key} style={{ ...cardStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', gap: 12 }} className="admin-list-card">
                                     <div style={{ flex: 1 }}>
                                         <div style={{ fontWeight: 900, fontSize: 16, color: '#0f172a' }}>
@@ -583,7 +583,7 @@ const AdminDashboard = () => {
                                         <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
                                             <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>Bossu Cost: ₵{(pkg.apiPrice || 0).toFixed(2)}</span>
                                             {(() => {
-                                                 const rule = pricingRules.find(x => 
+                                                 const rule = Array.isArray(pricingRules) && pricingRules.find(x => 
                                                      (x.packageKey || '').toString().trim().toLowerCase() === (pkg.key || '').toLowerCase() && 
                                                      (x.network || '').toLowerCase() === (selectedNetwork || '').toLowerCase()
                                                  );
@@ -659,10 +659,11 @@ const AdminDashboard = () => {
                             </div>
                         </div>
 
-                        {transactions.filter(tx => {
-                            const matchesSearch = tx.description?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                                tx.user?.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                tx.reference?.toLowerCase().includes(searchTerm.toLowerCase());
+                        {Array.isArray(transactions) && transactions.filter(tx => {
+                            const search = (searchTerm || '').toLowerCase();
+                            const matchesSearch = (tx.description || '').toLowerCase().includes(search) || 
+                                                (tx.user?.email || '').toLowerCase().includes(search) ||
+                                                (tx.reference || '').toLowerCase().includes(search);
                             const matchesFilter = statusFilter === 'all' || tx.status === statusFilter || tx.type === statusFilter;
                             return matchesSearch && matchesFilter;
                         }).map(tx => (
@@ -720,11 +721,12 @@ const AdminDashboard = () => {
                                 Sync with Bossu
                             </button>
                         </div>
-                        {orders.filter(o => {
-                            const matchesSearch = o.packageName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                                                o.phoneNumber?.includes(searchTerm) ||
-                                                o.user?.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                                o.externalReference?.toLowerCase().includes(searchTerm.toLowerCase());
+                        {Array.isArray(orders) && orders.filter(o => {
+                            const search = (searchTerm || '').toLowerCase();
+                            const matchesSearch = (o.packageName || '').toLowerCase().includes(search) || 
+                                                (o.phoneNumber || '').includes(searchTerm) ||
+                                                (o.user?.email || '').toLowerCase().includes(search) ||
+                                                (o.externalReference || '').toLowerCase().includes(search);
                             const matchesFilter = statusFilter === 'all' || o.status === statusFilter;
                             return matchesSearch && matchesFilter;
                         }).map(o => {
@@ -753,7 +755,7 @@ const AdminDashboard = () => {
                                         <div style={{ textAlign: 'right' }}>
                                             <div style={{ fontWeight: 900, fontSize: 18, color: '#4f46e5' }}>₵{(o.amount || 0).toFixed(2)}</div>
                                             <div style={{ fontSize: 11, fontWeight: 800, color: statusColor, textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 4 }}>
-                                                {o.status === 'pending' ? 'PROCESSING' : o.status.replace('_', ' ')}
+                                                {o.status === 'pending' ? 'PROCESSING' : (o.status || '').replace('_', ' ')}
                                             </div>
                                         </div>
                                     </div>
@@ -761,7 +763,7 @@ const AdminDashboard = () => {
                                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, borderTop: '1px solid #f1f5f9', paddingTop: 12 }}>
                                         <div>
                                             <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', marginBottom: 2 }}>User Account</div>
-                                            <div style={{ fontSize: 13, fontWeight: 700, color: '#1e293b', wordBreak: 'break-all' }}>{o.user?.email}</div>
+                                            <div style={{ fontSize: 13, fontWeight: 700, color: '#1e293b', wordBreak: 'break-all' }}>{o.user?.email || 'N/A'}</div>
                                         </div>
                                         <div>
                                             <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', marginBottom: 2 }}>Recipient Number</div>
@@ -831,24 +833,26 @@ const AdminDashboard = () => {
                 {/* Reports Management */}
                 {tab === 'reports' && !loading && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                        {reportedOrders.length === 0 ? (
+                        {(!Array.isArray(reportedOrders) || reportedOrders.length === 0) ? (
                             <div style={{ ...cardStyle, padding: 48, textAlign: 'center' }}>
                                 <div style={{ fontSize: 40, marginBottom: 12 }}>✅</div>
                                 <div style={{ fontWeight: 800, color: '#0f172a', fontSize: 18 }}>No reported orders</div>
                             </div>
-                        ) : reportedOrders.filter(o => 
-                            o.packageName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                            o.user?.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            o.user?.name.toLowerCase().includes(searchTerm.toLowerCase())
-                        ).map(o => (
-                            <div key={o._id} className="admin-list-card" style={{ ...cardStyle, border: '1.5px solid #fecaca' }}>
+                        ) : (Array.isArray(reportedOrders) ? reportedOrders : []).filter(o => {
+                            if (!o) return false;
+                            const search = (searchTerm || '').toLowerCase();
+                            return (o.packageName || '').toLowerCase().includes(search) || 
+                                   (o.user?.email || '').toLowerCase().includes(search) ||
+                                   (o.user?.name || '').toLowerCase().includes(search);
+                        }).map(o => (
+                            <div key={o?._id} className="admin-list-card" style={{ ...cardStyle, border: '1.5px solid #fecaca' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 12 }}>
                                     <div>
-                                        <div style={{ fontWeight: 900, fontSize: 17 }}>{o.network?.toUpperCase()} {o.packageName} — ₵{(o.amount || 0).toFixed(2)}</div>
-                                        <div style={{ fontSize: 13, color: '#64748b' }}>User: {o.user?.name} ({o.user?.email})</div>
-                                        <div style={{ fontSize: 13, color: '#0f172a', marginTop: 4, fontWeight: 700 }}>Recipient: {o.phoneNumber}</div>
-                                        <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>Ordered: {new Date(o.createdAt).toLocaleString()}</div>
-                                        <div style={{ marginTop: 8, padding: '8px 12px', background: '#fef2f2', borderRadius: 10, fontSize: 13, fontWeight: 700, color: '#dc2626' }}>Issue: {o.reportReason}</div>
+                                        <div style={{ fontWeight: 900, fontSize: 17 }}>{o?.network?.toUpperCase() || ''} {o?.packageName || ''} — ₵{(o?.amount || 0).toFixed(2)}</div>
+                                        <div style={{ fontSize: 13, color: '#64748b' }}>User: {o?.user?.name || 'Unknown'} ({o?.user?.email || 'N/A'})</div>
+                                        <div style={{ fontSize: 13, color: '#0f172a', marginTop: 4, fontWeight: 700 }}>Recipient: {o?.phoneNumber || 'N/A'}</div>
+                                        <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>Ordered: {o?.createdAt ? new Date(o.createdAt).toLocaleString() : 'N/A'}</div>
+                                        <div style={{ marginTop: 8, padding: '8px 12px', background: '#fef2f2', borderRadius: 10, fontSize: 13, fontWeight: 700, color: '#dc2626' }}>Issue: {o?.reportReason || 'N/A'}</div>
                                     </div>
                                     <div style={{ display: 'flex', gap: 8 }}>
                                         <button 
@@ -885,11 +889,12 @@ const AdminDashboard = () => {
                                 <div style={{ fontSize: 40, marginBottom: 12 }}>💸</div>
                                 <div style={{ fontWeight: 800, color: '#0f172a', fontSize: 18 }}>No payout requests</div>
                             </div>
-                        ) : withdrawals.filter(w => 
-                            w.user?.email.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                            w.user?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            w.paymentDetails?.toLowerCase().includes(searchTerm.toLowerCase())
-                        ).map(w => (
+                        ) : withdrawals.filter(w => {
+                            const search = (searchTerm || '').toLowerCase();
+                            return (w.user?.email || '').toLowerCase().includes(search) || 
+                                   (w.user?.name || '').toLowerCase().includes(search) ||
+                                   (w.paymentDetails || '').toLowerCase().includes(search);
+                        }).map(w => (
                             <div key={w._id} className="admin-list-card" style={{ ...cardStyle, border: w.status === 'pending' ? '1.5px solid #fcd34d' : '1px solid #f1f5f9' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 12 }}>
                                     <div>
@@ -933,12 +938,13 @@ const AdminDashboard = () => {
                         <div style={{ marginBottom: 12, fontSize: 13, color: '#64748b', fontWeight: 700 }}>
                             Manage agent stores and disable their dashboards if needed.
                         </div>
-                        {stores.filter(s => 
-                            s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                            s.slug.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            s.agent?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            s.agent?.email?.toLowerCase().includes(searchTerm.toLowerCase())
-                        ).map(s => (
+                        {stores.filter(s => {
+                            const search = (searchTerm || '').toLowerCase();
+                            return (s.name || '').toLowerCase().includes(search) || 
+                                   (s.slug || '').toLowerCase().includes(search) ||
+                                   (s.agent?.name || '').toLowerCase().includes(search) ||
+                                   (s.agent?.email || '').toLowerCase().includes(search);
+                        }).map(s => (
                             <div key={s._id} style={{ ...cardStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 20 }} className="admin-list-card">
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                                     <div style={{ 

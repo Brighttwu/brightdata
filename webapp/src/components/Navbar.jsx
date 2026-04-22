@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Wallet, Smartphone, Menu, X, ArrowRight, User, History, Plus, ShieldAlert, BarChart2, Users, Tag, Receipt, ShoppingCart, Home, DollarSign, Gift, Store, Settings, RefreshCw, Code } from 'lucide-react';
+import { LogOut, Wallet, Smartphone, Menu, X, ArrowRight, User, History, Plus, ShieldAlert, BarChart2, Users, Tag, Receipt, ShoppingCart, Home, DollarSign, Gift, Store, Settings, RefreshCw, Code, MessageCircle, Globe } from 'lucide-react';
 
-const Navbar = () => {
+const Navbar = ({ unreadCount = 0, communityLink = '#' }) => {
     const { user, logout, refreshProfile } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
@@ -31,28 +31,61 @@ const Navbar = () => {
         return location.pathname === path;
     };
 
-    const navLink = (to, label, icon, tabParam = null) => (
+    const navLink = (to, label, icon, tabParam = null, badge = 0) => (
         <Link to={to} onClick={() => setIsOpen(false)} style={{
             display: 'flex', alignItems: 'center', gap: 14,
             fontSize: 16, fontWeight: 700,
             color: isCurrent(to.split('?')[0], tabParam) ? '#4f46e5' : '#334155',
             textDecoration: 'none',
             padding: '14px 0',
-            borderBottom: '1px solid #f1f5f9'
+            borderBottom: '1px solid #f1f5f9',
+            position: 'relative'
         }}>
             {icon} {label}
+            {badge > 0 && (
+                <div style={{
+                    background: '#ef4444', color: '#fff', fontSize: 10, fontWeight: 900,
+                    width: 18, height: 18, borderRadius: '50%', display: 'flex',
+                    alignItems: 'center', justifyContent: 'center', marginLeft: -6, marginTop: -10
+                }}>{badge}</div>
+            )}
             <ArrowRight size={16} style={{ marginLeft: 'auto', color: '#cbd5e1' }} />
         </Link>
     );
 
-    const desktopNavLink = (to, label, tabParam = null) => (
-        <Link to={to} style={{
-            fontSize: 14, fontWeight: 700, 
-            color: isCurrent(to.split('?')[0], tabParam) ? '#4f46e5' : '#64748b', 
-            textDecoration: 'none', padding: '8px 14px', borderRadius: 10,
-            background: isCurrent(to.split('?')[0], tabParam) ? '#eef2ff' : 'transparent'
-        }}>{label}</Link>
-    );
+    const desktopNavLink = (to, label, tabParam = null, badge = 0, isExternal = false) => {
+        const Content = (
+            <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+                {label}
+                {badge > 0 && (
+                    <div style={{
+                        position: 'absolute', top: -5, right: -5,
+                        background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 900,
+                        width: 16, height: 16, borderRadius: '50%', display: 'flex',
+                        alignItems: 'center', justifyContent: 'center', border: '1.5px solid #fff'
+                    }}>{badge}</div>
+                )}
+            </div>
+        );
+
+        if (isExternal) {
+            return (
+                <a href={to} target="_blank" rel="noreferrer" style={{
+                    fontSize: 14, fontWeight: 700, color: '#64748b',
+                    textDecoration: 'none', padding: '8px 14px', borderRadius: 10
+                }}>{Content}</a>
+            );
+        }
+
+        return (
+            <Link to={to} style={{
+                fontSize: 14, fontWeight: 700, 
+                color: isCurrent(to.split('?')[0], tabParam) ? '#4f46e5' : '#64748b', 
+                textDecoration: 'none', padding: '8px 14px', borderRadius: 10,
+                background: isCurrent(to.split('?')[0], tabParam) ? '#eef2ff' : 'transparent'
+            }}>{Content}</Link>
+        );
+    };
 
     return (
         <>
@@ -102,6 +135,8 @@ const Navbar = () => {
                                     {desktopNavLink('/admin?tab=reports', 'Reports', 'reports')}
                                     {desktopNavLink('/admin?tab=withdrawals', 'Withdrawals', 'withdrawals')}
                                     {desktopNavLink('/admin?tab=settings', 'Settings', 'settings')}
+                                    {desktopNavLink('/admin/support', 'Support', null, unreadCount)}
+                                    {desktopNavLink(communityLink, 'Community', null, 0, true)}
                                     {desktopNavLink('/developer', 'API')}
                                     
                                     <Link to="/dashboard" style={{
@@ -123,6 +158,8 @@ const Navbar = () => {
                                     {desktopNavLink('/orders', 'Orders')}
                                     {desktopNavLink('/agent', 'Agent')}
                                     {desktopNavLink('/referrals', 'Refer')}
+                                    {desktopNavLink('/support', 'Support', null, unreadCount)}
+                                    {desktopNavLink(communityLink, 'Community', null, 0, true)}
                                     {desktopNavLink('/developer', 'API')}
                                     <Link to="/wallet" style={{
                                         display: 'flex', alignItems: 'center', gap: 6,
@@ -208,7 +245,12 @@ const Navbar = () => {
                                 {navLink('/admin?tab=stores', 'Agent Stores', <Store size={20} style={{ color: '#8b5cf6' }} />, 'stores')}
                                 {navLink('/admin?tab=reports', 'Reported Orders', <ShieldAlert size={20} style={{ color: '#dc2626' }} />, 'reports')}
                                 {navLink('/admin?tab=withdrawals', 'Payout Requests', <DollarSign size={20} style={{ color: '#10b981' }} />, 'withdrawals')}
-                                {navLink('/admin?tab=settings', 'Platform Settings', <Settings size={20} style={{ color: '#64748b' }} />, 'settings')}
+                                {navLink('/admin?tab=settings', 'Settings', <Settings size={20} style={{ color: '#64748b' }} />, 'settings')}
+                                {navLink('/admin/support', 'Support Chat', <MessageCircle size={20} style={{ color: '#4f46e5' }} />, null, unreadCount)}
+                                <a href={communityLink} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 16, fontWeight: 700, color: '#334155', textDecoration: 'none', padding: '14px 0', borderBottom: '1px solid #f1f5f9' }}>
+                                    <Globe size={20} style={{ color: '#10b981' }} /> Community Group
+                                    <ArrowRight size={16} style={{ marginLeft: 'auto', color: '#cbd5e1' }} />
+                                </a>
                                 {navLink('/developer', 'API Docs', <Code size={20} style={{ color: '#6366f1' }} />)}
                                 
                                 {navLink('/dashboard', 'Switch to User View', <Home size={20} style={{ color: '#64748b' }} />)}
@@ -237,6 +279,11 @@ const Navbar = () => {
                                 {navLink('/agent', 'Agent Store', <Tag size={20} style={{ color: '#10b981' }} />)}
                                 {navLink('/referrals', 'Refer & Earn', <Gift size={20} style={{ color: '#4f46e5' }} />)}
                                 {navLink('/developer', 'Developers API', <Code size={20} style={{ color: '#6366f1' }} />)}
+                                {navLink('/support', 'Support Chat', <MessageCircle size={20} style={{ color: '#4f46e5' }} />, null, unreadCount)}
+                                <a href={communityLink} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 16, fontWeight: 700, color: '#334155', textDecoration: 'none', padding: '14px 0', borderBottom: '1px solid #f1f5f9' }}>
+                                    <Globe size={20} style={{ color: '#10b981' }} /> Community Group
+                                    <ArrowRight size={16} style={{ marginLeft: 'auto', color: '#cbd5e1' }} />
+                                </a>
                                 {navLink('/profile', 'My Profile', <User size={20} style={{ color: '#0ea5e9' }} />)}
                                 
                                 {user.role === 'admin' && navLink('/admin?tab=stats', 'Admin Panel', <ShieldAlert size={20} style={{ color: '#ef4444' }} />)}

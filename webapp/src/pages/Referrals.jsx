@@ -59,9 +59,9 @@ const Referrals = () => {
         </div>
     );
 
-    const fullReferrals = stats?.referrals || [];
+    const fullReferrals = Array.isArray(stats?.referrals) ? stats.referrals : [];
     const referrals = showAll ? fullReferrals : fullReferrals.slice(0, 5);
-    const avatarHue = (name) => ((name?.charCodeAt(0) || 65) * 5) % 360;
+    const avatarHue = (name) => ((String(name || '').charCodeAt(0) || 65) * 5) % 360;
 
     return (
         <div className="ref-page">
@@ -175,8 +175,8 @@ const Referrals = () => {
                                 <span style={{ textAlign: 'right' }}>Joined</span>
                             </div>
 
-                            {referrals.map((r, i) => (
-                                <div key={r._id || i} className="ref-row" style={{ background: i % 2 === 0 ? '#fafafa' : '#fff' }}>
+                            {(Array.isArray(referrals) ? referrals : []).map((r, i) => (
+                                <div key={r?._id || i} className="ref-row" style={{ background: i % 2 === 0 ? '#fafafa' : '#fff' }}>
                                     {/* Avatar + name — always visible */}
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                         <div style={{
@@ -232,7 +232,7 @@ const Referrals = () => {
                             <div className="ref-totals-row">
                                 <span style={{ fontSize: 13, fontWeight: 900 }}>TOTAL</span>
                                 <span className="ref-desktop-col" style={{ textAlign: 'center', fontSize: 13, fontWeight: 800 }}>
-                                    {fullReferrals.reduce((s, r) => s + (r.orderCount || 0), 0)} orders
+                                    {(Array.isArray(fullReferrals) ? fullReferrals : []).reduce((s, r) => s + (r?.orderCount || 0), 0)} orders
                                 </span>
                                 <span style={{ textAlign: 'center', fontSize: 14, fontWeight: 900 }}>
                                     ₵{(stats?.totalCommissionEarned || 0).toFixed(2)}

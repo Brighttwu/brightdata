@@ -130,8 +130,8 @@ const SupportPage = () => {
                         <p style={{ fontSize: 14 }}>Send a message to start a conversation with the admin.</p>
                     </div>
                 ) : (
-                    messages.map((msg, i) => {
-                        const isMe = msg.sender === user.id || msg.sender === user._id;
+                {(Array.isArray(messages) ? messages : []).map((msg, i) => {
+                        const isMe = msg.sender === (user.id || user._id);
                         return (
                             <div key={i} style={{ 
                                 alignSelf: isMe ? 'flex-end' : 'flex-start',
@@ -150,9 +150,8 @@ const SupportPage = () => {
                                     lineHeight: 1.5,
                                     whiteSpace: 'pre-wrap',
                                     wordBreak: 'break-word',
-                                    border: isMe ? 'none' : '1px solid #e2e8f0',
-                                    className: 'support-message-bubble'
-                                }}>
+                                    border: isMe ? 'none' : '1px solid #e2e8f0'
+                                }} className="support-message-bubble">
                                     {msg.message}
                                 </div>
                                 <div style={{ 

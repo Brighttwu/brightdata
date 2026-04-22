@@ -112,11 +112,16 @@ const OrdersPage = () => {
         }
     };
 
-    const filtered = orders.filter(o =>
-        (o.phoneNumber && o.phoneNumber.includes(searchQuery)) ||
-        (o.packageName && o.packageName.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (o.network && o.network.toLowerCase().includes(searchQuery.toLowerCase()))
-    );
+    const filtered = (Array.isArray(orders) ? orders : []).filter(o => {
+        if (!o) return false;
+        const q = (searchQuery || '').toLowerCase();
+        const phoneNumber = String(o.phoneNumber || '');
+        const packageName = String(o.packageName || '').toLowerCase();
+        const network = String(o.network || '').toLowerCase();
+        return phoneNumber.includes(q) || 
+               packageName.includes(q) || 
+               network.includes(q);
+    });
 
     return (
         <div style={{ background: '#f0f2f8', minHeight: 'calc(100vh - 72px)', padding: '24px 16px', fontFamily: "'Inter', sans-serif" }}>
@@ -189,7 +194,7 @@ const OrdersPage = () => {
                     </div>
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                        {filtered.map(order => {
+                        {(Array.isArray(filtered) ? filtered : []).map(order => {
                             const isLoading = actionLoadingId === order._id;
                             return (
                                 <div key={order._id} style={{

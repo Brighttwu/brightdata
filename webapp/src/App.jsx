@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import api from './api/axios';
-import { MessageCircle } from 'lucide-react';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -20,6 +19,7 @@ import PaymentStatus from './pages/PaymentStatus';
 import DeveloperPage from './pages/DeveloperPage';
 import SupportPage from './pages/SupportPage';
 import AdminSupport from './pages/AdminSupport';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const ProtectedRoute = ({ children }) => {
     const { user, loading } = useAuth();
@@ -84,7 +84,7 @@ function AppContent() {
     const communityLink = settings?.communityLink || 'https://chat.whatsapp.com/';
     return (
         <div style={{ minHeight: '100vh', background: '#fff' }}>
-            {!isStore && <Navbar />}
+            {!isStore && <Navbar unreadCount={unreadCount} communityLink={communityLink} />}
             <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
@@ -105,60 +105,6 @@ function AppContent() {
                 <Route path="/payment-status" element={<PaymentStatus />} />
                 <Route path="*" element={<Navigate to="/dashboard" />} />
             </Routes>
-
-            {/* Global Support Floating Button */}
-            {!isStore && user && (
-                <div 
-                    onClick={() => {
-                        if (user.role === 'admin') {
-                            window.location.href = '/admin/support';
-                        } else {
-                            window.location.href = '/support';
-                        }
-                    }}
-                    style={{
-                        position: 'fixed',
-                        bottom: 24,
-                        right: 24,
-                        width: 60,
-                        height: 60,
-                        background: '#4f46e5',
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 8px 32px rgba(79,70,229,0.4)',
-                        zIndex: 9999,
-                        cursor: 'pointer',
-                        transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1) translateY(-4px)'}
-                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1) translateY(0)'}
-                >
-                    {unreadCount > 0 && (
-                        <div style={{ 
-                            position: 'absolute', 
-                            top: -5, 
-                            right: -5, 
-                            background: '#ef4444', 
-                            color: '#fff', 
-                            fontSize: 12, 
-                            fontWeight: 900, 
-                            width: 24,
-                            height: 24,
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            border: '2px solid #fff', 
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.2)' 
-                        }}>
-                            {unreadCount}
-                        </div>
-                    )}
-                    <MessageCircle size={32} color="#fff" />
-                </div>
-            )}
         </div>
     );
 }
@@ -167,7 +113,9 @@ function App() {
     return (
         <AuthProvider>
             <Router>
-                <AppContent />
+                <ErrorBoundary>
+                    <AppContent />
+                </ErrorBoundary>
             </Router>
         </AuthProvider>
     );

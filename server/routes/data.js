@@ -96,7 +96,8 @@ router.get('/packages/:network', optionalAuth, async (req, res) => {
 
         const rawPackages = response.data.data || response.data.packages || [];
         const mappedPackages = rawPackages.map(p => {
-            const apiPrice = Number(p.price);
+            // Check for cheaper price fields if available (Bossu specific)
+            const apiPrice = Number(p.agent_price || p.reseller_price || p.price);
             const pKey = (p.package_key || p.key || p.id || '').toString().trim(); // Keep original case
             const pKeyLower = pKey.toLowerCase();
             
@@ -117,6 +118,7 @@ router.get('/packages/:network', optionalAuth, async (req, res) => {
             return {
                 ...p,
                 package_key: pKey,
+                bossuPrice: apiPrice, // Raw vendor cost
                 price: Number(finalPrice.toFixed(2))
             };
         });
@@ -188,7 +190,7 @@ router.post('/buy', checkMaintenance, (req, res, next) => {
         
         if (!basePkg) return res.status(400).json({ message: 'Invalid package' });
         
-        const apiPrice = Number(basePkg.price);
+        const apiPrice = Number(basePkg.agent_price || basePkg.reseller_price || basePkg.price);
         finalAmount = apiPrice; // Default to API price
 
         if (pricing) {
@@ -320,7 +322,7 @@ router.post('/buy-paystack-init', checkMaintenance, auth, async (req, res) => {
         const basePkg = rawPackages.find(p => (p.package_key || p.key || p.id || '').toString().trim().toLowerCase() === pkgKey);
         
         if (!basePkg) return res.status(400).json({ message: 'Invalid package' });
-        const apiPrice = Number(basePkg.price);
+        const apiPrice = Number(basePkg.agent_price || basePkg.reseller_price || basePkg.price);
         finalAmount = apiPrice;
 
         if (pricing) {

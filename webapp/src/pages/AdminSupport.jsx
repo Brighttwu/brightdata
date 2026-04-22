@@ -96,10 +96,11 @@ const AdminSupport = () => {
         }
     };
 
-    const filteredConversations = conversations.filter(c => 
-        c.userDetails.name.toLowerCase().includes(search.toLowerCase()) ||
-        c.userDetails.email.toLowerCase().includes(search.toLowerCase())
-    );
+    const filteredConversations = (Array.isArray(conversations) ? conversations : []).filter(c => {
+        const searchVal = (search || '').toLowerCase();
+        return (c.userDetails?.name || '').toLowerCase().includes(searchVal) ||
+               (c.userDetails?.email || '').toLowerCase().includes(searchVal);
+    });
 
     if (loading) {
         return (
@@ -157,7 +158,7 @@ const AdminSupport = () => {
                         </div>
                     </div>
                     <div style={{ flex: 1, overflowY: 'auto' }}>
-                        {filteredConversations.map((conv) => (
+                        {(Array.isArray(filteredConversations) ? filteredConversations : []).map((conv) => (
                             <div 
                                 key={conv._id}
                                 onClick={() => handleSelectUser(conv)}
@@ -250,7 +251,7 @@ const AdminSupport = () => {
                             {messagesLoading ? (
                                 <div style={{ textAlign: 'center', padding: 20 }}>Loading...</div>
                             ) : (
-                                messages.map((msg, i) => {
+                                (Array.isArray(messages) ? messages : []).map((msg, i) => {
                                     const isMe = msg.isAdmin;
                                     return (
                                         <div key={i} style={{ 

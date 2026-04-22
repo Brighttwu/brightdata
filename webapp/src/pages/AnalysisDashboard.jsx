@@ -225,7 +225,7 @@ const AnalysisDashboard = () => {
                                                 dataKey="count"
                                                 nameKey="_id"
                                             >
-                                                {data.sourceStats.map((entry, index) => (
+                                                {(data.sourceStats || []).map((entry, index) => (
                                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                                 ))}
                                             </Pie>
@@ -262,7 +262,7 @@ const AnalysisDashboard = () => {
                                             <YAxis dataKey="_id" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 800, fill: '#64748b' }} width={80} />
                                             <Tooltip cursor={{ fill: '#f1f5f9' }} contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.05)' }} />
                                             <Bar dataKey="count" radius={[0, 8, 8, 0]} barSize={24}>
-                                                {data.networkStats.map((entry, index) => (
+                                                {(data.networkStats || []).map((entry, index) => (
                                                     <Cell key={`cell-${index}`} fill={entry._id.toLowerCase()==='mtn' ? '#f59e0b' : entry._id.toLowerCase()==='telecel' ? '#ef4444' : '#4f46e5'} />
                                                 ))}
                                             </Bar>
@@ -289,8 +289,8 @@ const AnalysisDashboard = () => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {data.topProducts.map((p, i) => (
-                                            <tr key={i} style={{ borderBottom: i < data.topProducts.length - 1 ? '1px solid #f8fafc' : 'none' }}>
+                                        {(data.topProducts || []).map((p, i) => (
+                                            <tr key={i} style={{ borderBottom: i < (data.topProducts?.length - 1 || 0) ? '1px solid #f8fafc' : 'none' }}>
                                                 <td style={{ padding: '16px' }}>
                                                     <div style={{ fontWeight: 800, fontSize: 14 }}>{p._id.name}</div>
                                                     <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>{p._id.network}</div>
