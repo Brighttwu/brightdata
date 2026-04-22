@@ -90,13 +90,6 @@ const Navbar = ({ unreadCount = 0, communityLink = '#' }) => {
 
     return (
         <>
-            <style>{`
-                @keyframes pulse-red {
-                    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-                    70% { transform: scale(1.1); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
-                    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-                }
-            `}</style>
             <nav style={{
                 background: 'rgba(255,255,255,0.95)',
                 backdropFilter: 'blur(12px)',

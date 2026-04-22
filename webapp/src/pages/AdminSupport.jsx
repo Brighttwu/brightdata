@@ -278,8 +278,10 @@ const AdminSupport = () => {
 
                         {/* Messages Area */}
                         <div style={{ flex: 1, padding: 20, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12, background: '#f8fafc' }}>
-                            {messagesLoading ? (
-                                <div style={{ textAlign: 'center', padding: 20 }}>Loading...</div>
+                            {messagesLoading && messages.length === 0 ? (
+                                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <div style={{ width: 30, height: 30, border: '3px solid #e2e8f0', borderTopColor: '#4f46e5', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }}></div>
+                                </div>
                             ) : (
                                 (Array.isArray(messages) ? messages : []).map((msg, i) => {
                                     const isMe = msg.isAdmin;
@@ -386,13 +388,14 @@ const AdminSupport = () => {
                                         width: 44, height: 44, borderRadius: '50%', background: sending || (!newMessage.trim() && !uploadedImage) ? '#e2e8f0' : '#4f46e5', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 
                                     }}
                                 >
-                                    <Send size={18} />
+                                    {sending ? (
+                                        <div style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }}></div>
+                                    ) : (
+                                        <Send size={18} />
+                                    )}
                                 </button>
                             </form>
                         </div>
-                        <style>{`
-                            @keyframes spin { to { transform: rotate(360deg); } }
-                        `}</style>
                     </div>
                 ) : (
                     <div style={{ flex: 1, display: isMobile ? 'none' : 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', color: '#94a3b8' }}>

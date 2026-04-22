@@ -84,7 +84,6 @@ const SupportPage = () => {
         return (
             <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc' }}>
                 <div style={{ width: 40, height: 40, border: '3px solid #e2e8f0', borderTopColor: '#4f46e5', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }}></div>
-                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
             </div>
         );
     }
@@ -305,17 +304,19 @@ const SupportPage = () => {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            cursor: sending || (!newMessage.trim() && !uploadedImage) ? 'default' : 'pointer',
-                            transition: 'all 0.2s'
+                            cursor: (sending || (!newMessage.trim() && !uploadedImage)) ? 'default' : 'pointer',
+                            transition: 'all 0.2s',
+                            flexShrink: 0
                         }}
                     >
-                        <Send size={20} />
+                        {sending ? (
+                            <div style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }}></div>
+                        ) : (
+                            <Send size={20} />
+                        )}
                     </button>
                 </form>
             </div>
-            <style>{`
-                @keyframes spin { to { transform: rotate(360deg); } }
-            `}</style>
         </div>
     );
 };
