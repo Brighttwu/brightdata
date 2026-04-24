@@ -174,7 +174,10 @@ const Register = () => {
                                     type="text"
                                     required
                                     value={formData.phoneNumber}
-                                    onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                                    onChange={(e) => {
+                                        const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                        setFormData({ ...formData, phoneNumber: val });
+                                    }}
                                     style={inputStyle}
                                     placeholder="05XXXXXXXX"
                                     onFocus={e => { e.target.style.background = '#fff'; e.target.style.borderColor = '#818cf8'; e.target.style.boxShadow = '0 0 0 4px rgba(79,70,229,0.08)'; }}

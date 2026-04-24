@@ -35,7 +35,7 @@ const DeveloperPage = () => {
         setTimeout(() => setCopied(false), 2000);
     };
 
-    const API_BASE = window.location.origin.includes('localhost') ? 'http://localhost:5000/api/v1' : `${window.location.origin}/api/v1`;
+    const API_BASE = window.location.origin.includes('localhost') ? 'http://localhost:5001/api/v1' : `${window.location.origin}/api/v1`;
 
     const docSections = [
         {

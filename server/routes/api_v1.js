@@ -8,7 +8,7 @@ const rateLimit = require('express-rate-limit');
 const { sendAdminFundAlert } = require('../utils/emailHelper');
 
 const API_KEY = process.env.BOSSU_API_KEY;
-const API_URL = 'https://bossudatahub.com/api/v1/data';
+const API_URL = process.env.BOSSU_API_URL;
 
 // Global rate limiter for API (100 reqs per 15 mins)
 const apiLimiter = rateLimit({
@@ -161,9 +161,9 @@ router.post('/buy', transactionLimiter, apiKeyAuth, async (req, res) => {
         }
 
         // 5. Place Order
-        const externalRef = `API_${Date.now()}_${Math.floor(Math.random()*1000)}`;
+        const externalRef = `API_BD_${Date.now()}_${Math.floor(Math.random()*1000)}`;
         const buyParams = new URLSearchParams();
-        buyParams.append('action', 'buy');
+        buyParams.append('action', 'create_order');
         buyParams.append('network', net);
         buyParams.append('package_key', pkgKey);
         buyParams.append('recipient_phone', phone);
