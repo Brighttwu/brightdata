@@ -674,10 +674,10 @@ const AdminDashboard = () => {
                                         {tx.user?.email} • {new Date(tx.createdAt).toLocaleString()} • 
                                         <span style={{ fontWeight: 700, color: tx.status === 'success' ? '#16a34a' : (tx.status === 'pending' ? '#f59e0b' : '#dc2626') }}> {tx.status.toUpperCase()}</span>
                                     </div>
-                                    <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                                    <div className="mobile-full-width" style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
                                         <button 
                                             onClick={() => window.location.href = `/admin/support?user=${tx.user?._id || tx.user}`}
-                                            style={{ border: 'none', background: '#eff6ff', color: '#4f46e5', padding: '4px 10px', borderRadius: 6, cursor: 'pointer', fontWeight: 800, fontSize: 11, display: 'flex', alignItems: 'center', gap: 4 }}
+                                            style={{ border: 'none', background: '#eff6ff', color: '#4f46e5', padding: '6px 10px', borderRadius: 6, cursor: 'pointer', fontWeight: 800, fontSize: 11, display: 'flex', alignItems: 'center', gap: 4 }}
                                         >
                                             <MessageSquare size={11} /> Chat
                                         </button>
@@ -783,9 +783,9 @@ const AdminDashboard = () => {
                                         </div>
                                     </div>
 
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
-                                        <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600 }}>Ref: {o.externalReference}</div>
-                                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                    <div className="mobile-stack" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4, gap: 12, flexWrap: 'wrap' }}>
+                                        <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, wordBreak: 'break-all' }}>Ref: {o.externalReference}</div>
+                                        <div className="mobile-full-width" style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                                             <button 
                                                 onClick={() => window.location.href = `/admin/support?user=${o.user?._id || o.user}`}
                                                 style={{ border: 'none', background: '#eff6ff', color: '#4f46e5', padding: '6px 12px', borderRadius: 8, cursor: 'pointer', fontWeight: 800, fontSize: 11, display: 'flex', alignItems: 'center', gap: 4 }}
@@ -868,7 +868,7 @@ const AdminDashboard = () => {
                                         <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>Ordered: {o?.createdAt ? new Date(o.createdAt).toLocaleString() : 'N/A'}</div>
                                         <div style={{ marginTop: 8, padding: '8px 12px', background: '#fef2f2', borderRadius: 10, fontSize: 13, fontWeight: 700, color: '#dc2626' }}>Issue: {o?.reportReason || 'N/A'}</div>
                                     </div>
-                                    <div style={{ display: 'flex', gap: 8 }}>
+                                    <div className="mobile-full-width" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                                         <button 
                                             onClick={() => window.location.href = `/admin/support?user=${o.user?._id || o.user}`}
                                             style={{ padding: '10px 16px', borderRadius: 10, border: 'none', background: '#eff6ff', color: '#4f46e5', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
