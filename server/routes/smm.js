@@ -118,14 +118,23 @@ const applyMarkup = (services) => {
 
 // Helper: Internal Sync
 async function syncServicesInternal() {
-    console.log('Syncing SMM services...');
+    console.log('Syncing SMM services start...');
+    if (!API_KEY) {
+        console.error('SMM_API_KEY is missing from environment variables!');
+        return { message: 'Provider API Key missing', count: 0 };
+    }
     const params = new URLSearchParams();
     params.append('key', API_KEY);
     params.append('action', 'services');
-    const response = await axios.post(API_URL, params);
-    const apiServices = response.data;
+    
+    try {
+        const response = await axios.post(API_URL, params);
+        const apiServices = response.data;
 
-    if (!Array.isArray(apiServices)) return { message: 'Api returned no services', count: 0 };
+        if (!Array.isArray(apiServices)) {
+            console.error('SMM Provider Error (API RESPONSE NOT ARRAY):', apiServices);
+            return { message: 'Provider API Error - see logs', count: 0 };
+        }
 
     for (const s of apiServices) {
         await SMMService.findOneAndUpdate(
@@ -144,7 +153,11 @@ async function syncServicesInternal() {
             { upsert: true }
         );
     }
-    return { message: 'Sync successful', count: apiServices.length };
+        return { message: 'Sync successful', count: apiServices.length };
+    } catch (e) {
+        console.error('SMM Sync Process Error:', e.message);
+        return { message: 'Sync process error', count: 0 };
+    }
 }
 
 // Create Order

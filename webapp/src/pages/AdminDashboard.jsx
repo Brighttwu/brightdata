@@ -64,7 +64,7 @@ const AdminDashboard = () => {
             // Users
             else if (tab === 'users') {
                 const res = await api.get('/admin/users');
-                setUsers(res.data);
+                setUsers(Array.isArray(res.data) ? res.data : []);
             } 
             // ... (rest of fetchData logic is same, just ensure dependencies include statsDays)
             else if (tab === 'pricing') {
@@ -81,23 +81,23 @@ const AdminDashboard = () => {
             } 
             else if (tab === 'transactions') {
                 const res = await api.get('/admin/transactions');
-                setTransactions(res.data);
+                setTransactions(Array.isArray(res.data) ? res.data : []);
             } 
             else if (tab === 'orders') {
                 const res = await api.get('/admin/orders');
-                setOrders(res.data);
+                setOrders(Array.isArray(res.data) ? res.data : []);
             }
             else if (tab === 'reports') {
                 const res = await api.get('/admin/reported-orders');
-                setReportedOrders(res.data);
+                setReportedOrders(Array.isArray(res.data) ? res.data : []);
             }
             else if (tab === 'withdrawals') {
                 const res = await api.get('/admin/withdrawals');
-                setWithdrawals(res.data);
+                setWithdrawals(Array.isArray(res.data) ? res.data : []);
             }
             else if (tab === 'stores') {
                 const res = await api.get('/admin/stores');
-                setStores(res.data);
+                setStores(Array.isArray(res.data) ? res.data : []);
             }
             else if (tab === 'settings') {
                 const res = await api.get('/admin/settings');
@@ -105,11 +105,11 @@ const AdminDashboard = () => {
             }
             else if (tab === 'boosting_mgmt') {
                 const res = await api.get('/smm/admin/services');
-                setSmmServices(res.data);
+                setSmmServices(Array.isArray(res.data) ? res.data : []);
             }
             else if (tab === 'analysis') {
                 const res = await api.get('/admin/analysis');
-                setAnalysisData(res.data);
+                setAnalysisData(res.data || {});
             }
         } catch (err) {
             console.error('Fetch error:', err);
@@ -1092,10 +1092,11 @@ const AdminDashboard = () => {
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                            {smmServices.filter(s => 
-                                s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                                s.category.toLowerCase().includes(searchTerm.toLowerCase())
-                            ).map(s => (
+                            {Array.isArray(smmServices) && smmServices.filter(s => {
+                                if (!s || !s.name || !s.category) return false;
+                                return s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                                       s.category.toLowerCase().includes(searchTerm.toLowerCase());
+                            }).map(s => (
                                 <div key={s.service} style={{ ...cardStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center', opacity: s.isDisabled ? 0.6 : 1 }}>
                                     <div>
                                         <div style={{ fontSize: 11, fontWeight: 800, color: '#ec4899', textTransform: 'uppercase' }}>{s.category}</div>

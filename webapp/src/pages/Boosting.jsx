@@ -28,7 +28,7 @@ const Boosting = () => {
             try {
                 const [servicesRes, settingsRes] = await Promise.all([
                     api.get('/smm/services'),
-                    api.get('/settings') // Use public settings endpoint if exists or just handle error
+                    api.get('/admin/settings') 
                 ]);
                 
                 if (Array.isArray(servicesRes.data)) {
@@ -149,10 +149,10 @@ const Boosting = () => {
                     <p style={{ color: '#64748b', fontSize: 16 }}>Grow your social presence instantly. Targeted and high-quality services.</p>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 320px', gap: 24 }}>
+                <div className="boosting-container" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 320px', gap: 24 }}>
                     
                     {/* Form Section */}
-                    <div style={{ background: '#fff', borderRadius: 24, padding: 32, border: '1px solid #eef2ff', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+                    <div style={{ background: '#fff', borderRadius: 24, padding: 'clamp(20px, 5vw, 32px)', border: '1px solid #eef2ff', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
                         <form onSubmit={handleSubmit}>
                              <div style={{ position: 'relative', marginBottom: 24 }}>
                                 <Search size={18} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
@@ -330,10 +330,12 @@ const Boosting = () => {
             </div>
 
             <style>{`
-                @media (max-width: 768px) {
-                    div[style*="gridTemplateColumns: minmax(0, 1fr) 320px"] {
+                @media (max-width: 900px) {
+                    .boosting-container {
                         grid-template-columns: 1fr !important;
                     }
+                    h1 { font-size: 24px !important; }
+                    .boosting-card { padding: 20px !important; }
                 }
                 @keyframes spin { to { transform: rotate(360deg); } }
             `}</style>
