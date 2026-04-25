@@ -108,8 +108,9 @@ const applyMarkup = (services) => {
     return services.map(s => {
         const rawRate = Number(s.rate);
         // Customer Rate per 1k = (ProviderRate * 1.4) 
-        // We handle the ₵4 minimum per ORDER, but let's also ensure rate reflects minimum if quantity is 1k
-        const markedUpRate = Number((rawRate * MARKUP_MULTIPLIER).toFixed(2));
+        let markedUpRate = Number((rawRate * MARKUP_MULTIPLIER).toFixed(2));
+        if (markedUpRate < MINIMUM_PRICE) markedUpRate = MINIMUM_PRICE;
+        
         return {
             ...s.toObject(),
             rate: markedUpRate
@@ -173,12 +174,14 @@ router.post('/order', auth, boostingCheck, async (req, res) => {
         if (service.isDisabled) return res.status(400).json({ message: 'This service is currently unavailable.' });
 
         // 2. Strict Server-Side Pricing
-        // Price per 1k is (rate * 1.4)
-        // Order Cost = (Quantity / 1000) * (rate * 1.4)
-        const unitCost = (Number(service.rate) * MARKUP_MULTIPLIER) / 1000;
+        // Price per 1k is Math.max(MINIMUM_PRICE, rate * 1.4)
+        let ratePer1k = Number(service.rate) * MARKUP_MULTIPLIER;
+        if (ratePer1k < MINIMUM_PRICE) ratePer1k = MINIMUM_PRICE;
+
+        const unitCost = ratePer1k / 1000;
         let calculatedAmount = Number((unitCost * quantity).toFixed(2));
         
-        // Apply Minimum Price Rule: No order below ₵4.00
+        // Apply Minimum Price Rule: No order overall total below ₵4.00
         if (calculatedAmount < MINIMUM_PRICE) {
             calculatedAmount = MINIMUM_PRICE;
         }
