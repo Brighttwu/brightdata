@@ -109,7 +109,7 @@ const AdminDashboard = () => {
             }
             else if (tab === 'analysis') {
                 const res = await api.get('/admin/analysis');
-                setAnalysisData(res.data || {});
+                setAnalysisData(res.data || null);
             }
         } catch (err) {
             console.error('Fetch error:', err);
@@ -420,11 +420,11 @@ const AdminDashboard = () => {
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
                                 <div style={cardStyle}>
                                     <div style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8' }}>Revenue (30D)</div>
-                                    <div style={{ fontSize: 24, fontWeight: 900, color: '#0f172a', marginTop: 4 }}>₵{analysisData.summary.revenue.toFixed(2)}</div>
+                                    <div style={{ fontSize: 24, fontWeight: 900, color: '#0f172a', marginTop: 4 }}>₵{(analysisData?.summary?.revenue || 0).toFixed(2)}</div>
                                 </div>
                                 <div style={cardStyle}>
                                     <div style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8' }}>Profit (30D)</div>
-                                    <div style={{ fontSize: 24, fontWeight: 900, color: '#10b981', marginTop: 4 }}>₵{analysisData.summary.profit.toFixed(2)}</div>
+                                    <div style={{ fontSize: 24, fontWeight: 900, color: '#10b981', marginTop: 4 }}>₵{(analysisData?.summary?.profit || 0).toFixed(2)}</div>
                                 </div>
                             </div>
 
