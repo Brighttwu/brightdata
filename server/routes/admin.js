@@ -127,11 +127,11 @@ router.get('/stats', adminAuth, async (req, res) => {
                     'Content-Type': 'application/x-www-form-urlencoded'
                 }
             });
-            apiBalance = apiRes.data.balance || 
+            apiBalance = Number(apiRes.data.balance || 
                          apiRes.data.data?.balance || 
                          apiRes.data.wallet_balance || 
                          apiRes.data.data?.wallet_balance || 
-                         apiRes.data.user_balance || 0;
+                         apiRes.data.user_balance || 0);
         } catch (e) {
             console.error('API Balance fetch failed', e.message);
         }
@@ -144,7 +144,7 @@ router.get('/stats', adminAuth, async (req, res) => {
                 smmParams.append('key', process.env.SMM_API_KEY);
                 smmParams.append('action', 'balance');
                 const smmRes = await axios.post(process.env.SMM_API_URL || 'https://smmprovider.co/api/v2', smmParams);
-                smmBalance = smmRes.data.balance || 0;
+                smmBalance = Number(smmRes.data.balance || 0) * 17.0; // convert USD balance to GHS
             }
         } catch (e) {
             console.error('SMM Balance fetch failed', e.message);
