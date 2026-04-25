@@ -245,7 +245,8 @@ router.post('/order', auth, boostingCheck, async (req, res) => {
             balanceAfter: dbUser.balance
         });
 
-        await handleReferralCommission(user._id, calculatedAmount, external_reference);
+        // Award 2% Referral Commission for Boosting Services
+        await handleReferralCommission(user._id, calculatedAmount, external_reference, 0.02);
 
         res.json({ order: smmOrder, balance: dbUser.balance });
     } catch (err) {

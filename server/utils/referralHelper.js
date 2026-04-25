@@ -2,13 +2,13 @@ const User = require('../models/User');
 const Transaction = require('../models/Transaction');
 const { sendReferralNotification } = require('./emailHelper');
 
-const handleReferralCommission = async (buyerId, amount, orderRef) => {
+const handleReferralCommission = async (buyerId, amount, orderRef, customRate = 0.01) => {
     try {
         const buyer = await User.findById(buyerId).populate('referredBy');
         if (!buyer || !buyer.referredBy) return;
 
         const referrer = buyer.referredBy;
-        const commission = Number((amount * 0.01).toFixed(2));
+        const commission = Number((amount * customRate).toFixed(2));
 
         if (commission <= 0) return;
 
