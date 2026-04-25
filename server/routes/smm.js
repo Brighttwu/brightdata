@@ -12,7 +12,8 @@ const { handleReferralCommission } = require('../utils/referralHelper');
 const API_KEY = process.env.SMM_API_KEY;
 const API_URL = process.env.SMM_API_URL || 'https://smmprovider.co/api/v2';
 
-// Markup Configuration
+// Exchange Rate & Markup Configuration
+const EXCHANGE_RATE = 17.0;   // 1 USD = 17 GHS
 const MARKUP_MULTIPLIER = 1.4; // 40% Profit
 const MINIMUM_PRICE = 4.0;    // ₵4 Minimum
 
@@ -142,7 +143,7 @@ async function syncServicesInternal() {
             { 
                 name: s.name,
                 category: s.category,
-                rate: Number(s.rate),
+                rate: Number(s.rate) * EXCHANGE_RATE,
                 min: Number(s.min),
                 max: Number(s.max),
                 description: s.description || '',
