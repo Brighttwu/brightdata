@@ -65,6 +65,7 @@ app.use('/api/admin', require('./routes/admin'));
 app.use('/api/agent', require('./routes/agent'));
 app.use('/api/v1', require('./routes/api_v1'));
 app.use('/api/support', require('./routes/support'));
+app.use('/api/smm', require('./routes/smm'));
 
 app.get('/', (req, res) => res.send('brightdata API Running'));
 

@@ -44,7 +44,9 @@ const SourceBadge = ({ source }) => {
 
 const OrdersPage = () => {
     const [orders, setOrders] = useState([]);
+    const [boostingOrders, setBoostingOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState('data'); // 'data' or 'boosting'
     const [actionLoadingId, setActionLoadingId] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [message, setMessage] = useState({ type: '', text: '' });
@@ -53,8 +55,12 @@ const OrdersPage = () => {
     const fetchOrders = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await api.get('/data/orders');
-            setOrders(res.data);
+            const [dataRes, boostingRes] = await Promise.all([
+                api.get('/data/orders'),
+                api.get('/smm/my-orders')
+            ]);
+            setOrders(dataRes.data || []);
+            setBoostingOrders(boostingRes.data || []);
         } catch (err) {
             setMessage({ type: 'error', text: 'Failed to load your orders.' });
         } finally {
@@ -64,6 +70,8 @@ const OrdersPage = () => {
 
     useEffect(() => { 
         fetchOrders(); 
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('tab') === 'boosting') setActiveTab('boosting');
     }, [fetchOrders]);
 
     const handleRefresh = () => fetchOrders();
@@ -112,15 +120,62 @@ const OrdersPage = () => {
         }
     };
 
-    const filtered = (Array.isArray(orders) ? orders : []).filter(o => {
+    const handleCheckBoostingStatus = async (order) => {
+        setActionLoadingId(order._id);
+        try {
+            const res = await api.get(`/smm/status/${order._id}`);
+            const updatedOrder = res.data.order;
+            setBoostingOrders(prev => prev.map(o => o._id === order._id ? updatedOrder : o));
+            setMessage({ type: 'success', text: `Status updated: ${updatedOrder.status}` });
+        } catch (err) {
+            setMessage({ type: 'error', text: 'Error checking status.' });
+        } finally {
+            setActionLoadingId(null);
+        }
+    };
+
+    const handleReportBoosting = async (order) => {
+        const reason = window.prompt('Describe the issue with this boosting order:');
+        if (!reason || !reason.trim()) return;
+        setActionLoadingId(order._id);
+        try {
+            await api.post(`/smm/report/${order._id}`, { reason });
+            setBoostingOrders(prev => prev.map(o => o._id === order._id ? { ...o, isReported: true, reportReason: reason } : o));
+            setMessage({ type: 'success', text: 'Boosting issue reported.' });
+        } catch (err) {
+            setMessage({ type: 'error', text: 'Error reporting Boosting order.' });
+        } finally {
+            setActionLoadingId(null);
+        }
+    };
+
+    const handleRefill = async (order) => {
+        if (!window.confirm('Request a refill for this order? Some services take time to process refill requests.')) return;
+        setActionLoadingId(order._id);
+        try {
+            const res = await api.post(`/smm/refill/${order._id}`);
+            setMessage({ type: 'success', text: res.data.message || 'Refill request submitted!' });
+        } catch (err) {
+            setMessage({ type: 'error', text: err.response?.data?.message || 'Error requesting refill.' });
+        } finally {
+            setActionLoadingId(null);
+        }
+    };
+
+    const filtered = (activeTab === 'data' ? orders : boostingOrders).filter(o => {
         if (!o) return false;
         const q = (searchQuery || '').toLowerCase();
-        const phoneNumber = String(o.phoneNumber || '');
-        const packageName = String(o.packageName || '').toLowerCase();
-        const network = String(o.network || '').toLowerCase();
-        return phoneNumber.includes(q) || 
-               packageName.includes(q) || 
-               network.includes(q);
+        if (activeTab === 'data') {
+            const phoneNumber = String(o.phoneNumber || '');
+            const packageName = String(o.packageName || '').toLowerCase();
+            const network = String(o.network || '').toLowerCase();
+            return phoneNumber.includes(q) || packageName.includes(q) || network.includes(q);
+        } else {
+            const serviceName = String(o.serviceName || '').toLowerCase();
+            const link = String(o.link || '').toLowerCase();
+            const orderId = String(o.orderId || '');
+            return serviceName.includes(q) || link.includes(q) || orderId.includes(q);
+        }
     });
 
     return (
@@ -168,16 +223,39 @@ const OrdersPage = () => {
                     </div>
                 )}
 
-                {/* Search */}
-                <div style={{ background: '#fff', borderRadius: 16, padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 12, border: '1px solid #e2e8f0' }}>
-                    <Search size={18} color="#94a3b8" />
-                    <input
-                        type="text"
-                        placeholder="Search by phone, plan, or network..."
-                        value={searchQuery}
-                        onChange={e => setSearchQuery(e.target.value)}
-                        style={{ border: 'none', outline: 'none', fontSize: 14, fontWeight: 600, color: '#0f172a', flex: 1, background: 'transparent', padding: '8px 0' }}
-                    />
+                {/* Search & Tabs */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <div style={{ display: 'flex', gap: 8, background: '#fff', padding: 6, borderRadius: 14, border: '1px solid #e2e8f0' }}>
+                        <button 
+                            onClick={() => setActiveTab('data')}
+                            style={{ 
+                                flex: 1, padding: '10px', borderRadius: 10, border: 'none', fontSize: 13, fontWeight: 800,
+                                background: activeTab === 'data' ? '#4f46e5' : 'transparent',
+                                color: activeTab === 'data' ? '#fff' : '#64748b',
+                                cursor: 'pointer', transition: '0.3s'
+                            }}
+                        >Data Orders</button>
+                        <button 
+                            onClick={() => setActiveTab('boosting')}
+                            style={{ 
+                                flex: 1, padding: '10px', borderRadius: 10, border: 'none', fontSize: 13, fontWeight: 800,
+                                background: activeTab === 'boosting' ? '#ec4899' : 'transparent',
+                                color: activeTab === 'boosting' ? '#fff' : '#64748b',
+                                cursor: 'pointer', transition: '0.3s'
+                            }}
+                        >Boosting Orders</button>
+                    </div>
+
+                    <div style={{ background: '#fff', borderRadius: 16, padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 12, border: '1px solid #e2e8f0' }}>
+                        <Search size={18} color="#94a3b8" />
+                        <input
+                            type="text"
+                            placeholder={activeTab === 'data' ? "Search by phone, plan, or network..." : "Search by link, service, or order ID..."}
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                            style={{ border: 'none', outline: 'none', fontSize: 14, fontWeight: 600, color: '#0f172a', flex: 1, background: 'transparent', padding: '8px 0' }}
+                        />
+                    </div>
                 </div>
 
                 {/* Orders List */}
@@ -196,96 +274,74 @@ const OrdersPage = () => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                         {(Array.isArray(filtered) ? filtered : []).map(order => {
                             const isLoading = actionLoadingId === order._id;
-                            return (
-                                <div key={order._id} style={{
-                                    background: '#fff', borderRadius: 20, padding: '20px 24px',
-                                    border: order.isReported ? '1.5px solid #fecaca' : '1px solid #f1f5f9',
-                                    boxShadow: '0 2px 12px rgba(0,0,0,0.04)'
-                                }}>
-                                    <div className="order-card-content" style={{ display: 'flex', gap: 16, justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                        {/* Left: Info */}
-                                        <div className="order-info" style={{ flex: '1 1 220px' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-                                                <span style={{
-                                                    background: '#f1f5f9', color: '#475569', fontWeight: 800, fontSize: 11,
-                                                    padding: '3px 10px', borderRadius: 8, textTransform: 'uppercase'
-                                                }}>{order.network}</span>
-                                                <StatusBadge status={order.status} />
-                                                <SourceBadge source={order.source} />
-                                                {order.isReported && (
-                                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#fee2e2', color: '#dc2626', fontSize: 11, fontWeight: 800, padding: '3px 10px', borderRadius: 8 }}>
-                                                        <ShieldAlert size={12} /> Reported
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <div style={{ fontSize: 18, fontWeight: 900, color: '#0f172a', marginBottom: 4 }}>
-                                                {order.packageName}
-                                                <span style={{ fontSize: 18, color: '#4f46e5', marginLeft: 10 }}>₵{(order.amount || 0).toFixed(2)}</span>
-                                            </div>
-                                            <div style={{ fontSize: 14, color: '#64748b', fontWeight: 700, marginBottom: 4 }}>
-                                                📱 {order.phoneNumber}
-                                            </div>
-                                            <div style={{ fontSize: 12, color: '#94a3b8', fontWeight: 600 }}>
-                                                {new Date(order.createdAt).toLocaleString()}
-                                            </div>
-                                            {order.isReported && order.reportReason && (
-                                                <div style={{ marginTop: 10, padding: '8px 12px', background: '#fef2f2', borderRadius: 10, fontSize: 12, fontWeight: 700, color: '#dc2626' }}>
-                                                    Issue: {order.reportReason}
+                            if (activeTab === 'data') {
+                                return (
+                                    <div key={order._id} style={{
+                                        background: '#fff', borderRadius: 20, padding: '20px 24px',
+                                        border: order.isReported ? '1.5px solid #fecaca' : '1px solid #f1f5f9',
+                                        boxShadow: '0 2px 12px rgba(0,0,0,0.04)'
+                                    }}>
+                                        <div className="order-card-content" style={{ display: 'flex', gap: 16, justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                            <div className="order-info" style={{ flex: '1 1 220px' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+                                                    <span style={{ background: '#f1f5f9', color: '#475569', fontWeight: 800, fontSize: 11, padding: '3px 10px', borderRadius: 8, textTransform: 'uppercase' }}>{order.network}</span>
+                                                    <StatusBadge status={order.status} />
+                                                    <SourceBadge source={order.source} />
+                                                    {order.isReported && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#fee2e2', color: '#dc2626', fontSize: 11, fontWeight: 800, padding: '3px 10px', borderRadius: 8 }}><ShieldAlert size={12} /> Reported</span>}
                                                 </div>
-                                            )}
-                                        </div>
-
-                                        {/* Right: Actions */}
-                                        <div className="order-actions" style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end', flexShrink: 0 }}>
-                                            <button
-                                                onClick={() => handleCheckStatus(order)}
-                                                disabled={isLoading}
-                                                className="order-action-btn"
-                                                style={{
-                                                    padding: '9px 18px', borderRadius: 10, border: 'none',
-                                                    background: '#eef2ff', color: '#4f46e5', fontWeight: 800, fontSize: 12,
-                                                    cursor: isLoading ? 'not-allowed' : 'pointer',
-                                                    display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap'
-                                                }}>
-                                                <RefreshCw size={12} style={{ animation: isLoading ? 'spin 0.8s linear infinite' : 'none' }} />
-                                                Check Status
-                                            </button>
-                                            {!order.isReported && (
-                                                <button
-                                                    onClick={() => handleReport(order)}
-                                                    disabled={isLoading}
-                                                    className="order-action-btn"
-                                                    style={{
-                                                        padding: '9px 18px', borderRadius: 10,
-                                                        border: '1px solid #fecaca', background: '#fff',
-                                                        color: '#ef4444', fontWeight: 800, fontSize: 12,
-                                                        cursor: isLoading ? 'not-allowed' : 'pointer',
-                                                        display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap'
-                                                    }}>
-                                                    <ShieldAlert size={12} /> Report Issue
+                                                <div style={{ fontSize: 18, fontWeight: 900, color: '#0f172a', marginBottom: 4 }}>{order.packageName} <span style={{ fontSize: 18, color: '#4f46e5', marginLeft: 10 }}>₵{(order.amount || 0).toFixed(2)}</span></div>
+                                                <div style={{ fontSize: 14, color: '#64748b', fontWeight: 700, marginBottom: 4 }}>📱 {order.phoneNumber}</div>
+                                                <div style={{ fontSize: 12, color: '#94a3b8', fontWeight: 600 }}>{new Date(order.createdAt).toLocaleString()}</div>
+                                            </div>
+                                            <div className="order-actions" style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end', flexShrink: 0 }}>
+                                                <button onClick={() => handleCheckStatus(order)} disabled={isLoading} className="order-action-btn" style={{ padding: '9px 18px', borderRadius: 10, border: 'none', background: '#eef2ff', color: '#4f46e5', fontWeight: 800, fontSize: 12, cursor: isLoading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
+                                                    <RefreshCw size={12} style={{ animation: isLoading ? 'spin 0.8s linear infinite' : 'none' }} /> Check Status
                                                 </button>
-                                            )}
-                                            {order.status === 'pending_payment' && (
-                                                <button
-                                                    onClick={() => handleVerifyPaystackOrder(order)}
-                                                    disabled={isLoading}
-                                                    className="order-action-btn"
-                                                    style={{
-                                                        padding: '9px 18px', borderRadius: 10,
-                                                        border: 'none', background: '#f59e0b',
-                                                        color: '#fff', fontWeight: 800, fontSize: 12,
-                                                        cursor: isLoading ? 'not-allowed' : 'pointer',
-                                                        display: 'flex', alignItems: 'center', gap: 6,
-                                                        boxShadow: '0 4px 12px rgba(245,158,11,0.3)', whiteSpace: 'nowrap'
-                                                    }}>
-                                                    <RefreshCw size={12} style={{ animation: isLoading ? 'spin 0.8s linear infinite' : 'none' }} />
-                                                    Verify Payment
-                                                </button>
-                                            )}
+                                                {!order.isReported && <button onClick={() => handleReport(order)} disabled={isLoading} className="order-action-btn" style={{ padding: '9px 18px', borderRadius: 10, border: '1px solid #fecaca', background: '#fff', color: '#ef4444', fontWeight: 800, fontSize: 12, cursor: isLoading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}><ShieldAlert size={12} /> Report Issue</button>}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            );
+                                );
+                            } else {
+                                // Boosting Order Card
+                                return (
+                                    <div key={order._id} style={{
+                                        background: '#fff', borderRadius: 20, padding: '20px 24px',
+                                        border: order.isReported ? '1.5px solid #fecaca' : '1px solid #f1f5f9',
+                                        boxShadow: '0 2px 12px rgba(0,0,0,0.04)'
+                                    }}>
+                                        <div className="order-card-content" style={{ display: 'flex', gap: 16, justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                            <div className="order-info" style={{ flex: '1 1 220px' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+                                                    <span style={{ background: '#fdf2f8', color: '#db2777', fontWeight: 800, fontSize: 11, padding: '3px 10px', borderRadius: 8 }}>BOOSTING</span>
+                                                    <StatusBadge status={order.status} />
+                                                    {order.isReported && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#fee2e2', color: '#dc2626', fontSize: 11, fontWeight: 800, padding: '3px 10px', borderRadius: 8 }}><ShieldAlert size={12} /> Reported</span>}
+                                                </div>
+                                                <div style={{ fontSize: 17, fontWeight: 900, color: '#0f172a', marginBottom: 4 }}>{order.serviceName} <span style={{ fontSize: 17, color: '#ec4899', marginLeft: 10 }}>₵{(order.amount || 0).toFixed(2)}</span></div>
+                                                <div style={{ fontSize: 13, color: '#64748b', fontWeight: 700, marginBottom: 4, wordBreak: 'break-all' }}>🔗 {order.link}</div>
+                                                <div style={{ fontSize: 12, color: '#94a3b8', fontWeight: 600, display: 'flex', gap: 12 }}>
+                                                    <span>Qty: {order.quantity}</span>
+                                                    {order.startCount > 0 && <span>Start: {order.startCount}</span>}
+                                                    {order.remains > 0 && <span>Remains: {order.remains}</span>}
+                                                </div>
+                                                {order.averageTime && <div style={{ fontSize: 11, color: '#4f46e5', fontWeight: 800, marginTop: 4 }}>Time: {order.averageTime}</div>}
+                                                <div style={{ fontSize: 11, color: '#cbd5e1', marginTop: 4 }}>{new Date(order.createdAt).toLocaleString()}</div>
+                                            </div>
+                                            <div className="order-actions" style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end', flexShrink: 0 }}>
+                                                <button onClick={() => handleCheckBoostingStatus(order)} disabled={isLoading} className="order-action-btn" style={{ padding: '9px 18px', borderRadius: 10, border: 'none', background: '#fdf2f8', color: '#db2777', fontWeight: 800, fontSize: 12, cursor: isLoading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
+                                                    <RefreshCw size={12} style={{ animation: isLoading ? 'spin 0.8s linear infinite' : 'none' }} /> Check Status
+                                                </button>
+                                                {order.refillable && !order.isReported && (
+                                                    <button onClick={() => handleRefill(order)} disabled={isLoading} className="order-action-btn" style={{ padding: '9px 18px', borderRadius: 10, border: 'none', background: '#f0fdf4', color: '#16a34a', fontWeight: 800, fontSize: 12, cursor: isLoading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>
+                                                        <RefreshCw size={12} /> Request Refill
+                                                    </button>
+                                                )}
+                                                {!order.isReported && <button onClick={() => handleReportBoosting(order)} disabled={isLoading} className="order-action-btn" style={{ padding: '9px 18px', borderRadius: 10, border: '1px solid #fecaca', background: '#fff', color: '#ef4444', fontWeight: 800, fontSize: 12, cursor: isLoading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}><ShieldAlert size={12} /> Report Issue</button>}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            }
                         })}
                     </div>
                 )}

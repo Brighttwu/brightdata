@@ -132,6 +132,7 @@ const Navbar = ({ unreadCount = 0, communityLink = '#' }) => {
                                     {desktopNavLink('/admin?tab=pricing', 'Pricing', 'pricing')}
                                     {desktopNavLink('/admin?tab=transactions', 'Transactions', 'transactions')}
                                     {desktopNavLink('/admin?tab=orders', 'Orders', 'orders')}
+                                    {desktopNavLink('/admin?tab=boosting_mgmt', 'Boosting', 'boosting_mgmt')}
                                     {desktopNavLink('/admin?tab=stores', 'Stores', 'stores')}
                                     {desktopNavLink('/admin?tab=reports', 'Reports', 'reports')}
                                     {desktopNavLink('/admin?tab=withdrawals', 'Withdrawals', 'withdrawals')}
@@ -156,6 +157,7 @@ const Navbar = ({ unreadCount = 0, communityLink = '#' }) => {
                                 <>
                                     {desktopNavLink('/dashboard', 'Dashboard')}
                                     {desktopNavLink('/orders', 'Orders')}
+                                    {desktopNavLink('/boosting', 'Boosting')}
                                     {desktopNavLink('/agent', 'Agent')}
                                     {desktopNavLink('/referrals', 'Refer')}
                                     {desktopNavLink('/support', 'Support', null, unreadCount)}
@@ -241,6 +243,7 @@ const Navbar = ({ unreadCount = 0, communityLink = '#' }) => {
                                 {navLink('/admin?tab=pricing', 'Manage Pricing', <Tag size={20} style={{ color: '#f59e0b' }} />, 'pricing')}
                                 {navLink('/admin?tab=transactions', 'Global Transactions', <Receipt size={20} style={{ color: '#10b981' }} />, 'transactions')}
                                 {navLink('/admin?tab=orders', 'Global Orders', <ShoppingCart size={20} style={{ color: '#ef4444' }} />, 'orders')}
+                                {navLink('/admin?tab=boosting_mgmt', 'Manage Boosting', <Globe size={20} style={{ color: '#ec4899' }} />, 'boosting_mgmt')}
                                 {navLink('/admin?tab=stores', 'Agent Stores', <Store size={20} style={{ color: '#8b5cf6' }} />, 'stores')}
                                 {navLink('/admin?tab=reports', 'Reported Orders', <ShieldAlert size={20} style={{ color: '#dc2626' }} />, 'reports')}
                                 {navLink('/admin?tab=withdrawals', 'Payout Requests', <DollarSign size={20} style={{ color: '#10b981' }} />, 'withdrawals')}
@@ -269,6 +272,7 @@ const Navbar = ({ unreadCount = 0, communityLink = '#' }) => {
                                 </div>
 
                                 {navLink('/dashboard', 'Dashboard', <Smartphone size={20} style={{ color: '#4f46e5' }} />)}
+                                {navLink('/boosting', 'Boosting', <Globe size={20} style={{ color: '#ec4899' }} />)}
                                 {navLink('/orders', 'My Orders', <History size={20} style={{ color: '#f59e0b' }} />)}
                                 {navLink('/wallet', 'My Wallet', <Wallet size={20} style={{ color: '#4f46e5' }} />)}
                                 {navLink('/agent', 'Agent Store', <Tag size={20} style={{ color: '#10b981' }} />)}

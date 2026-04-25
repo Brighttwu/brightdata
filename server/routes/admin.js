@@ -136,6 +136,20 @@ router.get('/stats', adminAuth, async (req, res) => {
             console.error('API Balance fetch failed', e.message);
         }
 
+        // Get SMM API balance
+        let smmBalance = 0;
+        try {
+            if (process.env.SMM_API_KEY) {
+                const smmParams = new URLSearchParams();
+                smmParams.append('key', process.env.SMM_API_KEY);
+                smmParams.append('action', 'balance');
+                const smmRes = await axios.post(process.env.SMM_API_URL || 'https://smmprovider.co/api/v2', smmParams);
+                smmBalance = smmRes.data.balance || 0;
+            }
+        } catch (e) {
+            console.error('SMM Balance fetch failed', e.message);
+        }
+
         res.json({
             totalUsers,
             totalAgents,
@@ -150,6 +164,7 @@ router.get('/stats', adminAuth, async (req, res) => {
             totalCommissionsOwed: Number(totalCommissionsOwed.toFixed(2)),
             totalReferralsOwed: Number(totalReferralsOwed.toFixed(2)),
             apiBalance,
+            smmBalance,
             timeframe
         });
     } catch (err) {
@@ -302,9 +317,25 @@ router.get('/transactions', adminAuth, async (req, res) => {
 // View All Orders
 router.get('/orders', adminAuth, async (req, res) => {
     try {
-        const orders = await Order.find().populate('user', 'name email').sort({ createdAt: -1 });
-        res.json(orders);
+        const SMMOrder = require('../models/SMMOrder');
+        const [orders, smmOrders] = await Promise.all([
+            Order.find().populate('user', 'name email').sort({ createdAt: -1 }),
+            SMMOrder.find().populate('user', 'name email').sort({ createdAt: -1 })
+        ]);
+        
+        // Standardize SMM orders for global view
+        const mappedSMM = smmOrders.map(o => ({
+            ...o.toObject(),
+            packageName: o.serviceName,
+            network: 'BOOSTING',
+            phoneNumber: o.link, // For easy display in same table
+            isBoosting: true
+        }));
+
+        const allOrders = [...orders, ...mappedSMM].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+        res.json(allOrders);
     } catch (err) {
+        console.error(err);
         res.status(500).json({ message: 'Error fetching orders' });
     }
 });
@@ -313,7 +344,12 @@ router.get('/orders', adminAuth, async (req, res) => {
 router.post('/order-status/:id', adminAuth, async (req, res) => {
     try {
         const { status } = req.body;
-        const order = await Order.findById(req.params.id);
+        let order = await Order.findById(req.params.id);
+        if (!order) {
+            const SMMOrder = require('../models/SMMOrder');
+            order = await SMMOrder.findById(req.params.id);
+        }
+        
         if (!order) return res.status(404).json({ message: 'Order not found' });
         
         order.status = status;
@@ -340,8 +376,22 @@ router.post('/sync-orders', adminAuth, async (req, res) => {
 // View Reported Orders only
 router.get('/reported-orders', adminAuth, async (req, res) => {
     try {
-        const orders = await Order.find({ isReported: true }).populate('user', 'name email').sort({ createdAt: -1 });
-        res.json(orders);
+        const SMMOrder = require('../models/SMMOrder');
+        const [orders, smmOrders] = await Promise.all([
+            Order.find({ isReported: true }).populate('user', 'name email').sort({ createdAt: -1 }),
+            SMMOrder.find({ isReported: true }).populate('user', 'name email').sort({ createdAt: -1 })
+        ]);
+
+        const mappedSMM = smmOrders.map(o => ({
+            ...o.toObject(),
+            packageName: o.serviceName,
+            network: 'BOOSTING',
+            phoneNumber: o.link,
+            isBoosting: true
+        }));
+
+        const allReports = [...orders, ...mappedSMM].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+        res.json(allReports);
     } catch (err) {
         res.status(500).json({ message: 'Error fetching reported orders' });
     }
@@ -350,26 +400,29 @@ router.get('/reported-orders', adminAuth, async (req, res) => {
 // Resolve / dismiss a reported order
 router.post('/resolve-report/:id', adminAuth, async (req, res) => {
     try {
-        const order = await Order.findById(req.params.id).populate('user');
+        let order = await Order.findById(req.params.id).populate('user');
+        if (!order) {
+            const SMMOrder = require('../models/SMMOrder');
+            order = await SMMOrder.findById(req.params.id).populate('user');
+        }
+        
         if (!order) return res.status(404).json({ message: 'Order not found' });
 
         const { action } = req.body; // 'refund' or 'dismiss'
 
         if (action === 'refund' && order.user) {
-            const User = require('../models/User');
             const user = await User.findById(order.user._id || order.user);
             if (user) {
                 user.balance += order.amount;
                 await user.save();
 
-                const Transaction = require('../models/Transaction');
                 await Transaction.create({
                     user: user._id,
                     type: 'deposit',
                     amount: order.amount,
                     status: 'success',
-                    reference: `REFUND_${order.externalReference}`,
-                    description: `Admin Refund: ${order.network.toUpperCase()} ${order.packageName}`,
+                    reference: `REFUND_${order.externalReference || order.orderId || order._id}`,
+                    description: `Admin Refund: ${order.network || 'SMM'} ${order.packageName || order.serviceName}`,
                     balanceBefore: user.balance - order.amount,
                     balanceAfter: user.balance
                 });
@@ -490,7 +543,7 @@ router.get('/settings', async (req, res) => {
 
 router.post('/settings', adminAuth, async (req, res) => {
     try {
-        const { globalNotification, deliveryStatus, communityLink, isMaintenanceMode } = req.body;
+        const { globalNotification, deliveryStatus, communityLink, isMaintenanceMode, isBoostingEnabled } = req.body;
         let settings = await Settings.findOne();
         if (!settings) settings = new Settings();
         
@@ -498,6 +551,7 @@ router.post('/settings', adminAuth, async (req, res) => {
         if (deliveryStatus !== undefined) settings.deliveryStatus = deliveryStatus;
         if (communityLink !== undefined) settings.communityLink = communityLink;
         if (isMaintenanceMode !== undefined) settings.isMaintenanceMode = isMaintenanceMode;
+        if (isBoostingEnabled !== undefined) settings.isBoostingEnabled = isBoostingEnabled;
         
         settings.updatedAt = Date.now();
         await settings.save();
