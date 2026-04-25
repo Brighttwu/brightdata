@@ -1093,16 +1093,18 @@ const AdminDashboard = () => {
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                             {Array.isArray(smmServices) && smmServices.filter(s => {
-                                if (!s || !s.name || !s.category) return false;
-                                return s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                                       s.category.toLowerCase().includes(searchTerm.toLowerCase());
-                            }).map(s => (
-                                <div key={s.service} style={{ ...cardStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center', opacity: s.isDisabled ? 0.6 : 1 }}>
+                                if (!s) return false;
+                                const search = (searchTerm || '').toLowerCase();
+                                const name = String(s.name || '').toLowerCase();
+                                const category = String(s.category || '').toLowerCase();
+                                return name.includes(search) || category.includes(search);
+                            }).map((s, idx) => (
+                                <div key={s.service || idx} style={{ ...cardStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center', opacity: s.isDisabled ? 0.6 : 1 }}>
                                     <div>
                                         <div style={{ fontSize: 11, fontWeight: 800, color: '#ec4899', textTransform: 'uppercase' }}>{s.category}</div>
-                                        <div style={{ fontSize: 15, fontWeight: 900, color: '#0f172a' }}>{s.name}</div>
+                                        <div style={{ fontSize: 15, fontWeight: 900, color: '#0f172a' }}>{s.name || 'Unknown Service'}</div>
                                         <div style={{ fontSize: 13, fontWeight: 700, color: '#64748b', marginTop: 4 }}>
-                                            API Cost: ₵{s.rate} | <span style={{ color: '#16a34a' }}>Target: ₵{Math.max(4, s.rate * 1.4).toFixed(2)}</span>
+                                            API Cost: ₵{s.rate || 0} | <span style={{ color: '#16a34a' }}>Target: ₵{Math.max(4, (Number(s.rate) || 0) * 1.4).toFixed(2)}</span>
                                         </div>
                                     </div>
                                     <button 
