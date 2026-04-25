@@ -1120,6 +1120,9 @@ const AdminDashboard = () => {
                         </div>
                     </div>
                 )}
+                
+                {tab === 'settings' && !loading && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 32 }}>
                             <div style={{ width: 48, height: 48, borderRadius: 14, background: '#eef2ff', color: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 <SettingsIcon size={24} />
