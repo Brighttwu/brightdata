@@ -13,7 +13,12 @@ const STATUS_CONFIG = {
 };
 
 const StatusBadge = ({ status }) => {
-    const cfg = STATUS_CONFIG[status] || STATUS_CONFIG['pending'];
+    const rawStatus = (status || '').toString().toLowerCase();
+    const cfg = STATUS_CONFIG[rawStatus] || { 
+        label: (status || '').toString().toUpperCase() || 'UNKNOWN', 
+        bg: '#f1f5f9', color: '#475569', icon: <Clock size={14} /> 
+    };
+    
     return (
         <span style={{
             display: 'inline-flex', alignItems: 'center', gap: 5,

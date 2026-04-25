@@ -303,11 +303,7 @@ router.get('/status/:id', auth, async (req, res) => {
         const apiData = response.data;
 
         if (apiData.status) {
-            const statusMap = {
-                'Pending': 'pending', 'In progress': 'processing', 'Completed': 'completed',
-                'Partial': 'partial', 'Canceled': 'cancelled', 'Refunded': 'refunded'
-            };
-            order.status = statusMap[apiData.status] || apiData.status.toLowerCase();
+            order.status = apiData.status;
             order.startCount = apiData.start_count || order.startCount;
             order.remains = apiData.remains || order.remains;
             order.updatedAt = Date.now();
