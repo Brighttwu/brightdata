@@ -21,7 +21,7 @@ import SupportPage from './pages/SupportPage';
 import AdminSupport from './pages/AdminSupport';
 import ErrorBoundary from './components/ErrorBoundary';
 import FloatingCommunityButton from './components/FloatingCommunityButton';
-import Boosting from './pages/Boosting';
+
 
 const ProtectedRoute = ({ children }) => {
     const { user, loading } = useAuth();
@@ -114,7 +114,7 @@ function AppContent() {
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
-                <Route path="/boosting" element={<ProtectedRoute><Boosting /></ProtectedRoute>} />
+
                 <Route path="/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                 <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />

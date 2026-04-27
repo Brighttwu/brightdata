@@ -5,7 +5,7 @@ const SettingsSchema = new mongoose.Schema({
     deliveryStatus: { type: String, enum: ['fast', 'normal', 'slow'], default: 'fast' },
     communityLink: { type: String, default: 'https://chat.whatsapp.com/' },
     isMaintenanceMode: { type: Boolean, default: false },
-    isBoostingEnabled: { type: Boolean, default: true },
+
     updatedAt: { type: Date, default: Date.now }
 });
 

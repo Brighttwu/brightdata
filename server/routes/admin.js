@@ -136,19 +136,7 @@ router.get('/stats', adminAuth, async (req, res) => {
             console.error('API Balance fetch failed', e.message);
         }
 
-        // Get SMM API balance
-        let smmBalance = 0;
-        try {
-            if (process.env.SMM_API_KEY) {
-                const smmParams = new URLSearchParams();
-                smmParams.append('key', process.env.SMM_API_KEY);
-                smmParams.append('action', 'balance');
-                const smmRes = await axios.post(process.env.SMM_API_URL || 'https://smmprovider.co/api/v2', smmParams);
-                smmBalance = Number(smmRes.data.balance || 0) * 17.0; // convert USD balance to GHS
-            }
-        } catch (e) {
-            console.error('SMM Balance fetch failed', e.message);
-        }
+
 
         res.json({
             totalUsers,
@@ -164,7 +152,7 @@ router.get('/stats', adminAuth, async (req, res) => {
             totalCommissionsOwed: Number(totalCommissionsOwed.toFixed(2)),
             totalReferralsOwed: Number(totalReferralsOwed.toFixed(2)),
             apiBalance,
-            smmBalance,
+
             timeframe
         });
     } catch (err) {
@@ -317,23 +305,8 @@ router.get('/transactions', adminAuth, async (req, res) => {
 // View All Orders
 router.get('/orders', adminAuth, async (req, res) => {
     try {
-        const SMMOrder = require('../models/SMMOrder');
-        const [orders, smmOrders] = await Promise.all([
-            Order.find().populate('user', 'name email').sort({ createdAt: -1 }),
-            SMMOrder.find().populate('user', 'name email').sort({ createdAt: -1 })
-        ]);
-        
-        // Standardize SMM orders for global view
-        const mappedSMM = smmOrders.map(o => ({
-            ...o.toObject(),
-            packageName: o.serviceName,
-            network: 'BOOSTING',
-            phoneNumber: o.link, // For easy display in same table
-            isBoosting: true
-        }));
-
-        const allOrders = [...orders, ...mappedSMM].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
-        res.json(allOrders);
+        const orders = await Order.find().populate('user', 'name email').sort({ createdAt: -1 });
+        res.json(orders);
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Error fetching orders' });
@@ -345,10 +318,7 @@ router.post('/order-status/:id', adminAuth, async (req, res) => {
     try {
         const { status } = req.body;
         let order = await Order.findById(req.params.id);
-        if (!order) {
-            const SMMOrder = require('../models/SMMOrder');
-            order = await SMMOrder.findById(req.params.id);
-        }
+
         
         if (!order) return res.status(404).json({ message: 'Order not found' });
         
@@ -376,22 +346,8 @@ router.post('/sync-orders', adminAuth, async (req, res) => {
 // View Reported Orders only
 router.get('/reported-orders', adminAuth, async (req, res) => {
     try {
-        const SMMOrder = require('../models/SMMOrder');
-        const [orders, smmOrders] = await Promise.all([
-            Order.find({ isReported: true }).populate('user', 'name email').sort({ createdAt: -1 }),
-            SMMOrder.find({ isReported: true }).populate('user', 'name email').sort({ createdAt: -1 })
-        ]);
-
-        const mappedSMM = smmOrders.map(o => ({
-            ...o.toObject(),
-            packageName: o.serviceName,
-            network: 'BOOSTING',
-            phoneNumber: o.link,
-            isBoosting: true
-        }));
-
-        const allReports = [...orders, ...mappedSMM].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
-        res.json(allReports);
+        const orders = await Order.find({ isReported: true }).populate('user', 'name email').sort({ createdAt: -1 });
+        res.json(orders);
     } catch (err) {
         res.status(500).json({ message: 'Error fetching reported orders' });
     }
@@ -401,10 +357,7 @@ router.get('/reported-orders', adminAuth, async (req, res) => {
 router.post('/resolve-report/:id', adminAuth, async (req, res) => {
     try {
         let order = await Order.findById(req.params.id).populate('user');
-        if (!order) {
-            const SMMOrder = require('../models/SMMOrder');
-            order = await SMMOrder.findById(req.params.id).populate('user');
-        }
+
         
         if (!order) return res.status(404).json({ message: 'Order not found' });
 
@@ -543,7 +496,7 @@ router.get('/settings', async (req, res) => {
 
 router.post('/settings', adminAuth, async (req, res) => {
     try {
-        const { globalNotification, deliveryStatus, communityLink, isMaintenanceMode, isBoostingEnabled } = req.body;
+        const { globalNotification, deliveryStatus, communityLink, isMaintenanceMode } = req.body;
         let settings = await Settings.findOne();
         if (!settings) settings = new Settings();
         
@@ -551,7 +504,7 @@ router.post('/settings', adminAuth, async (req, res) => {
         if (deliveryStatus !== undefined) settings.deliveryStatus = deliveryStatus;
         if (communityLink !== undefined) settings.communityLink = communityLink;
         if (isMaintenanceMode !== undefined) settings.isMaintenanceMode = isMaintenanceMode;
-        if (isBoostingEnabled !== undefined) settings.isBoostingEnabled = isBoostingEnabled;
+
         
         settings.updatedAt = Date.now();
         await settings.save();

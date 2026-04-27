@@ -8,7 +8,7 @@ const AdminDashboard = () => {
     const tab = searchParams.get('tab') || 'stats';
     const [stats, setStats] = useState({ 
         totalUsers: 0, totalAgents: 0, totalOrders: 0, totalEarnings: 0, 
-        totalWalletBalance: 0, adminProfit: 0, agentProfit: 0, apiBalance: 0, smmBalance: 0
+        totalWalletBalance: 0, adminProfit: 0, agentProfit: 0, apiBalance: 0
     });
     const [statsDays, setStatsDays] = useState(1);
     const [users, setUsers] = useState([]);
@@ -20,7 +20,7 @@ const AdminDashboard = () => {
     const [reportedOrders, setReportedOrders] = useState([]);
     const [withdrawals, setWithdrawals] = useState([]);
     const [packages, setPackages] = useState([]);
-    const [smmServices, setSmmServices] = useState([]);
+
     const [selectedNetwork, setSelectedNetwork] = useState('mtn');
     const [loading, setLoading] = useState(true);
     const [editModal, setEditModal] = useState(null); 
@@ -37,15 +37,14 @@ const AdminDashboard = () => {
     // Search & Filter State
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
-    const [typeFilter, setTypeFilter] = useState('all');
+
     
     // Platform Settings State
     const [platformSettings, setPlatformSettings] = useState({
         globalNotification: '',
         deliveryStatus: 'fast',
         communityLink: '',
-        isMaintenanceMode: false,
-        isBoostingEnabled: true
+        isMaintenanceMode: false
     });
     const [settingsLoading, setSettingsLoading] = useState(false);
 
@@ -103,10 +102,7 @@ const AdminDashboard = () => {
                 const res = await api.get('/admin/settings');
                 setPlatformSettings(res.data);
             }
-            else if (tab === 'boosting_mgmt') {
-                const res = await api.get('/smm/admin/services');
-                setSmmServices(Array.isArray(res.data) ? res.data : []);
-            }
+
             else if (tab === 'analysis') {
                 const res = await api.get('/admin/analysis');
                 setAnalysisData(res.data || null);
@@ -207,27 +203,7 @@ const AdminDashboard = () => {
         }
     };
 
-    const handleSmmSync = async () => {
-        setLoading(true);
-        try {
-            const res = await api.post('/smm/admin/sync');
-            alert(`Sync complete! ${res.data.count} services updated.`);
-            fetchData();
-        } catch (err) {
-            alert('Sync failed');
-        } finally {
-            setLoading(false);
-        }
-    };
 
-    const handleSmmServiceToggle = async (serviceId, currentStatus) => {
-        try {
-            await api.post('/smm/admin/toggle-service', { serviceId, isDisabled: !currentStatus });
-            setSmmServices(prev => prev.map(s => s.service === serviceId ? { ...s, isDisabled: !currentStatus } : s));
-        } catch (err) {
-            alert('Operation failed');
-        }
-    };
 
     const [isAiTyping, setIsAiTyping] = useState(false);
     const handleSendMessage = async (e) => {
@@ -368,11 +344,7 @@ const AdminDashboard = () => {
                                 <div style={{ fontSize: 13, fontWeight: 700, opacity: 0.6, marginTop: 12 }}>Data API balance</div>
                                 <div style={{ fontSize: 24, fontWeight: 900 }}>₵{(stats.apiBalance || 0).toFixed(2)}</div>
                             </div>
-                            <div style={{ ...cardStyle, background: '#db2777', color: '#fff' }}>
-                                <ShieldAlert size={24} color="#fdf2f8" />
-                                <div style={{ fontSize: 13, fontWeight: 700, opacity: 0.8, marginTop: 12 }}>SMM API balance</div>
-                                <div style={{ fontSize: 24, fontWeight: 900 }}>₵{(stats.smmBalance || 0).toFixed(2)}</div>
-                            </div>
+
                         </div>
 
                         <div style={{ fontSize: 12, fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 16, letterSpacing: '0.05em' }}>Profit Analytics ({statsDays === 1 ? '24h' : `${statsDays} days`})</div>
@@ -546,7 +518,7 @@ const AdminDashboard = () => {
                                 >
                                     <option value="all">All Types</option>
                                     <option value="data">Data Packages</option>
-                                    <option value="boosting">SMM Boosting</option>
+
                                 </select>
                             )}
                         </div>
@@ -784,7 +756,6 @@ const AdminDashboard = () => {
                             const matchesFilter = statusFilter === 'all' || o.status === statusFilter;
                             let matchesType = true;
                             if (typeFilter === 'data') matchesType = o.network !== 'BOOSTING';
-                            if (typeFilter === 'boosting') matchesType = o.network === 'BOOSTING';
                             return matchesSearch && matchesFilter && matchesType;
                         }).map(o => {
                             const statusColor = o.status === 'completed' ? '#16a34a' : (o.status === 'failed' ? '#dc2626' : (o.status === 'pending_payment' ? '#f59e0b' : '#d97706'));
@@ -823,7 +794,7 @@ const AdminDashboard = () => {
                                             <div style={{ fontSize: 13, fontWeight: 700, color: '#1e293b', wordBreak: 'break-all' }}>{o.user?.email || 'N/A'}</div>
                                         </div>
                                         <div>
-                                            <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', marginBottom: 2 }}>{o.network === 'BOOSTING' ? 'Target Link' : 'Recipient Number'}</div>
+                                            <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', marginBottom: 2 }}>Recipient Number</div>
                                             <div style={{ fontSize: 14, fontWeight: 900, color: '#0f172a', wordBreak: 'break-all' }}>{o.phoneNumber}</div>
                                         </div>
                                         <div>
@@ -1068,61 +1039,7 @@ const AdminDashboard = () => {
                     </div>
                 )}
 
-                {tab === 'boosting_mgmt' && !loading && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                        <div style={{ ...cardStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#0f172a', color: '#fff' }}>
-                            <div>
-                                <div style={{ fontSize: 18, fontWeight: 900 }}>Boosting Service Management</div>
-                                <div style={{ fontSize: 13, opacity: 0.7 }}>Sync services and manage visibility</div>
-                            </div>
-                            <button onClick={handleSmmSync} style={{ padding: '12px 24px', borderRadius: 12, background: '#4f46e5', color: '#fff', border: 'none', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <RefreshCw size={18} /> Sync from Provider
-                            </button>
-                        </div>
 
-                        <div style={{ position: 'relative' }}>
-                            <Search size={18} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-                            <input 
-                                type="text" 
-                                placeholder="Search services or categories..."
-                                value={searchTerm}
-                                onChange={e => setSearchTerm(e.target.value)}
-                                style={{ width: '100%', padding: '16px 16px 16px 48px', borderRadius: 16, border: '1px solid #e2e8f0', background: '#fff', fontSize: 14, fontWeight: 700, outline: 'none', boxSizing: 'border-box' }}
-                            />
-                        </div>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                            {Array.isArray(smmServices) && smmServices.filter(s => {
-                                if (!s) return false;
-                                const search = (searchTerm || '').toLowerCase();
-                                const name = String(s.name || '').toLowerCase();
-                                const category = String(s.category || '').toLowerCase();
-                                return name.includes(search) || category.includes(search);
-                            }).map((s, idx) => (
-                                <div key={s.service || idx} style={{ ...cardStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center', opacity: s.isDisabled ? 0.6 : 1 }}>
-                                    <div>
-                                        <div style={{ fontSize: 11, fontWeight: 800, color: '#ec4899', textTransform: 'uppercase' }}>{s.category}</div>
-                                        <div style={{ fontSize: 15, fontWeight: 900, color: '#0f172a' }}>{s.name || 'Unknown Service'}</div>
-                                        <div style={{ fontSize: 13, fontWeight: 700, color: '#64748b', marginTop: 4 }}>
-                                            API Cost: ₵{s.rate || 0} | <span style={{ color: '#16a34a' }}>Target: ₵{Math.max(4, (Number(s.rate) || 0) * 1.4).toFixed(2)}</span>
-                                        </div>
-                                    </div>
-                                    <button 
-                                        onClick={() => handleSmmServiceToggle(s.service, s.isDisabled)}
-                                        style={{ 
-                                            padding: '10px 20px', borderRadius: 10, border: 'none',
-                                            background: s.isDisabled ? '#f0fdf4' : '#fef2f2',
-                                            color: s.isDisabled ? '#16a34a' : '#dc2626',
-                                            fontWeight: 800, fontSize: 13, cursor: 'pointer'
-                                        }}
-                                    >
-                                        {s.isDisabled ? 'Enable' : 'Disable'}
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
                 
                 {tab === 'settings' && !loading && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -1211,22 +1128,7 @@ const AdminDashboard = () => {
                                 </button>
                             </div>
 
-                            <div style={{ ...cardStyle, border: !platformSettings.isBoostingEnabled ? '2px solid #ec4899' : '1px solid #f1f5f9', background: !platformSettings.isBoostingEnabled ? '#fdf2f8' : '#f8fafc', padding: '20px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-                                    <Sparkles size={20} color={!platformSettings.isBoostingEnabled ? "#ec4899" : "#64748b"} />
-                                    <div style={{ fontSize: 16, fontWeight: 900, color: !platformSettings.isBoostingEnabled ? '#db2777' : '#0f172a' }}>Social Boosting Switch</div>
-                                </div>
-                                <div style={{ fontSize: 13, color: '#64748b', marginBottom: 16, fontWeight: 500 }}>
-                                    When disabled, the Boosting section will be hidden or inaccessible to users.
-                                </div>
-                                <button 
-                                    type="button"
-                                    onClick={() => setPlatformSettings(p => ({ ...p, isBoostingEnabled: !p.isBoostingEnabled }))}
-                                    style={{ width: '100%', padding: '12px', borderRadius: 12, border: 'none', background: !platformSettings.isBoostingEnabled ? '#fff' : '#ec4899', color: !platformSettings.isBoostingEnabled ? '#ec4899' : '#fff', fontWeight: 800, cursor: 'pointer', border: !platformSettings.isBoostingEnabled ? '1px solid #ec4899' : 'none' }}
-                                >
-                                    {platformSettings.isBoostingEnabled ? 'Turn Off Boosting' : 'Turn On Boosting'}
-                                </button>
-                            </div>
+
 
                             <button 
                                 type="submit" 
