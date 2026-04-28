@@ -179,7 +179,13 @@ router.post('/buy', checkMaintenance, (req, res, next) => {
             status: { $nin: ['failed', 'cancelled'] }
         });
         if (recentOrder) {
-            return res.status(400).json({ message: `Please wait 5 minutes before purchasing for ${recipient_phone} again to prevent duplicates.` });
+            const diff = Date.now() - new Date(recentOrder.createdAt).getTime();
+            const timeLeft = Math.max(0, Math.ceil((5 * 60 * 1000 - diff) / 1000));
+            return res.status(400).json({ 
+                message: `Duplicate order detected.`,
+                timeLeft,
+                recentOrder: true
+            });
         }
 
         // SERVER-SIDE PRICE VALIDATION (Security)
@@ -323,7 +329,13 @@ router.post('/buy-paystack-init', checkMaintenance, auth, async (req, res) => {
             status: { $nin: ['failed', 'cancelled'] }
         });
         if (recentOrder) {
-            return res.status(400).json({ message: `Please wait 5 minutes before purchasing for ${recipient_phone} again to prevent duplicates.` });
+            const diff = Date.now() - new Date(recentOrder.createdAt).getTime();
+            const timeLeft = Math.max(0, Math.ceil((5 * 60 * 1000 - diff) / 1000));
+            return res.status(400).json({ 
+                message: `Duplicate order detected.`,
+                timeLeft,
+                recentOrder: true
+            });
         }
 
         // SERVER-SIDE PRICE VALIDATION (Security)

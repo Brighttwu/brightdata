@@ -24,6 +24,7 @@ const Dashboard = () => {
     const [showNotif, setShowNotif] = useState(false);
     const [detectedNet, setDetectedNet] = useState(null);
     const [isMismatch, setIsMismatch] = useState(false);
+    const [duplicateLock, setDuplicateLock] = useState(null); // { timeLeft: number, phone: string }
  
     const fetchPackages = useCallback(async () => {
         setLoading(true);
@@ -108,6 +109,17 @@ const Dashboard = () => {
         }
     }, [phone, network]);
 
+    useEffect(() => {
+        if (duplicateLock && duplicateLock.timeLeft > 0) {
+            const timer = setInterval(() => {
+                setDuplicateLock(prev => prev ? { ...prev, timeLeft: prev.timeLeft - 1 } : null);
+            }, 1000);
+            return () => clearInterval(timer);
+        } else if (duplicateLock && duplicateLock.timeLeft <= 0) {
+            setDuplicateLock(null);
+        }
+    }, [duplicateLock]);
+
     const handleBuy = async (method) => {
         if (!selectedPackage || phone.replace(/\s/g, '').length < 10) return;
         setBuying(true);
@@ -134,7 +146,14 @@ const Dashboard = () => {
                 window.location.href = res.data.authorization_url;
             }
         } catch (err) {
-            setMessage({ type: 'error', text: err.response?.data?.message || 'Transaction failed. Try again.' });
+            if (err.response?.data?.recentOrder) {
+                setDuplicateLock({ 
+                    timeLeft: err.response.data.timeLeft, 
+                    phone: phone 
+                });
+            } else {
+                setMessage({ type: 'error', text: err.response?.data?.message || 'Transaction failed. Try again.' });
+            }
         } finally {
             setBuying(false);
         }
@@ -158,6 +177,53 @@ const Dashboard = () => {
 
     return (
         <div style={{ background: '#f8fafc', minHeight: 'calc(100vh - 72px)', fontFamily: "'Inter', sans-serif" }}>
+            {/* ── DUPLICATE LOCK MODAL ────────────────────────────────── */}
+            {duplicateLock && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(15, 23, 42, 0.8)', zIndex: 100001,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    padding: 20, backdropFilter: 'blur(8px)', animation: 'fadeIn 0.3s'
+                }}>
+                    <div style={{
+                        background: '#fff', borderRadius: 24, padding: 32, maxWidth: 400, width: '100%',
+                        textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
+                        animation: 'slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                    }}>
+                        <div style={{
+                            width: 64, height: 64, background: '#fff7ed', borderRadius: '50%',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            margin: '0 auto 20px', color: '#ea580c'
+                        }}>
+                            <Clock size={32} />
+                        </div>
+                        <h3 style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', marginBottom: 12 }}>Please Wait</h3>
+                        <p style={{ fontSize: 14, color: '#475569', lineHeight: 1.6, marginBottom: 24 }}>
+                            A recent order for <b>{duplicateLock.phone}</b> is still being processed. 
+                            To prevent duplicate charges, please wait for the timer to finish.
+                        </p>
+                        
+                        <div style={{ 
+                            fontSize: 32, fontWeight: 900, color: '#4f46e5', 
+                            background: '#f8fafc', padding: '16px', borderRadius: 16,
+                            marginBottom: 24, border: '1px solid #e2e8f0'
+                        }}>
+                            {Math.floor(duplicateLock.timeLeft / 60)}:{(duplicateLock.timeLeft % 60).toString().padStart(2, '0')}
+                        </div>
+
+                        <button 
+                            onClick={() => setDuplicateLock(null)}
+                            style={{
+                                width: '100%', padding: '14px', background: '#0f172a',
+                                color: '#fff', border: 'none', borderRadius: 12,
+                                fontWeight: 800, cursor: 'pointer'
+                            }}
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            )}
             {showNotif && platformSettings?.globalNotification && (
                 <div style={{
                     position: 'fixed',
