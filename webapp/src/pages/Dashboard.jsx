@@ -2,7 +2,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
-import { Wifi, Wallet, Plus, RefreshCw, Search, CheckCircle2, XCircle, ChevronRight, Zap, ShoppingCart, Bell, Truck, Clock, ShieldCheck, ShieldAlert, Users2, AlertCircle, Ban, Star, Sparkles, Download, X, ShoppingBag } from 'lucide-react';
+import { 
+    Wifi, Wallet, Plus, RefreshCw, Search, CheckCircle2, XCircle, ChevronRight, 
+    Zap, ShoppingCart, Bell, Truck, Clock, ShieldCheck, ShieldAlert, Users2, 
+    AlertCircle, Ban, Gift, User, TrendingUp, Sparkles, CreditCard, ArrowUpRight, 
+    Code, History, Download, X, ShoppingBag 
+} from 'lucide-react';
 
 const Dashboard = () => {
     const { user, updateBalance, refreshProfile } = useAuth();
