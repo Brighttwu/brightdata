@@ -316,6 +316,17 @@ router.post('/public/:slug/buy-init', checkMaintenance, async (req, res) => {
             return res.status(400).json({ message: 'Missing required fields' });
         }
 
+        // DUPLICATE PROTECTION: 5-minute wait for same number
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+        const recentOrder = await Order.findOne({
+            phoneNumber: recipient_phone,
+            createdAt: { $gte: fiveMinutesAgo },
+            status: { $nin: ['failed', 'cancelled'] }
+        });
+        if (recentOrder) {
+            return res.status(400).json({ message: `Please wait 5 minutes before purchasing for ${recipient_phone} again to prevent duplicates.` });
+        }
+
         const net = network.toLowerCase();
         const pKey = package_key.toString().trim().toLowerCase();
 
@@ -677,6 +688,28 @@ router.post('/request-referral-withdrawal', auth, async (req, res) => {
         });
     } catch (err) {
         res.status(500).json({ message: 'Error submitting withdrawal' });
+    }
+});
+
+// ─── PUBLIC: TRACK ORDERS ────────────────────────────────────────────────────
+router.get('/public/:slug/track/:number', async (req, res) => {
+    try {
+        const { slug, number } = req.params;
+        const store = await Store.findOne({ slug: slug.toLowerCase(), isActive: { $ne: false } });
+        if (!store) return res.status(404).json({ message: 'Store not found' });
+
+        // Fetch orders placed through this store for the given phone number
+        const orders = await Order.find({ 
+            user: store.agent, 
+            phoneNumber: number,
+            source: 'store',
+            externalReference: { $regex: `^STORE_${store.slug}_` }
+        }).sort({ createdAt: -1 }).limit(15).select('network packageName phoneNumber amount status createdAt');
+
+        res.json(orders);
+    } catch (err) {
+        console.error('Tracking Error:', err);
+        res.status(500).json({ message: 'Error tracking orders' });
     }
 });
 

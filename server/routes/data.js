@@ -171,6 +171,17 @@ router.post('/buy', checkMaintenance, (req, res, next) => {
         const user = req.user;
         if (!user) return res.status(401).json({ message: 'Not authenticated' });
 
+        // DUPLICATE PROTECTION: 5-minute wait for same number
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+        const recentOrder = await Order.findOne({
+            phoneNumber: recipient_phone,
+            createdAt: { $gte: fiveMinutesAgo },
+            status: { $nin: ['failed', 'cancelled'] }
+        });
+        if (recentOrder) {
+            return res.status(400).json({ message: `Please wait 5 minutes before purchasing for ${recipient_phone} again to prevent duplicates.` });
+        }
+
         // SERVER-SIDE PRICE VALIDATION (Security)
         const net = network.toString().toLowerCase();
         const pkgKey = package_key.toString().trim().toLowerCase();
@@ -303,6 +314,17 @@ router.post('/buy-paystack-init', checkMaintenance, auth, async (req, res) => {
     try {
         const { network, package_key, recipient_phone, package_name } = req.body;
         const user = req.user;
+
+        // DUPLICATE PROTECTION: 5-minute wait for same number
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+        const recentOrder = await Order.findOne({
+            phoneNumber: recipient_phone,
+            createdAt: { $gte: fiveMinutesAgo },
+            status: { $nin: ['failed', 'cancelled'] }
+        });
+        if (recentOrder) {
+            return res.status(400).json({ message: `Please wait 5 minutes before purchasing for ${recipient_phone} again to prevent duplicates.` });
+        }
 
         // SERVER-SIDE PRICE VALIDATION (Security)
         const net = network.toString().toLowerCase();

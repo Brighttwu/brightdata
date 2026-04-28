@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
-import { Wifi, Wallet, Plus, RefreshCw, Search, CheckCircle2, XCircle, ChevronRight, Zap, ShoppingCart, Bell, Truck, Clock, ShieldAlert, Ban, Gift, User, TrendingUp, Sparkles, CreditCard, ArrowUpRight, Code, History } from 'lucide-react';
+import { Wifi, Wallet, Plus, RefreshCw, Search, CheckCircle2, XCircle, ChevronRight, Zap, ShoppingCart, Bell, Truck, Clock, ShieldCheck, ShieldAlert, Users2, AlertCircle, Ban, Star, Sparkles, Download, X, ShoppingBag } from 'lucide-react';
 
 const Dashboard = () => {
     const { user, updateBalance, refreshProfile } = useAuth();
@@ -17,6 +17,8 @@ const Dashboard = () => {
     const [platformSettings, setPlatformSettings] = useState(null);
     const [refreshing, setRefreshing] = useState(false);
     const [showNotif, setShowNotif] = useState(false);
+    const [detectedNet, setDetectedNet] = useState(null);
+    const [isMismatch, setIsMismatch] = useState(false);
  
     const fetchPackages = useCallback(async () => {
         setLoading(true);
@@ -79,6 +81,27 @@ const Dashboard = () => {
         } catch (err) {}
         setTimeout(() => setRefreshing(false), 1000);
     };
+
+    useEffect(() => {
+        const num = phone.replace(/\s/g, '');
+        if (num.length >= 3) {
+            const prefix = num.substring(0, 3);
+            const mtn = ['024', '025', '053', '054', '055', '059'];
+            const telecel = ['020', '050'];
+            const at = ['026', '027', '056', '057'];
+            
+            let detected = null;
+            if (mtn.includes(prefix)) detected = 'mtn';
+            else if (telecel.includes(prefix)) detected = 'telecel';
+            else if (at.includes(prefix)) detected = 'at';
+            
+            setDetectedNet(detected);
+            setIsMismatch(detected && detected !== network);
+        } else {
+            setDetectedNet(null);
+            setIsMismatch(false);
+        }
+    }, [phone, network]);
 
     const handleBuy = async (method) => {
         if (!selectedPackage || phone.replace(/\s/g, '').length < 10) return;
@@ -444,6 +467,35 @@ const Dashboard = () => {
                             onFocus={e => { e.target.style.borderColor = currentNet.color; e.target.style.background = '#fff'; e.target.style.boxShadow = `0 0 0 3px ${currentNet.color}15`; }}
                             onBlur={e => { e.target.style.borderColor = '#f1f5f9'; e.target.style.background = '#fafbfc'; e.target.style.boxShadow = 'none'; }}
                         />
+                        
+                        {detectedNet && (
+                            <div style={{ 
+                                marginTop: 8, display: 'flex', alignItems: 'center', gap: 6, 
+                                fontSize: 12, fontWeight: 800,
+                                color: isMismatch ? '#ea580c' : '#10b981'
+                            }}>
+                                {isMismatch ? <ShieldAlert size={14} /> : <CheckCircle2 size={14} />}
+                                {isMismatch ? `Detected: ${detectedNet.toUpperCase()} Number (Mismatch)` : `Verified ${detectedNet.toUpperCase()} Number`}
+                            </div>
+                        )}
+
+                        {/* Mismatch Warning Box */}
+                        {isMismatch && (
+                            <div style={{ 
+                                padding: '14px 18px', borderRadius: 16, marginTop: 16, 
+                                background: '#fff7ed', border: '1.5px solid #fed7aa', color: '#9a3412',
+                                animation: 'slideUp 0.3s ease'
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                                    <ShieldAlert size={18} color="#ea580c" />
+                                    <span style={{ fontWeight: 900, fontSize: 13 }}>Wrong Network Selected?</span>
+                                </div>
+                                <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5, fontWeight: 600 }}>
+                                    The number <b>{phone}</b> appears to be a <b>{detectedNet.toUpperCase()}</b> line, but you have <b>{network.toUpperCase()}</b> selected. 
+                                    If you continue, the data might fail or be sent to the wrong person. <b>No refunds for mistakes.</b>
+                                </p>
+                            </div>
+                        )}
 
                         {/* Summary */}
                         {selectedPackage && (

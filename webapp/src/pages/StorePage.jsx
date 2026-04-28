@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import {
     Wifi, RefreshCw, CheckCircle2, MessageCircle,
-    ShieldCheck, Users2, AlertCircle, Ban, Zap, Star, Sparkles, Download, X
+    ShieldCheck, ShieldAlert, Users2, AlertCircle, Ban, Zap, Star, Sparkles, Download, X, Search, ShoppingBag, Clock
 } from 'lucide-react';
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -218,6 +218,13 @@ const StorePage = () => {
     const [notFound, setNotFound] = useState(false);
     const [platformSettings, setPlatformSettings] = useState(null);
     const [showStoreNotification, setShowStoreNotification] = useState(false);
+    const [showTracking, setShowTracking] = useState(false);
+    const [trackingPhone, setTrackingPhone] = useState('');
+    const [trackingOrders, setTrackingOrders] = useState([]);
+    const [trackingLoading, setTrackingLoading] = useState(false);
+    
+    const [detectedNet, setDetectedNet] = useState(null);
+    const [isMismatch, setIsMismatch] = useState(false);
 
     useEffect(() => {
         // Show notification popup once per session after store loads
@@ -271,6 +278,27 @@ const StorePage = () => {
 
     useEffect(() => { fetchPackages(); }, [fetchPackages]);
 
+    useEffect(() => {
+        const num = phone.replace(/\s/g, '');
+        if (num.length >= 3) {
+            const prefix = num.substring(0, 3);
+            const mtn = ['024', '025', '053', '054', '055', '059'];
+            const telecel = ['020', '050'];
+            const at = ['026', '027', '056', '057'];
+            
+            let detected = null;
+            if (mtn.includes(prefix)) detected = 'mtn';
+            else if (telecel.includes(prefix)) detected = 'telecel';
+            else if (at.includes(prefix)) detected = 'at';
+            
+            setDetectedNet(detected);
+            setIsMismatch(detected && detected !== network);
+        } else {
+            setDetectedNet(null);
+            setIsMismatch(false);
+        }
+    }, [phone, network]);
+
     const handleBuy = async () => {
         if (!selectedPkg || phone.replace(/\s/g, '').length < 10 || !email || platformSettings?.isMaintenanceMode) return;
         setBuying(true);
@@ -286,6 +314,21 @@ const StorePage = () => {
         } catch (err) {
             setMessage({ type: 'error', text: err.response?.data?.message || 'Payment failed. Try again.' });
             setBuying(false);
+        }
+    };
+
+    const handleTrackOrders = async () => {
+        if (trackingPhone.length < 10) return;
+        setTrackingLoading(true);
+        try {
+            const res = await api.get(`/agent/public/${slug}/track/${trackingPhone}`);
+            setTrackingOrders(res.data || []);
+            if (res.data.length === 0) setMessage({ type: 'info', text: 'No orders found for this number.' });
+            else setMessage({ type: '', text: '' });
+        } catch {
+            setMessage({ type: 'error', text: 'Error fetching orders.' });
+        } finally {
+            setTrackingLoading(false);
         }
     };
 
@@ -434,6 +477,18 @@ const StorePage = () => {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <button 
+                        onClick={() => setShowTracking(true)}
+                        title="Track Order"
+                        style={{ 
+                            display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, 
+                            color: t.accent, background: isOcean ? 'rgba(255,255,255,0.12)' : isDark ? `${t.accent}14` : `${t.accent}12`, 
+                            padding: '5px 12px', borderRadius: '50px', border: `1px solid ${t.accent}33`, cursor: 'pointer' 
+                        }}
+                    >
+                        <Search size={13} /> <span className="mobile-hide">Track Order</span>
+                    </button>
+
+                    <button 
                         onClick={() => {
                             alert("To install this store on your phone:\n\n1. Tap the Share button (iOS) or Menu (Android)\n2. Select 'Add to Home Screen'\n3. Enjoy instant access!");
                         }}
@@ -441,7 +496,7 @@ const StorePage = () => {
                         style={{ 
                             display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, 
                             color: t.accent, background: isOcean ? 'rgba(255,255,255,0.12)' : isDark ? `${t.accent}14` : `${t.accent}12`, 
-                            padding: '5px 10px', borderRadius: '50px', border: `1px solid ${t.accent}33`, cursor: 'pointer' 
+                            padding: '5px 12px', borderRadius: '50px', border: `1px solid ${t.accent}33`, cursor: 'pointer' 
                         }}
                     >
                         <Download size={13} /> <span className="mobile-hide">Install</span>
@@ -721,13 +776,45 @@ const StorePage = () => {
                                 <input type="tel" placeholder="024 000 0000" value={phone} maxLength={10} onChange={e => {
                                     const val = e.target.value.replace(/\D/g, '').slice(0, 10);
                                     setPhone(val);
-                                }} style={inputStyle} />
+                                }} style={{
+                                    ...inputStyle,
+                                    borderColor: isMismatch ? '#ea580c' : (detectedNet ? '#10b981' : inputStyle.borderColor)
+                                }} />
+                                
+                                {detectedNet && (
+                                    <div style={{ 
+                                        marginTop: 6, display: 'flex', alignItems: 'center', gap: 6, 
+                                        fontSize: 11, fontWeight: 800,
+                                        color: isMismatch ? '#ea580c' : '#10b981'
+                                    }}>
+                                        {isMismatch ? <AlertCircle size={12} /> : <CheckCircle2 size={12} />}
+                                        {isMismatch ? `Warning: Detected ${detectedNet.toUpperCase()} number` : `Verified ${detectedNet.toUpperCase()} Number`}
+                                    </div>
+                                )}
                             </div>
                             <div>
                                 <label style={{ display: 'block', fontSize: 10, fontWeight: 900, color: t.muted, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Your Email</label>
                                 <input type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} style={inputStyle} />
                             </div>
                         </div>
+
+                        {/* Mismatch Alert Box */}
+                        {isMismatch && (
+                            <div style={{ 
+                                padding: '14px 18px', borderRadius: t.btnRadius, marginBottom: 18, 
+                                background: '#fff7ed', border: '1.5px solid #fed7aa', color: '#9a3412',
+                                animation: 'fadeUp 0.3s ease'
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                                    <ShieldAlert size={18} color="#ea580c" />
+                                    <span style={{ fontWeight: 900, fontSize: 13 }}>Network Mismatch Detected</span>
+                                </div>
+                                <p style={{ margin: 0, fontSize: 11, lineHeight: 1.5, fontWeight: 600 }}>
+                                    The number entered belongs to <b>{detectedNet.toUpperCase()}</b> but you've selected <b>{network.toUpperCase()}</b>. 
+                                    Transactions sent to the wrong network are non-refundable. Please verify before proceeding.
+                                </p>
+                            </div>
+                        )}
 
                         {/* Maintenance banner */}
                         {platformSettings?.isMaintenanceMode && (
@@ -778,6 +865,93 @@ const StorePage = () => {
                     </div>
                 </div>
             </div>
+
+            {/* ── TRACK ORDER MODAL ────────────────────────────────────── */}
+            {showTracking && (
+                <div style={{ 
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
+                    background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(10px)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+                    padding: 16
+                }}>
+                    <div style={{ 
+                        background: t.cardBg, borderRadius: t.radius, width: '100%', maxWidth: 500,
+                        maxHeight: '85vh', overflow: 'hidden', display: 'flex', flexDirection: 'column',
+                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', border: t.border,
+                        animation: 'fadeUp 0.3s ease', color: t.text
+                    }}>
+                        <div style={{ padding: '24px 24px 16px', borderBottom: t.border, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <ShoppingBag size={20} color={t.accent} />
+                                <h2 style={{ fontSize: 18, fontWeight: 900, margin: 0 }}>Track Your Orders</h2>
+                            </div>
+                            <button onClick={() => { setShowTracking(false); setTrackingOrders([]); setTrackingPhone(''); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.muted }}>
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div style={{ padding: 24, overflowY: 'auto' }}>
+                            <div style={{ marginBottom: 20 }}>
+                                <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: t.muted, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Enter Phone Number</label>
+                                <div style={{ display: 'flex', gap: 10 }}>
+                                    <input 
+                                        type="tel" 
+                                        placeholder="024XXXXXXX" 
+                                        value={trackingPhone}
+                                        onChange={e => setTrackingPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                                        style={inputStyle}
+                                    />
+                                    <button 
+                                        onClick={handleTrackOrders}
+                                        disabled={trackingLoading || trackingPhone.length < 10}
+                                        style={{ 
+                                            padding: '0 20px', borderRadius: t.btnRadius, background: t.accent, 
+                                            color: t.accentText, border: 'none', fontWeight: 900, cursor: 'pointer',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 80
+                                        }}
+                                    >
+                                        {trackingLoading ? <RefreshCw size={18} style={{ animation: 'spin 1s linear infinite' }} /> : 'Find'}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                {trackingOrders.map((o, i) => (
+                                    <div key={i} style={{ 
+                                        padding: 16, background: isOcean ? 'rgba(255,255,255,0.05)' : t.cardMuted, 
+                                        borderRadius: t.pkgRadius, border: t.border 
+                                    }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                                            <div>
+                                                <div style={{ fontSize: 14, fontWeight: 900 }}>{o.network.toUpperCase()} {o.packageName}</div>
+                                                <div style={{ fontSize: 12, color: t.muted, marginTop: 2 }}>{new Date(o.createdAt).toLocaleDateString()} • {new Date(o.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                                            </div>
+                                            <div style={{ 
+                                                fontSize: 10, fontWeight: 900, textTransform: 'uppercase', padding: '4px 8px', borderRadius: 6,
+                                                background: o.status === 'completed' ? '#dcfce7' : o.status === 'failed' ? '#fee2e2' : '#fef3c7',
+                                                color: o.status === 'completed' ? '#16a34a' : o.status === 'failed' ? '#dc2626' : '#d97706',
+                                            }}>
+                                                {o.status}
+                                            </div>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <div style={{ fontSize: 13, fontWeight: 700, color: t.muted }}>{o.phoneNumber}</div>
+                                            <div style={{ fontSize: 16, fontWeight: 900, color: t.accent }}>₵{o.amount.toFixed(2)}</div>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {!trackingLoading && trackingPhone.length === 10 && trackingOrders.length === 0 && (
+                                    <div style={{ textAlign: 'center', padding: '40px 20px', color: t.muted }}>
+                                        <ShoppingBag size={32} style={{ opacity: 0.2, marginBottom: 12 }} />
+                                        <div style={{ fontSize: 14, fontWeight: 700 }}>No orders found yet.</div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* ── Floating Action Buttons ────────────────────────────── */}
             <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 200, display: 'flex', flexDirection: 'column', gap: 12 }}>

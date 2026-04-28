@@ -34,6 +34,7 @@ const AgentPage = () => {
     const [justUpgraded, setJustUpgraded] = useState(false);
     
     const isAgent = user?.role === 'admin' || user?.role === 'agent' || user?.role === 'store' || justUpgraded;
+    const currentBalance = dashboard.commissionBalance !== undefined ? dashboard.commissionBalance : (user?.commissionBalance || 0);
 
     const fetchDashboard = useCallback(async () => {
         setLoading(true);
@@ -277,7 +278,7 @@ const AgentPage = () => {
                 {message.text && (
                     <div style={{ padding: '14px 18px', borderRadius: 14, fontWeight: 700, fontSize: 14, background: message.type === 'success' ? '#f0fdf4' : '#fef2f2', color: message.type === 'success' ? '#16a34a' : '#dc2626', border: '1px solid #eee' }}>{message.text}</div>
                 )}
-
+                
                 <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 8, margin: '0 -4px', padding: '0 4px' }} className="hide-scrollbar">
                     {[['dashboard', '📊 Stats'], ['store', '🏪 Setup'], ['pricing', '💰 Prices'], ['withdrawals', '💸 Withdraw']].map(([t, label]) => (
                         <button key={t} onClick={() => setTab(t)} style={tabStyle(t)}>{label}</button>
@@ -297,7 +298,7 @@ const AgentPage = () => {
                         <div className="agent-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
                             <div style={{ ...cardStyle, background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff', padding: 20 }}>
                                 <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.8 }}>Available for Withdrawal</div>
-                                <div style={{ fontSize: 28, fontWeight: 900 }}>₵{(dashboard.commissionBalance !== undefined ? dashboard.commissionBalance : (user?.commissionBalance || 0)).toFixed(2)}</div>
+                                <div style={{ fontSize: 28, fontWeight: 900 }}>₵{currentBalance.toFixed(2)}</div>
                                 <div style={{ fontSize: 11, marginTop: 4, opacity: 0.7 }}>Commission balance</div>
                             </div>
                             <div style={{ ...cardStyle, padding: 20 }}>
@@ -561,14 +562,18 @@ const AgentPage = () => {
 
                             <button 
                                 onClick={submitWithdrawal} 
-                                disabled={saving || !withdrawForm.amount || !withdrawForm.phone || Number(withdrawForm.amount) > Number(dashboard.commissionBalance || user?.commissionBalance || 0)} 
+                                disabled={saving || !withdrawForm.amount || !withdrawForm.phone || !withdrawForm.accountName || Number(withdrawForm.amount) < 10 || Number(withdrawForm.amount) > currentBalance} 
                                 style={{ 
                                     width: '100%', padding: '16px', borderRadius: 14, 
-                                    background: Number(withdrawForm.amount) > Number(user?.commissionBalance || 0) ? '#e2e8f0' : '#10b981', 
-                                    color: '#fff', fontWeight: 900, border: 'none', cursor: Number(withdrawForm.amount) > Number(user?.commissionBalance || 0) ? 'not-allowed' : 'pointer' 
+                                    background: (Number(withdrawForm.amount) > currentBalance || Number(withdrawForm.amount) < 10 && withdrawForm.amount !== '') ? '#e2e8f0' : '#10b981', 
+                                    color: '#fff', fontWeight: 900, border: 'none', 
+                                    cursor: (Number(withdrawForm.amount) > currentBalance || (Number(withdrawForm.amount) < 10 && withdrawForm.amount !== '')) ? 'not-allowed' : 'pointer' 
                                 }}
                             >
-                                {Number(withdrawForm.amount) > Number(dashboard.commissionBalance || user?.commissionBalance || 0) ? 'Insufficient Balance' : (saving ? 'Processing...' : 'Submit Request')}
+                                {Number(withdrawForm.amount) > currentBalance ? 'Insufficient Balance' : 
+                                 (Number(withdrawForm.amount) < 10 && withdrawForm.amount !== '' ? 'Min Withdrawal ₵10.00' : 
+                                  (!withdrawForm.accountName || !withdrawForm.phone || !withdrawForm.amount ? 'Complete Form' : 
+                                   (saving ? 'Processing...' : 'Submit Request')))}
                             </button>
                         </div>
 
