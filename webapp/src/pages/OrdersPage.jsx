@@ -205,7 +205,8 @@ const OrdersPage = () => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                         {(Array.isArray(filtered) ? filtered : []).map(order => {
                             const isLoading = actionLoadingId === order._id;
-                                    <div key={order._id} style={{
+                            return (
+                                <div key={order._id} style={{
                                         background: '#fff', borderRadius: 20, padding: '20px 24px',
                                         border: order.isReported ? '1.5px solid #fecaca' : '1px solid #f1f5f9',
                                         boxShadow: '0 2px 12px rgba(0,0,0,0.04)'
@@ -230,6 +231,7 @@ const OrdersPage = () => {
                                             </div>
                                         </div>
                                     </div>
+                            );
                         })}
                     </div>
                 )}
