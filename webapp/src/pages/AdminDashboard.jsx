@@ -37,6 +37,8 @@ const AdminDashboard = () => {
     // Search & Filter State
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [typeFilter, setTypeFilter] = useState('all');
+    const [isAiTyping, setIsAiTyping] = useState(false);
 
     
     // Platform Settings State
@@ -203,9 +205,6 @@ const AdminDashboard = () => {
         }
     };
 
-
-
-    const [isAiTyping, setIsAiTyping] = useState(false);
     const handleSendMessage = async (e) => {
         e.preventDefault();
         const userMsg = analysisInput.trim();
@@ -754,9 +753,7 @@ const AdminDashboard = () => {
                                                 (o.user?.email || '').toLowerCase().includes(search) ||
                                                 (o.externalReference || '').toLowerCase().includes(search);
                             const matchesFilter = statusFilter === 'all' || o.status === statusFilter;
-                            let matchesType = true;
-                            if (typeFilter === 'data') matchesType = o.network !== 'BOOSTING';
-                            return matchesSearch && matchesFilter && matchesType;
+                            return matchesSearch && matchesFilter;
                         }).map(o => {
                             const statusColor = o.status === 'completed' ? '#16a34a' : (o.status === 'failed' ? '#dc2626' : (o.status === 'pending_payment' ? '#f59e0b' : '#d97706'));
                             return (
