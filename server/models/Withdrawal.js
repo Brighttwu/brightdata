@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const WithdrawalSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     amount: { type: Number, required: true },
+    fee: { type: Number, default: 0 },
+    netAmount: { type: Number, required: true },
     type: { type: String, enum: ['agent', 'referral'], default: 'agent' },
     status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
     paymentMethod: { type: String, default: 'Mobile Money' },

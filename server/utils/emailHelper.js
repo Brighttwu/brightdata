@@ -121,7 +121,10 @@ const sendWithdrawalAlert = async (userName, withdrawalDetails) => {
                     <p>A new withdrawal request has been submitted by <b>${userName}</b>.</p>
                     <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4f46e5;">
                         <p><b>User:</b> ${userName}</p>
-                        <p><b>Amount:</b> ₵${withdrawalDetails.amount.toFixed(2)}</p>
+                        <p><b>Requested Amount:</b> ₵${withdrawalDetails.amount.toFixed(2)}</p>
+                        <p><b>Service Fee (2%):</b> ₵${(withdrawalDetails.fee || (withdrawalDetails.amount * 0.02)).toFixed(2)}</p>
+                        <p style="font-size: 18px; color: #16a34a;"><b>Net Payout: ₵${(withdrawalDetails.netAmount || (withdrawalDetails.amount * 0.98)).toFixed(2)}</b></p>
+                        <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;"/>
                         <p><b>Type:</b> ${withdrawalDetails.type.toUpperCase()}</p>
                         <p><b>Account Name:</b> ${withdrawalDetails.accountName || 'N/A'}</p>
                         <p><b>Payment Details:</b> ${withdrawalDetails.paymentDetails}</p>

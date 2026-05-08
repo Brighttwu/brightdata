@@ -157,13 +157,15 @@ const SupportPage = () => {
                 ) : (
                 (Array.isArray(messages) ? messages : []).map((msg, i) => {
                         const isMe = msg.sender === (user.id || user._id);
+                        const reactions = msg.reactions || [];
                         return (
-                            <div key={i} style={{ 
+                            <div key={i} className="message-container" style={{ 
                                 alignSelf: isMe ? 'flex-end' : 'flex-start',
                                 maxWidth: '85%',
                                 display: 'flex',
                                 flexDirection: 'column',
-                                alignItems: isMe ? 'flex-end' : 'flex-start'
+                                alignItems: isMe ? 'flex-end' : 'flex-start',
+                                position: 'relative'
                             }}>
                                 <div style={{ 
                                     background: isMe ? '#4f46e5' : '#fff',
@@ -175,8 +177,56 @@ const SupportPage = () => {
                                     lineHeight: 1.5,
                                     whiteSpace: 'pre-wrap',
                                     wordBreak: 'break-word',
-                                    border: isMe ? 'none' : '1px solid #e2e8f0'
+                                    border: isMe ? 'none' : '1px solid #e2e8f0',
+                                    position: 'relative'
                                 }} className="support-message-bubble">
+                                    <div className="msg-actions" style={{
+                                        position: 'absolute',
+                                        top: -12,
+                                        [isMe ? 'left' : 'right']: -12,
+                                        display: 'none',
+                                        gap: 4,
+                                        zIndex: 10
+                                    }}>
+                                        {['👍', '❤️', '✅', '🔥'].map(emoji => (
+                                            <button 
+                                                key={emoji}
+                                                onClick={async () => {
+                                                    try {
+                                                        const res = await api.post(`/support/${msg._id}/react`, { emoji });
+                                                        setMessages(prev => prev.map(m => m._id === msg._id ? res.data : m));
+                                                    } catch (err) { console.error('Reaction failed'); }
+                                                }}
+                                                style={{
+                                                    width: 24, height: 24, borderRadius: '50%',
+                                                    background: '#fff', border: '1px solid #e2e8f0',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    cursor: 'pointer', fontSize: 12, boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                                }}
+                                            >
+                                                {emoji}
+                                            </button>
+                                        ))}
+                                        {isMe && (
+                                            <button 
+                                                onClick={async () => {
+                                                    if (!window.confirm('Delete this message?')) return;
+                                                    try {
+                                                        await api.delete(`/support/${msg._id}`);
+                                                        setMessages(prev => prev.filter(m => m._id !== msg._id));
+                                                    } catch (err) { alert('Failed to delete'); }
+                                                }}
+                                                style={{
+                                                    width: 24, height: 24, borderRadius: '50%',
+                                                    background: '#fff', border: '1px solid #fee2e2',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    cursor: 'pointer', color: '#ef4444', boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                                }}
+                                            >
+                                                <X size={12} strokeWidth={3} />
+                                            </button>
+                                        )}
+                                    </div>
                                     {msg.image && (
                                         <img 
                                             src={msg.image} 
@@ -190,6 +240,26 @@ const SupportPage = () => {
                                         />
                                     )}
                                     {msg.message}
+
+                                    {reactions.length > 0 && (
+                                        <div style={{ 
+                                            position: 'absolute', 
+                                            bottom: -10, 
+                                            [isMe ? 'left' : 'right']: 0,
+                                            display: 'flex', 
+                                            gap: 2, 
+                                            background: '#fff', 
+                                            padding: '2px 4px', 
+                                            borderRadius: 10, 
+                                            border: '1px solid #e2e8f0',
+                                            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                        }}>
+                                            {Array.from(new Set(reactions.map(r => r.emoji))).map(emoji => (
+                                                <span key={emoji} style={{ fontSize: 10 }}>{emoji}</span>
+                                            ))}
+                                            {reactions.length > 1 && <span style={{ fontSize: 9, fontWeight: 800, color: '#64748b', marginLeft: 2 }}>{reactions.length}</span>}
+                                        </div>
+                                    )}
                                 </div>
                                 <div style={{ 
                                     display: 'flex', 
@@ -212,6 +282,9 @@ const SupportPage = () => {
                 )}
                 <div ref={messagesEndRef} />
             </div>
+            <style>{`
+                .message-container:hover .msg-actions { display: flex !important; }
+            `}</style>
 
             {/* Input Area */}
             <div style={{ 

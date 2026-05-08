@@ -538,7 +538,7 @@ const AgentPage = () => {
                                 </div>
                             </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 24 }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 20 }}>
                                 <div>
                                     <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 6 }}>Amount (₵)</label>
                                     <input type="number" min="10" value={withdrawForm.amount} onChange={e => setWithdrawForm(p => ({ ...p, amount: e.target.value }))} placeholder="10.00" style={{ width: '100%', padding: 14, borderRadius: 12, border: '2px solid #f1f5f9', outline: 'none', fontWeight: 700, fontSize: 16, boxSizing: 'border-box' }} />
@@ -553,6 +553,27 @@ const AgentPage = () => {
                                 </div>
                             </div>
                             
+                            {withdrawForm.amount && Number(withdrawForm.amount) >= 10 && (
+                                <div style={{ background: '#f8fafc', padding: 16, borderRadius: 16, border: '1px solid #e2e8f0', marginBottom: 20 }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                                        <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>Withdrawal Amount:</span>
+                                        <span style={{ fontSize: 13, color: '#0f172a', fontWeight: 800 }}>₵{Number(withdrawForm.amount).toFixed(2)}</span>
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                                        <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>Fee (2%):</span>
+                                        <span style={{ fontSize: 13, color: '#dc2626', fontWeight: 800 }}>-₵{(Number(withdrawForm.amount) * 0.02).toFixed(2)}</span>
+                                    </div>
+                                    <div style={{ height: '1px', background: '#e2e8f0', margin: '12px 0' }} />
+                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <span style={{ fontSize: 14, color: '#0f172a', fontWeight: 800 }}>Net Payout:</span>
+                                        <span style={{ fontSize: 16, color: '#16a34a', fontWeight: 900 }}>₵{(Number(withdrawForm.amount) * 0.98).toFixed(2)}</span>
+                                    </div>
+                                    <div style={{ marginTop: 12, fontSize: 11, color: '#94a3b8', fontWeight: 500, fontStyle: 'italic' }}>
+                                        Note: A standard 2% service charge applies to all withdrawals.
+                                    </div>
+                                </div>
+                            )}
+
                             <div style={{ padding: '16px 20px', background: '#f8fafc', borderRadius: 12, marginBottom: 20, border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <span style={{ fontSize: 13, fontWeight: 700, color: '#64748b' }}>Balance after withdrawal:</span>
                                 <span style={{ fontSize: 16, fontWeight: 900, color: Number(dashboard.commissionBalance || user?.commissionBalance || 0) - Number(withdrawForm.amount || 0) < 0 ? '#dc2626' : '#10b981' }}>

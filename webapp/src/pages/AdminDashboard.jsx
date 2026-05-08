@@ -366,18 +366,18 @@ const AdminDashboard = () => {
                                 <div style={{ fontSize: 28, fontWeight: 900, color: '#8b5cf6' }}>₵{(stats.referralLifetimeProfit || 0).toFixed(2)}</div>
                                 <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>Total earned via referrals</div>
                             </div>
-                            <div style={{ ...cardStyle, border: '1px solid #dcfce7', background: '#f0fdf4' }}>
-                                <Wallet size={24} color="#16a34a" />
-                                <div style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', marginTop: 12 }}>Unpaid Store Commissions</div>
-                                <div style={{ fontSize: 28, fontWeight: 900, color: '#16a34a' }}>₵{(stats.totalCommissionsOwed || 0).toFixed(2)}</div>
-                                <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>Owed to agents from shop sales</div>
-                            </div>
-                            <div style={{ ...cardStyle, border: '1px solid #ede9fe', background: '#f5f3ff' }}>
-                                <Wallet size={24} color="#8b5cf6" />
-                                <div style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', marginTop: 12 }}>Unpaid Referral Balances</div>
-                                <div style={{ fontSize: 28, fontWeight: 900, color: '#8b5cf6' }}>₵{(stats.totalReferralsOwed || 0).toFixed(2)}</div>
-                                <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>Owed to users from referrals</div>
-                            </div>
+                             <div style={{ ...cardStyle, border: '1px solid #dcfce7', background: '#f0fdf4' }}>
+                                 <Wallet size={24} color="#16a34a" />
+                                 <div style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', marginTop: 12 }}>Unpaid Store Commissions (Net)</div>
+                                 <div style={{ fontSize: 28, fontWeight: 900, color: '#16a34a' }}>₵{(stats.totalCommissionsOwed * 0.98 || 0).toFixed(2)}</div>
+                                 <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>Gross: ₵{(stats.totalCommissionsOwed || 0).toFixed(2)} (2% fee applied)</div>
+                             </div>
+                             <div style={{ ...cardStyle, border: '1px solid #ede9fe', background: '#f5f3ff' }}>
+                                 <Wallet size={24} color="#8b5cf6" />
+                                 <div style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', marginTop: 12 }}>Unpaid Referral Balances (Net)</div>
+                                 <div style={{ fontSize: 28, fontWeight: 900, color: '#8b5cf6' }}>₵{(stats.totalReferralsOwed * 0.98 || 0).toFixed(2)}</div>
+                                 <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>Gross: ₵{(stats.totalReferralsOwed || 0).toFixed(2)} (2% fee applied)</div>
+                             </div>
                         </div>
                     </>
                 )}
@@ -929,11 +929,16 @@ const AdminDashboard = () => {
                             <div key={w._id} className="admin-list-card" style={{ ...cardStyle, border: w.status === 'pending' ? '1.5px solid #fcd34d' : '1px solid #f1f5f9' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 12 }}>
                                     <div>
-                                        <div style={{ fontWeight: 900, fontSize: 18, color: '#0f172a' }}>₵{w.amount.toFixed(2)}</div>
-                                        <div style={{ fontSize: 13, color: '#64748b', marginTop: 4 }}>Agent: <b>{w.user?.name}</b> ({w.user?.email})</div>
-                                        <div style={{ fontSize: 14, color: '#0f172a', fontWeight: 900, marginTop: 4 }}>Name: {w.accountName}</div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                            <div style={{ fontWeight: 900, fontSize: 22, color: '#16a34a' }}>₵{(w.netAmount || (w.amount * 0.98)).toFixed(2)}</div>
+                                            <div style={{ fontSize: 11, fontWeight: 800, color: '#dc2626', background: '#fef2f2', padding: '2px 8px', borderRadius: 6 }}>-₵{(w.fee || (w.amount * 0.02)).toFixed(2)} Fee</div>
+                                        </div>
+                                        <div style={{ fontSize: 13, fontWeight: 700, color: '#64748b', marginTop: 4 }}>Gross Request: ₵{w.amount.toFixed(2)}</div>
+                                        
+                                        <div style={{ fontSize: 13, color: '#64748b', marginTop: 10 }}>Agent: <b>{w.user?.name}</b> ({w.user?.email})</div>
+                                        <div style={{ fontSize: 14, color: '#0f172a', fontWeight: 900, marginTop: 4 }}>Account: {w.accountName}</div>
                                         <div style={{ fontSize: 14, color: '#4f46e5', fontWeight: 800, marginTop: 4, display: 'flex', alignItems: 'center', gap: 10 }}>
-                                            <span>Payout: {w.paymentDetails}</span>
+                                            <span>Momo: {w.paymentDetails}</span>
                                             <button 
                                                 onClick={() => {
                                                     navigator.clipboard.writeText(w.paymentDetails);
@@ -945,7 +950,7 @@ const AdminDashboard = () => {
                                             </button>
                                         </div>
                                         <div style={{ 
-                                            display: 'inline-block', marginTop: 8, padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 800, textTransform: 'uppercase',
+                                            display: 'inline-block', marginTop: 10, padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 800, textTransform: 'uppercase',
                                             background: w.status === 'pending' ? '#fef3c7' : w.status === 'approved' ? '#dcfce7' : '#fee2e2',
                                             color: w.status === 'pending' ? '#d97706' : w.status === 'approved' ? '#16a34a' : '#dc2626'
                                         }}>{w.status}</div>

@@ -573,6 +573,10 @@ router.post('/request-withdrawal', auth, async (req, res) => {
         if (!accountName) return res.status(400).json({ message: 'Account name is required' });
         if (user.commissionBalance < amount) return res.status(400).json({ message: 'Insufficient commission balance' });
 
+        // Calculate 2% fee
+        const fee = Number((amount * 0.02).toFixed(2));
+        const netAmount = Number((amount - fee).toFixed(2));
+
         // Deduct from commission balance immediately upon request
         user.commissionBalance = Number((user.commissionBalance - amount).toFixed(2));
         await user.save();
@@ -580,17 +584,25 @@ router.post('/request-withdrawal', auth, async (req, res) => {
         const w = await Withdrawal.create({
             user: user._id,
             amount: Number(amount),
+            fee,
+            netAmount,
             type: 'agent',
             accountName,
             paymentDetails,
             status: 'pending'
         });
 
-        res.json({ message: 'Withdrawal request submitted!', withdrawal: w, commissionBalance: user.commissionBalance });
+        res.json({ 
+            message: `Withdrawal request submitted! A 2% fee (₵${fee.toFixed(2)}) applies. You will receive ₵${netAmount.toFixed(2)}.`, 
+            withdrawal: w, 
+            commissionBalance: user.commissionBalance 
+        });
         
         // Notify Admin
         await sendWithdrawalAlert(user.name, {
             amount: Number(amount),
+            fee,
+            netAmount,
             type: 'agent',
             accountName,
             paymentDetails
@@ -670,6 +682,10 @@ router.post('/request-referral-withdrawal', auth, async (req, res) => {
         if (user.referralBalance < amount) return res.status(400).json({ message: 'Insufficient referral balance' });
         if (!user.momoNumber) return res.status(400).json({ message: 'Please update your MoMo number in profile first' });
 
+        // Calculate 2% fee
+        const fee = Number((amount * 0.02).toFixed(2));
+        const netAmount = Number((amount - fee).toFixed(2));
+
         // Deduct from referral balance
         user.referralBalance = Number((user.referralBalance - amount).toFixed(2));
         await user.save();
@@ -677,17 +693,25 @@ router.post('/request-referral-withdrawal', auth, async (req, res) => {
         const w = await Withdrawal.create({
             user: user._id,
             amount: Number(amount),
+            fee,
+            netAmount,
             type: 'referral',
             accountName,
             paymentDetails: `Referral Payout: ${user.momoNumber}`,
             status: 'pending'
         });
 
-        res.json({ message: 'Referral withdrawal request submitted!', withdrawal: w, referralBalance: user.referralBalance });
+        res.json({ 
+            message: `Referral withdrawal submitted! A 2% fee (₵${fee.toFixed(2)}) applies. You will receive ₵${netAmount.toFixed(2)}.`, 
+            withdrawal: w, 
+            referralBalance: user.referralBalance 
+        });
         
         // Notify Admin
         await sendWithdrawalAlert(user.name, {
             amount: Number(amount),
+            fee,
+            netAmount,
             type: 'referral',
             accountName,
             paymentDetails: `Referral Payout: ${user.momoNumber}`

@@ -312,6 +312,27 @@ const Referrals = () => {
                             />
                         </div>
 
+                        {amount && Number(amount) >= 10 && (
+                            <div style={{ background: '#fff', padding: 16, borderRadius: 16, border: '1px solid #e2e8f0' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                                    <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>Withdrawal Amount:</span>
+                                    <span style={{ fontSize: 13, color: '#0f172a', fontWeight: 800 }}>₵{Number(amount).toFixed(2)}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                                    <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>Fee (2%):</span>
+                                    <span style={{ fontSize: 13, color: '#dc2626', fontWeight: 800 }}>-₵{(Number(amount) * 0.02).toFixed(2)}</span>
+                                </div>
+                                <div style={{ height: '1px', background: '#f1f5f9', margin: '12px 0' }} />
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <span style={{ fontSize: 14, color: '#0f172a', fontWeight: 800 }}>Net Payout:</span>
+                                    <span style={{ fontSize: 16, color: '#16a34a', fontWeight: 900 }}>₵{(Number(amount) * 0.98).toFixed(2)}</span>
+                                </div>
+                                <div style={{ marginTop: 12, fontSize: 11, color: '#94a3b8', fontWeight: 500, fontStyle: 'italic' }}>
+                                    Note: A standard 2% service charge applies to all withdrawals.
+                                </div>
+                            </div>
+                        )}
+
                         {message.text && (
                             <div style={{ padding: '13px 15px', borderRadius: 13, fontSize: 14, fontWeight: 700, background: message.type === 'success' ? '#f0fdf4' : '#fef2f2', color: message.type === 'success' ? '#16a34a' : '#dc2626', display: 'flex', alignItems: 'center', gap: 10 }}>
                                 {message.type === 'success' ? <CheckCircle2 size={17} /> : <AlertCircle size={17} />}

@@ -208,4 +208,49 @@ router.get('/admin/unread-count', adminAuth, async (req, res) => {
     }
 });
 
+// Toggle reaction on a message
+router.post('/:messageId/react', auth, async (req, res) => {
+    try {
+        const { emoji } = req.body;
+        const message = await SupportMessage.findById(req.params.messageId);
+        if (!message) return res.status(404).json({ message: 'Message not found' });
+
+        // Check if user already reacted with this emoji
+        const existingIndex = message.reactions.findIndex(r => r.user.toString() === req.user._id.toString() && r.emoji === emoji);
+
+        if (existingIndex > -1) {
+            // Remove reaction
+            message.reactions.splice(existingIndex, 1);
+        } else {
+            // Add reaction
+            message.reactions.push({ user: req.user._id, emoji });
+        }
+
+        await message.save();
+        res.json(message);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Error updating reaction' });
+    }
+});
+
+// Admin/User: Delete a message
+router.delete('/:messageId', auth, async (req, res) => {
+    try {
+        const message = await SupportMessage.findById(req.params.messageId);
+        if (!message) return res.status(404).json({ message: 'Message not found' });
+
+        // Allow if user is admin OR user is the sender of the message
+        if (req.user.role === 'admin' || message.sender.toString() === req.user._id.toString()) {
+            await SupportMessage.findByIdAndDelete(req.params.messageId);
+            res.json({ message: 'Message deleted' });
+        } else {
+            res.status(403).json({ message: 'Unauthorized to delete this message' });
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Error deleting message' });
+    }
+});
+
 module.exports = router;
