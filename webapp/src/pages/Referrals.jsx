@@ -319,7 +319,7 @@ const Referrals = () => {
                                     <span style={{ fontSize: 13, color: '#0f172a', fontWeight: 800 }}>₵{Number(amount).toFixed(2)}</span>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                                    <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>Fee (2%):</span>
+                                    <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>Transaction Fee (2%):</span>
                                     <span style={{ fontSize: 13, color: '#dc2626', fontWeight: 800 }}>-₵{(Number(amount) * 0.02).toFixed(2)}</span>
                                 </div>
                                 <div style={{ height: '1px', background: '#f1f5f9', margin: '12px 0' }} />
@@ -328,7 +328,7 @@ const Referrals = () => {
                                     <span style={{ fontSize: 16, color: '#16a34a', fontWeight: 900 }}>₵{(Number(amount) * 0.98).toFixed(2)}</span>
                                 </div>
                                 <div style={{ marginTop: 12, fontSize: 11, color: '#94a3b8', fontWeight: 500, fontStyle: 'italic' }}>
-                                    Note: A standard 2% service charge applies to all withdrawals.
+                                    Note: A standard 2% transaction fee is deducted from the withdrawal amount.
                                 </div>
                             </div>
                         )}
