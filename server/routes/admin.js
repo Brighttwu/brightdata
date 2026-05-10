@@ -138,23 +138,23 @@ router.get('/stats', adminAuth, async (req, res) => {
             console.error('API Balance fetch failed', e.message);
         }
 
-
+        const totalAgentProfit = (storeProfits || 0) + (refComms || 0);
+        const netAdminProfit = (grossProfit || 0) - totalAgentProfit;
 
         res.json({
-            totalUsers,
-            totalAgents,
-            totalOrders,
+            totalUsers: totalUsers || 0,
+            totalAgents: totalAgents || 0,
+            totalOrders: totalOrders || 0,
             totalWalletBalance: walletTotals[0]?.total || 0,
-            totalEarnings: earnings[0]?.total || 0, // Revenue in timeframe
-            adminProfit: Number(netAdminProfit.toFixed(2)),
-            agentProfit: Number(totalAgentProfit.toFixed(2)),
-            agentProfitLifetime: Number(agentProfitLifetime.toFixed(2)),
+            totalEarnings: earnings[0]?.total || 0,
+            adminProfit: Number((netAdminProfit || 0).toFixed(2)),
+            agentProfit: Number((totalAgentProfit || 0).toFixed(2)),
+            agentProfitLifetime: Number((agentProfitLifetime || 0).toFixed(2)),
             storeLifetimeProfit: Number((storeLifetime[0]?.total || 0).toFixed(2)),
             referralLifetimeProfit: Number((refLifetime[0]?.total || 0).toFixed(2)),
-            totalCommissionsOwed: Number(totalCommissionsOwed.toFixed(2)),
-            totalReferralsOwed: Number(totalReferralsOwed.toFixed(2)),
-            apiBalance,
-
+            totalCommissionsOwed: Number((totalCommissionsOwed || 0).toFixed(2)),
+            totalReferralsOwed: Number((totalReferralsOwed || 0).toFixed(2)),
+            apiBalance: apiBalance || 0,
             timeframe
         });
     } catch (err) {

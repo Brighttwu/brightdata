@@ -243,13 +243,8 @@ const StorePage = () => {
     useEffect(() => {
         const fetchStore = async () => {
             try {
-                const [storeRes, settingsRes] = await Promise.all([
-                    api.get(`/agent/public/${slug}`),
-                    api.get('/admin/settings')
-                ]);
+                const storeRes = await api.get(`/agent/public/${slug}`);
                 setStore(storeRes.data);
-                setPlatformSettings(settingsRes.data);
-                // Update page title
                 if (storeRes.data?.name) {
                     document.title = `${storeRes.data.name} - Data Hub`;
                 }
@@ -257,6 +252,14 @@ const StorePage = () => {
                 setNotFound(true);
             } finally {
                 setLoading(false);
+            }
+
+            // Fetch settings separately so it doesn't block store load
+            try {
+                const settingsRes = await api.get('/admin/settings');
+                setPlatformSettings(settingsRes.data);
+            } catch (err) {
+                console.error('Failed to fetch platform settings');
             }
         };
         if (slug) fetchStore();
@@ -430,7 +433,7 @@ const StorePage = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: t.pkgLayout === 'list' ? 'flex-end' : 'center' }}>
                     {sel && t.pkgLayout === 'list' && <CheckCircle size={14} />}
                     <div style={{ fontSize: t.pkgLayout === 'list' ? 18 : 22, fontWeight: 900 }}>
-                        ₵{p.price.toFixed(2)}
+                    ₵{(p?.price || 0).toFixed(2)}
                     </div>
                 </div>
             </div>
@@ -833,7 +836,7 @@ const StorePage = () => {
                                     <div style={{ fontSize: 10, color: t.muted, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 3 }}>Selected Bundle</div>
                                     <div style={{ fontWeight: 900, color: isOcean ? '#fff' : t.text, fontSize: 15 }}>{currentNet.name} · {selectedPkg.display_name}</div>
                                 </div>
-                                <div style={{ fontSize: 26, fontWeight: 900, color: t.accent }} className="mono-price">₵{selectedPkg.price.toFixed(2)}</div>
+                                <div style={{ fontSize: 26, fontWeight: 900, color: t.accent }} className="mono-price">₵{(selectedPkg?.price || 0).toFixed(2)}</div>
                             </div>
                         )}
 
@@ -927,7 +930,7 @@ const StorePage = () => {
                         }}>
                             {buying ? 'Processing…'
                              : platformSettings?.isMaintenanceMode ? '🔒 STORE LOCKED'
-                             : selectedPkg ? `Pay ₵${selectedPkg.price.toFixed(2)}`
+                             : selectedPkg ? `Pay ₵${(selectedPkg?.price || 0).toFixed(2)}`
                              : 'Select a Bundle'}
                         </button>
                     </div>
@@ -1004,7 +1007,7 @@ const StorePage = () => {
                                         </div>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <div style={{ fontSize: 13, fontWeight: 700, color: t.muted }}>{o.phoneNumber}</div>
-                                            <div style={{ fontSize: 16, fontWeight: 900, color: t.accent }}>₵{o.amount.toFixed(2)}</div>
+                                            <div style={{ fontSize: 16, fontWeight: 900, color: t.accent }}>₵{(o?.amount || 0).toFixed(2)}</div>
                                         </div>
                                     </div>
                                 ))}

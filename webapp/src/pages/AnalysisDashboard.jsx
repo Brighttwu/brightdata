@@ -82,6 +82,14 @@ const AnalysisDashboard = () => {
         </div>
     );
 
+    if (!data) return (
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', flexDirection: 'column' }}>
+            <Activity size={40} color="#64748b" style={{ opacity: 0.2, marginBottom: 16 }} />
+            <div style={{ fontWeight: 800, color: '#64748b' }}>Analysis unavailable at the moment</div>
+            <Link to="/admin" style={{ marginTop: 20, color: '#4f46e5', fontWeight: 700 }}>Back to Admin</Link>
+        </div>
+    );
+
     const cardStyle = {
         background: '#fff', padding: 24, borderRadius: 24, border: '1px solid #f1f5f9', boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
         display: 'flex', flexDirection: 'column'

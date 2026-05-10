@@ -183,12 +183,18 @@ const Login = () => {
                             </div>
                         </div>
 
-                        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
-                            <ReCAPTCHA
-                                sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
-                                onChange={(token) => setCaptchaToken(token)}
-                            />
-                        </div>
+                        {import.meta.env.VITE_RECAPTCHA_SITE_KEY ? (
+                            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
+                                <ReCAPTCHA
+                                    sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+                                    onChange={(token) => setCaptchaToken(token)}
+                                />
+                            </div>
+                        ) : (
+                            <div style={{ textAlign: 'center', color: '#ef4444', fontSize: 12, marginBottom: 16 }}>
+                                reCAPTCHA Site Key Missing. Check .env
+                            </div>
+                        )}
 
                         <button 
                             type="submit" 

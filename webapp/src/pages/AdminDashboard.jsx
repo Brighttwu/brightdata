@@ -414,7 +414,7 @@ const AdminDashboard = () => {
                                     {Array.isArray(analysisData?.topUsers) && analysisData.topUsers.map((u, i) => (
                                         <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f8fafc' }}>
                                             <div style={{ fontWeight: 700, fontSize: 13 }}>{u.name}</div>
-                                            <div style={{ fontWeight: 800, fontSize: 13 }}>₵{u.totalSpent.toFixed(2)}</div>
+                                            <div style={{ fontWeight: 800, fontSize: 13 }}>₵{(u.totalSpent || 0).toFixed(2)}</div>
                                         </div>
                                     ))}
                                 </div>
@@ -528,8 +528,8 @@ const AdminDashboard = () => {
                 {tab === 'users' && !loading && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                         {Array.isArray(users) && users.filter(u => 
-                            u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                            u.email.toLowerCase().includes(searchTerm.toLowerCase())
+                            (u.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+                            (u.email || '').toLowerCase().includes(searchTerm.toLowerCase())
                         ).map(u => (
                             <div key={u._id} style={{ ...cardStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }} className="admin-list-card">
                                 <div>
