@@ -5,14 +5,17 @@ const Order = require('../models/Order');
 const Transaction = require('../models/Transaction');
 const Pricing = require('../models/Pricing');
 const Settings = require('../models/Settings');
+const Store = require('../models/Store');
+const ProfitModel = require('../models/Profit');
+const Withdrawal = require('../models/Withdrawal');
 const axios = require('axios');
+const jwt = require('jsonwebtoken');
 
 // Admin Auth Middleware
 const adminAuth = (req, res, next) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     if (!token) return res.status(401).json({ message: 'No token' });
     try {
-        const jwt = require('jsonwebtoken');
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         User.findById(decoded.id).then(user => {
             if (!user || user.role !== 'admin') return res.status(403).json({ message: 'Admin access denied' });
@@ -64,7 +67,6 @@ router.get('/stats', adminAuth, async (req, res) => {
         const grossProfit = (orderData[0]?.revenue || 0) - (orderData[0]?.cost || 0);
 
         // Calculate Agent Store Profit: Sum of all profits in the Profit model within timeframe
-        const ProfitModel = require('../models/Profit');
         const agentStoreProfits = await ProfitModel.aggregate([
             { $match: { createdAt: { $gte: dateLimit } } },
             { $lookup: { from: 'users', localField: 'agent', foreignField: '_id', as: 'agentUser' } },
@@ -164,19 +166,27 @@ router.get('/stats', adminAuth, async (req, res) => {
 // Manage Users
 router.get('/users', adminAuth, async (req, res) => {
     try {
-        const users = await User.find().select('-password').sort({ createdAt: -1 }).lean();
-        
-        // Parallelly fetch total spent for each user
-        const usersWithStats = await Promise.all(users.map(async (u) => {
-            const spentData = await Order.aggregate([
-                { $match: { user: u._id, status: 'completed' } },
-                { $group: { _id: null, total: { $sum: '$amount' } } }
-            ]);
-            return {
-                ...u,
-                totalSpent: spentData[0]?.total || 0
-            };
-        }));
+        const usersWithStats = await User.aggregate([
+            { $lookup: {
+                from: 'orders',
+                let: { userId: '$_id' },
+                pipeline: [
+                    { $match: { 
+                        $expr: { $eq: ['$user', '$$userId'] },
+                        status: 'completed'
+                    }},
+                    { $group: { _id: null, total: { $sum: '$amount' } } }
+                ],
+                as: 'spentData'
+            }},
+            { $project: {
+                password: 0,
+                name: 1, email: 1, role: 1, balance: 1, commissionBalance: 1, referralBalance: 1,
+                phoneNumber: 1, isBlocked: 1, createdAt: 1,
+                totalSpent: { $ifNull: [{ $arrayElemAt: ['$spentData.total', 0] }, 0] }
+            }},
+            { $sort: { createdAt: -1 } }
+        ]);
 
         res.json(usersWithStats);
     } catch (err) {
@@ -395,7 +405,6 @@ router.post('/resolve-report/:id', adminAuth, async (req, res) => {
 });
 
 // Manage Withdrawals
-const Withdrawal = require('../models/Withdrawal');
 
 router.get('/withdrawals', adminAuth, async (req, res) => {
     try {
@@ -435,33 +444,34 @@ router.post('/resolve-withdrawal/:id', adminAuth, async (req, res) => {
 });
 
 // Manage Stores (Agent Links)
-const Store = require('../models/Store');
 
 router.get('/stores', adminAuth, async (req, res) => {
     try {
-        const stores = await Store.find().populate('agent', 'name email commissionBalance referralBalance').sort({ createdAt: -1 });
-        
-        // Enrich stores with lifetime profit (Store Profit + Referral Profits)
-        const enrichedStores = await Promise.all(stores.map(async (s) => {
-            const storeObj = s.toObject();
-            if (s.agent) {
-                // Calculate total referral commissions earned by this agent
-                const refProfits = await Transaction.aggregate([
+        const enrichedStores = await Store.aggregate([
+            { $lookup: { from: 'users', localField: 'agent', foreignField: '_id', as: 'agent' } },
+            { $unwind: { path: '$agent', preserveNullAndEmptyArrays: true } },
+            { $lookup: {
+                from: 'transactions',
+                let: { agentId: '$agent._id' },
+                pipeline: [
                     { $match: { 
-                        user: s.agent._id, 
-                        type: 'deposit', 
-                        status: 'success', 
-                        description: { $regex: /Referral Commission/i } 
-                    } },
+                        $expr: { $eq: ['$user', '$$agentId'] },
+                        type: 'deposit',
+                        status: 'success',
+                        description: { $regex: /Referral Commission/i }
+                    }},
                     { $group: { _id: null, total: { $sum: '$amount' } } }
-                ]);
-                const totalRefProfit = refProfits[0]?.total || 0;
-                storeObj.lifetimeProfit = Number(((s.totalProfit || 0) + totalRefProfit).toFixed(2));
-            } else {
-                storeObj.lifetimeProfit = s.totalProfit || 0;
-            }
-            return storeObj;
-        }));
+                ],
+                as: 'refProfits'
+            }},
+            { $addFields: {
+                totalRefProfit: { $ifNull: [{ $arrayElemAt: ['$refProfits.total', 0] }, 0] }
+            }},
+            { $addFields: {
+                lifetimeProfit: { $add: [{ $ifNull: ['$totalProfit', 0] }, '$totalRefProfit'] }
+            }},
+            { $sort: { createdAt: -1 } }
+        ]);
 
         res.json(enrichedStores);
     } catch (err) {
@@ -484,7 +494,7 @@ router.post('/store-status/:id', adminAuth, async (req, res) => {
 });
 
 // ─── PLATFORM SETTINGS ────────────────────────────────────────────────────────
-router.get('/settings', adminAuth, async (req, res) => {
+router.get('/settings', async (req, res) => {
     try {
         let settings = await Settings.findOne();
         if (!settings) settings = await Settings.create({});
@@ -601,7 +611,6 @@ router.get('/analysis', adminAuth, async (req, res) => {
         const newAgents = await User.countDocuments({ role: { $in: ['agent', 'store'] }, createdAt: { $gte: thirtyDaysAgo } });
 
         // Calculate Agent & Referral Profits for the last 30 days
-        const ProfitModel = require('../models/Profit');
         const storeProfitsData = await ProfitModel.aggregate([
             { $match: { createdAt: { $gte: thirtyDaysAgo } } },
             { $lookup: { from: 'users', localField: 'agent', foreignField: '_id', as: 'agentUser' } },

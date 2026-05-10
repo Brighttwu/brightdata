@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
-import { User, Mail, Shield, Lock, Eye, EyeOff, RefreshCw, Smartphone, CheckCircle2, Gift } from 'lucide-react';
+import { User, Mail, Shield, Lock, Eye, EyeOff, RefreshCw, Smartphone, CheckCircle, Gift } from 'lucide-react';
 
 const Profile = () => {
     const { user } = useAuth();

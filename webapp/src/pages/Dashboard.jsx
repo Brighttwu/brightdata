@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { 
-    Wifi, Wallet, Plus, RefreshCw, Search, CheckCircle2, XCircle, ChevronRight, 
-    Zap, ShoppingCart, Bell, Truck, Clock, ShieldCheck, ShieldAlert, Users2, 
+    Wifi, Wallet, Plus, RefreshCw, Search, CheckCircle, XCircle, ChevronRight, 
+    Zap, ShoppingCart, Bell, Truck, Clock, ShieldCheck, ShieldAlert, Users, 
     AlertCircle, Ban, Gift, User, TrendingUp, Sparkles, CreditCard, ArrowUpRight, 
     Code, History, Download, X, ShoppingBag 
 } from 'lucide-react';
@@ -499,7 +499,7 @@ const Dashboard = () => {
                                             position: 'relative'
                                         }}>
                                             {sel && (
-                                                <CheckCircle2 size={14} style={{ position: 'absolute', top: 8, right: 8, opacity: 0.8 }} />
+                                                <CheckCircle size={14} style={{ position: 'absolute', top: 8, right: 8, opacity: 0.8 }} />
                                             )}
                                             <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4, lineHeight: 1.3 }}>{p.name}</div>
                                             <div style={{ fontSize: 20, fontWeight: 900, lineHeight: 1 }}>₵{p.price.toFixed(2)}</div>
@@ -545,7 +545,7 @@ const Dashboard = () => {
                                 fontSize: 12, fontWeight: 800,
                                 color: isMismatch ? '#ea580c' : '#10b981'
                             }}>
-                                {isMismatch ? <ShieldAlert size={14} /> : <CheckCircle2 size={14} />}
+                                {isMismatch ? <ShieldAlert size={14} /> : <CheckCircle size={14} />}
                                 {isMismatch ? `Detected: ${detectedNet.toUpperCase()} Number (Mismatch)` : `Verified ${detectedNet.toUpperCase()} Number`}
                             </div>
                         )}
@@ -592,7 +592,7 @@ const Dashboard = () => {
                                 color: message.type === 'success' ? '#16a34a' : '#dc2626',
                                 border: `1px solid ${message.type === 'success' ? '#bbf7d0' : '#fecaca'}`
                             }}>
-                                {message.type === 'success' ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
+                                {message.type === 'success' ? <CheckCircle size={16} /> : <XCircle size={16} />}
                                 {message.text}
                             </div>
                         )}

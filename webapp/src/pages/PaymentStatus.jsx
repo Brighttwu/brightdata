@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import api from '../api/axios';
-import { CheckCircle2, XCircle, ArrowRight, Home, RefreshCw, ShieldCheck, Store } from 'lucide-react';
+import { CheckCircle, XCircle, ArrowRight, Home, RefreshCw, ShieldCheck, Store } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const PaymentStatus = () => {
@@ -175,7 +175,7 @@ const PaymentStatus = () => {
                                 border: '2px solid rgba(16, 185, 129, 0.3)',
                                 boxShadow: '0 0 40px rgba(16, 185, 129, 0.2)'
                             }}>
-                                <CheckCircle2 size={52} color="#10b981" />
+                                <CheckCircle size={52} color="#10b981" />
                             </div>
                             <h2 style={{ fontSize: 28, fontWeight: 900, color: '#f8fafc', marginBottom: 12 }}>{message}</h2>
                             <p style={{ fontSize: 16, color: '#94a3b8', lineHeight: 1.6, marginBottom: 40, maxWidth: 340 }}>

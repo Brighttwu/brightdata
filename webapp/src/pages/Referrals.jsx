@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
-import { Users, Copy, Gift, Wallet, ArrowUpRight, CheckCircle2, AlertCircle, RefreshCw, Smartphone, TrendingUp, ShoppingBag, Star } from 'lucide-react';
+import { Users, Copy, Gift, Wallet, ArrowUpRight, CheckCircle, AlertCircle, RefreshCw, Smartphone, TrendingUp, ShoppingBag, Star } from 'lucide-react';
 
 const Referrals = () => {
     const { user } = useAuth();
@@ -131,7 +131,7 @@ const Referrals = () => {
                                     : '--- Generating ---'}
                             </div>
                             <button onClick={copyLink} disabled={!stats?.referralCode} className="ref-copy-btn" style={{ background: copied ? '#10b981' : '#0f172a' }}>
-                                {copied ? <CheckCircle2 size={16} /> : <Copy size={16} />}
+                                {copied ? <CheckCircle size={16} /> : <Copy size={16} />}
                                 {copied ? 'Copied!' : 'Copy'}
                             </button>
                         </div>
@@ -335,7 +335,7 @@ const Referrals = () => {
 
                         {message.text && (
                             <div style={{ padding: '13px 15px', borderRadius: 13, fontSize: 14, fontWeight: 700, background: message.type === 'success' ? '#f0fdf4' : '#fef2f2', color: message.type === 'success' ? '#16a34a' : '#dc2626', display: 'flex', alignItems: 'center', gap: 10 }}>
-                                {message.type === 'success' ? <CheckCircle2 size={17} /> : <AlertCircle size={17} />}
+                                {message.type === 'success' ? <CheckCircle size={17} /> : <AlertCircle size={17} />}
                                 {message.text}
                             </div>
                         )}

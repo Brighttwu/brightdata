@@ -4,7 +4,7 @@ import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import {
     Store, TrendingUp, DollarSign, ShoppingBag, Settings, AlertCircle,
-    CheckCircle2, ChevronRight, Plus, Edit3, Wifi, ExternalLink, Copy, RefreshCw, ShieldCheck, ShieldAlert
+    CheckCircle, ChevronRight, Plus, Edit3, Wifi, ExternalLink, Copy, RefreshCw, ShieldCheck, ShieldAlert
 } from 'lucide-react';
 
 const AgentPage = () => {
@@ -265,7 +265,7 @@ const AgentPage = () => {
                             <div style={{ background: 'rgba(0,0,0,0.2)', padding: '10px 16px', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 200, overflow: 'hidden' }}>
                                 <span style={{ fontSize: 12, fontWeight: 700, opacity: 0.9, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{storeUrl}</span>
                                 <button onClick={copyStoreLink} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', padding: '6px', borderRadius: 8, cursor: 'pointer', flexShrink: 0 }}>
-                                    {copiedLink ? <CheckCircle2 size={16} /> : <Copy size={16} />}
+                                    {copiedLink ? <CheckCircle size={16} /> : <Copy size={16} />}
                                 </button>
                             </div>
                             <a href={storeUrl} target="_blank" rel="noreferrer" style={{ background: '#fff', color: '#4f46e5', padding: '12px 20px', borderRadius: 12, fontWeight: 800, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 13, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', flex: '1 0 140px' }}>

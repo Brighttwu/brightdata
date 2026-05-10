@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
-import { RefreshCw, AlertCircle, CheckCircle2, Clock, XCircle, Search, FileText, ShieldAlert, ChevronRight } from 'lucide-react';
+import { RefreshCw, AlertCircle, CheckCircle, Clock, XCircle, Search, FileText, ShieldAlert, ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const STATUS_CONFIG = {
-    completed:        { label: 'Completed',    bg: '#dcfce7', color: '#16a34a', icon: <CheckCircle2 size={14} /> },
+    completed:        { label: 'Completed',    bg: '#dcfce7', color: '#16a34a', icon: <CheckCircle size={14} /> },
     pending:          { label: 'Processing',   bg: '#fef3c7', color: '#d97706', icon: <Clock size={14} /> },
     pending_payment:  { label: 'Awaiting Pay', bg: '#f0f9ff', color: '#0284c7', icon: <Clock size={14} /> },
     failed:           { label: 'Failed',       bg: '#fee2e2', color: '#dc2626', icon: <XCircle size={14} /> },
@@ -168,7 +168,7 @@ const OrdersPage = () => {
                         color: message.type === 'success' ? '#16a34a' : '#dc2626',
                         border: `1px solid ${message.type === 'success' ? '#bbf7d0' : '#fecaca'}`
                     }}>
-                        {message.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+                        {message.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
                         {message.text}
                     </div>
                 )}

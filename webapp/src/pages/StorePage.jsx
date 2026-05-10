@@ -3,8 +3,8 @@ import { useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import {
-    Wifi, RefreshCw, CheckCircle2, MessageCircle,
-    ShieldCheck, ShieldAlert, Users2, AlertCircle, Ban, Zap, Star, Sparkles, Download, X, Search, ShoppingBag, Clock
+    Wifi, RefreshCw, CheckCircle, MessageCircle,
+    ShieldCheck, ShieldAlert, Users, AlertCircle, Ban, Zap, Star, Sparkles, Download, X, Search, ShoppingBag, Clock
 } from 'lucide-react';
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -422,13 +422,13 @@ const StorePage = () => {
         return (
             <div key={p.package_key} className="store-pkg-item" onClick={() => setSelectedPkg(p)} style={baseStyle}>
                 {sel && t.pkgLayout !== 'list' && (
-                    <CheckCircle2 size={15} style={{ position: 'absolute', top: 10, right: 10 }} />
+                    <CheckCircle size={15} style={{ position: 'absolute', top: 10, right: 10 }} />
                 )}
                 <div style={{ fontSize: t.pkgLayout === 'list' ? 14 : 12, fontWeight: 800, opacity: sel ? 1 : 0.75, marginBottom: t.pkgLayout === 'list' ? 0 : 6 }}>
                     {p.display_name}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: t.pkgLayout === 'list' ? 'flex-end' : 'center' }}>
-                    {sel && t.pkgLayout === 'list' && <CheckCircle2 size={14} />}
+                    {sel && t.pkgLayout === 'list' && <CheckCircle size={14} />}
                     <div style={{ fontSize: t.pkgLayout === 'list' ? 18 : 22, fontWeight: 900 }}>
                         ₵{p.price.toFixed(2)}
                     </div>
@@ -855,7 +855,7 @@ const StorePage = () => {
                                         fontSize: 11, fontWeight: 800,
                                         color: isMismatch ? '#ea580c' : '#10b981'
                                     }}>
-                                        {isMismatch ? <AlertCircle size={12} /> : <CheckCircle2 size={12} />}
+                                        {isMismatch ? <AlertCircle size={12} /> : <CheckCircle size={12} />}
                                         {isMismatch ? `Warning: Detected ${detectedNet.toUpperCase()} number` : `Verified ${detectedNet.toUpperCase()} Number`}
                                     </div>
                                 )}
@@ -894,7 +894,7 @@ const StorePage = () => {
                         {/* Error message */}
                         {message.text && (
                             <div style={{ padding: '13px 16px', borderRadius: t.btnRadius, marginBottom: 14, fontWeight: 800, fontSize: 13, background: message.type === 'success' ? '#f0fdf4' : '#fef2f2', color: message.type === 'success' ? '#16a34a' : '#dc2626', border: `1px solid ${message.type === 'success' ? '#bbf7d0' : '#fecaca'}`, display: 'flex', alignItems: 'center', gap: 10 }}>
-                                {message.type === 'success' ? <CheckCircle2 size={17} /> : <AlertCircle size={17} />} {message.text}
+                                {message.type === 'success' ? <CheckCircle size={17} /> : <AlertCircle size={17} />} {message.text}
                             </div>
                         )}
 
@@ -1027,7 +1027,7 @@ const StorePage = () => {
                     <a href={store.groupLink} target="_blank" rel="noreferrer" title="Join Community"
                         className="store-nav-icon"
                         style={{ width: 54, height: 54, borderRadius: '50%', background: t.accent, color: t.accentText, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 8px 20px ${t.accent}55`, textDecoration: 'none' }}>
-                        <Users2 size={22} />
+                        <Users size={22} />
                     </a>
                 )}
                 {store?.whatsapp && (

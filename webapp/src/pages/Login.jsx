@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, Loader2, AlertCircle, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Mail, Lock, RefreshCw as Loader, AlertCircle, ArrowLeft, ArrowRight } from 'lucide-react';
 import ReCAPTCHA from "react-google-recaptcha";
 
 
@@ -211,7 +211,7 @@ const Login = () => {
                                 transition: 'all 0.2s'
                             }}
                         >
-                            {loading ? <Loader2 size={22} className="animate-spin" /> : <>Sign In <ArrowRight size={18} /></>}
+                            {loading ? <Loader size={22} style={{ animation: 'spin 1s linear infinite' }} /> : <>Sign In <ArrowRight size={18} /></>}
                         </button>
                     </form>
 

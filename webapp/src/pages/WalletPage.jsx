@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
-import { Wallet, Plus, ArrowDownLeft, ArrowUpRight, CheckCircle2, XCircle, Clock, AlertCircle, RefreshCw } from 'lucide-react';
+import { Wallet, Plus, ArrowDownLeft, ArrowUpRight, CheckCircle, XCircle, Clock, AlertCircle, RefreshCw } from 'lucide-react';
 
 const WalletPage = () => {
     const { user, updateBalance, refreshProfile } = useAuth();
@@ -72,7 +72,7 @@ const WalletPage = () => {
     };
 
     const statusIcon = (status) => {
-        if (status === 'success') return <CheckCircle2 size={16} style={{ color: '#16a34a' }} />;
+        if (status === 'success') return <CheckCircle size={16} style={{ color: '#16a34a' }} />;
         if (status === 'failed') return <XCircle size={16} style={{ color: '#dc2626' }} />;
         return <Clock size={16} style={{ color: '#f59e0b' }} />;
     };
@@ -178,7 +178,7 @@ const WalletPage = () => {
                             color: message.type === 'success' ? '#16a34a' : '#dc2626',
                             border: `1px solid ${message.type === 'success' ? '#bbf7d0' : '#fecaca'}`
                         }}>
-                            {message.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+                            {message.type === 'success' ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
                             {message.text}
                         </div>
                     )}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
-import { Mail, Lock, Loader2, AlertCircle, ArrowLeft, ArrowRight, KeyRound } from 'lucide-react';
+import { Mail, Lock, RefreshCw as Loader, AlertCircle, ArrowLeft, ArrowRight, KeyRound } from 'lucide-react';
 
 const ForgotPassword = () => {
     const [step, setStep] = useState(1); // 1: Request OTP, 2: Reset Password
@@ -176,7 +176,7 @@ const ForgotPassword = () => {
                                     transition: 'all 0.2s'
                                 }}
                             >
-                                {loading ? <Loader2 size={22} className="animate-spin" /> : <>Send OTP <ArrowRight size={18} /></>}
+                                {loading ? <Loader size={22} className="animate-spin" /> : <>Send OTP <ArrowRight size={18} /></>}
                             </button>
                         </form>
                     ) : (
@@ -229,7 +229,7 @@ const ForgotPassword = () => {
                                     transition: 'all 0.2s'
                                 }}
                             >
-                                {loading ? <Loader2 size={22} className="animate-spin" /> : <>Complete Reset <ArrowRight size={18} /></>}
+                                {loading ? <Loader size={22} className="animate-spin" /> : <>Complete Reset <ArrowRight size={18} /></>}
                             </button>
                         </form>
                     )}

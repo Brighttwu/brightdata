@@ -1,5 +1,5 @@
 import { Link, Navigate } from 'react-router-dom';
-import { Zap, Shield, Globe, ArrowRight, Wifi, CheckCircle2, Store, Users, Wallet, Smartphone, TrendingUp, Star, Clock, ChevronRight } from 'lucide-react';
+import { Zap, Shield, Globe, ArrowRight, Wifi, CheckCircle, Store, Users, Wallet, Smartphone, TrendingUp, Star, Clock, ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useState, useEffect } from 'react';
 
