@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Mail, Lock, Loader2, AlertCircle, ArrowLeft, ArrowRight } from 'lucide-react';
+import ReCAPTCHA from "react-google-recaptcha";
+
 
 const Login = () => {
     const [formData, setFormData] = useState({ email: '', password: '' });
@@ -9,6 +11,7 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
     const { login, user } = useAuth();
     const navigate = useNavigate();
+    const [captchaToken, setCaptchaToken] = useState(null);
 
     // If user is already logged in, show a dedicated button
     if (user) {
@@ -28,12 +31,14 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+        if (!captchaToken) return setError('Please complete the reCAPTCHA');
         setLoading(true);
         try {
-            await login(formData.email, formData.password);
+            await login(formData.email, formData.password, captchaToken);
             navigate('/dashboard');
         } catch (err) {
             setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+            setCaptchaToken(null);
         } finally {
             setLoading(false);
         }
@@ -176,6 +181,13 @@ const Login = () => {
                             <div style={{ textAlign: 'right', marginTop: 8 }}>
                                 <Link to="/forgot-password" style={{ color: '#4f46e5', textDecoration: 'none', fontSize: 13, fontWeight: 700 }}>Forgot Password?</Link>
                             </div>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
+                            <ReCAPTCHA
+                                sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+                                onChange={(token) => setCaptchaToken(token)}
+                            />
                         </div>
 
                         <button 

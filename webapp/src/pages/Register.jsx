@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Mail, Lock, User as UserIcon, Loader2, AlertCircle, ArrowLeft, ArrowRight, Smartphone, Gift } from 'lucide-react';
+import ReCAPTCHA from "react-google-recaptcha";
+
 
 const Register = () => {
     const [searchParams] = useSearchParams();
@@ -12,6 +14,7 @@ const Register = () => {
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [captchaToken, setCaptchaToken] = useState(null);
     const { register } = useAuth();
     const navigate = useNavigate();
 
@@ -19,12 +22,14 @@ const Register = () => {
         e.preventDefault();
         setError('');
         if (!formData.phoneNumber) return setError('Phone Number is required.');
+        if (!captchaToken) return setError('Please complete the reCAPTCHA');
         setLoading(true);
         try {
-            await register(formData.name, formData.email, formData.password, formData.referralCode, '', formData.phoneNumber);
+            await register(formData.name, formData.email, formData.password, formData.referralCode, '', formData.phoneNumber, captchaToken);
             navigate('/dashboard');
         } catch (err) {
             setError(err.response?.data?.message || 'Something went wrong. Please try again.');
+            setCaptchaToken(null);
         } finally {
             setLoading(false);
         }
@@ -217,6 +222,13 @@ const Register = () => {
                                     onBlur={e => { e.target.style.background = '#f8fafc'; e.target.style.borderColor = 'transparent'; e.target.style.boxShadow = 'none'; }}
                                 />
                             </div>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
+                            <ReCAPTCHA
+                                sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+                                onChange={(token) => setCaptchaToken(token)}
+                            />
                         </div>
 
                         <button 

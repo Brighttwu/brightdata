@@ -85,7 +85,25 @@ router.post('/register', registerLimiter, async (req, res) => {
 // Login
 router.post('/login', loginLimiter, async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, captchaToken } = req.body;
+
+        // 1. Verify reCAPTCHA
+        if (!captchaToken) {
+            return res.status(400).json({ message: 'Please complete the reCAPTCHA' });
+        }
+
+        try {
+            const captchaResponse = await axios.post(
+                `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${captchaToken}`
+            );
+            if (!captchaResponse.data.success) {
+                return res.status(400).json({ message: 'reCAPTCHA verification failed' });
+            }
+        } catch (captchaErr) {
+            console.error('reCAPTCHA Error:', captchaErr);
+            return res.status(500).json({ message: 'Error verifying reCAPTCHA' });
+        }
+
         const user = await User.findOne({ email });
         if (!user) return res.status(400).json({ message: 'Invalid credentials' });
 
