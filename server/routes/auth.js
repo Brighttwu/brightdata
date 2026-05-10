@@ -4,11 +4,57 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const nodemailer = require('nodemailer');
 const { sendOtpEmail } = require('../utils/emailHelper');
+const rateLimit = require('express-rate-limit');
+const axios = require('axios');
+
+// Rate limiters
+const registerLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 5, // Limit each IP to 5 registrations per hour
+    message: { message: 'Too many accounts created from this IP, please try again after an hour' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10, // Limit each IP to 10 login attempts per 15 mins
+    message: { message: 'Too many login attempts, please try again after 15 minutes' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+const reservedNames = ['admin', 'administrator', 'root', 'superadmin', 'support', 'official', 'system', 'victim', 'users'];
 
 // Register
-router.post('/register', async (req, res) => {
+router.post('/register', registerLimiter, async (req, res) => {
     try {
-        const { name, email, password, referralCode, momoNumber, phoneNumber } = req.body;
+        const { name, email, password, referralCode, momoNumber, phoneNumber, captchaToken } = req.body;
+
+        // 1. Verify reCAPTCHA
+        if (!captchaToken) {
+            return res.status(400).json({ message: 'Please complete the reCAPTCHA' });
+        }
+
+        try {
+            const captchaResponse = await axios.post(
+                `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${captchaToken}`
+            );
+            if (!captchaResponse.data.success) {
+                return res.status(400).json({ message: 'reCAPTCHA verification failed' });
+            }
+        } catch (captchaErr) {
+            console.error('reCAPTCHA Error:', captchaErr);
+            return res.status(500).json({ message: 'Error verifying reCAPTCHA' });
+        }
+
+        // 2. Check for reserved names
+        const lowerName = name.toLowerCase();
+        const lowerEmail = email.toLowerCase();
+        if (reservedNames.some(reserved => lowerName.includes(reserved) || lowerEmail.includes(reserved))) {
+            return res.status(400).json({ message: 'This name or email is not allowed' });
+        }
+
         let user = await User.findOne({ email });
         if (user) return res.status(400).json({ message: 'User already exists' });
 
@@ -37,7 +83,7 @@ router.post('/register', async (req, res) => {
 });
 
 // Login
-router.post('/login', async (req, res) => {
+router.post('/login', loginLimiter, async (req, res) => {
     try {
         const { email, password } = req.body;
         const user = await User.findOne({ email });

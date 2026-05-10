@@ -563,6 +563,7 @@ const AdminDashboard = () => {
                                         <MessageSquare size={14} /> Chat
                                     </button>
                                     <button onClick={() => handleBalance(u._id, 'add')} style={{ flex: 1, border: 'none', background: '#f0fdf4', color: '#16a34a', padding: '10px 12px', borderRadius: 8, cursor: 'pointer', fontWeight: 700, fontSize: 13 }}>Add ₵</button>
+                                    <button onClick={() => handleBalance(u._id, 'subtract')} style={{ flex: 1, border: 'none', background: '#fef2f2', color: '#dc2626', padding: '10px 12px', borderRadius: 8, cursor: 'pointer', fontWeight: 700, fontSize: 13 }}>Deduct ₵</button>
                                     <button onClick={() => handleBlock(u._id)} style={{ flex: 1, border: 'none', background: u.isBlocked ? '#0f172a' : '#f1f5f9', color: u.isBlocked ? '#fff' : '#64748b', padding: '10px 12px', borderRadius: 8, cursor: 'pointer', fontWeight: 700, fontSize: 13 }}>
                                         {u.isBlocked ? 'Unblock' : 'Block'}
                                     </button>

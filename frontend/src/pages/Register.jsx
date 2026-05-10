@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Mail, Lock, User as UserIcon, Loader2, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
+import ReCAPTCHA from "react-google-recaptcha";
 
 const Register = () => {
     const [formData, setFormData] = useState({ name: '', email: '', password: '' });
@@ -11,15 +12,25 @@ const Register = () => {
     const { register } = useAuth();
     const navigate = useNavigate();
 
+    const [captchaToken, setCaptchaToken] = useState(null);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+
+        if (!captchaToken) {
+            setError('Please verify you are not a robot');
+            return;
+        }
+
         setLoading(true);
         try {
-            await register(formData.name, formData.email, formData.password);
+            await register(formData.name, formData.email, formData.password, captchaToken);
             navigate('/dashboard');
         } catch (err) {
             setError(err.response?.data?.message || 'Registration failed. Try again.');
+            // Reset captcha on failure
+            setCaptchaToken(null);
         } finally {
             setLoading(false);
         }
@@ -88,6 +99,14 @@ const Register = () => {
                                 placeholder="••••••••"
                             />
                         </div>
+                    </div>
+
+                    <div className="flex justify-center mb-4">
+                        <ReCAPTCHA
+                            sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY || "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"} // Placeholder if not set
+                            onChange={(token) => setCaptchaToken(token)}
+                            theme="dark"
+                        />
                     </div>
 
                     <button 

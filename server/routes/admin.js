@@ -484,7 +484,7 @@ router.post('/store-status/:id', adminAuth, async (req, res) => {
 });
 
 // ─── PLATFORM SETTINGS ────────────────────────────────────────────────────────
-router.get('/settings', async (req, res) => {
+router.get('/settings', adminAuth, async (req, res) => {
     try {
         let settings = await Settings.findOne();
         if (!settings) settings = await Settings.create({});
