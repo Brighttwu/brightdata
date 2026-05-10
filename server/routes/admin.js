@@ -163,34 +163,33 @@ router.get('/stats', adminAuth, async (req, res) => {
     }
 });
 
-// Manage Users
+// Manage Users - Optimized with two-pass approach to prevent timeouts
 router.get('/users', adminAuth, async (req, res) => {
     try {
-        const usersWithStats = await User.aggregate([
-            { $lookup: {
-                from: 'orders',
-                let: { userId: '$_id' },
-                pipeline: [
-                    { $match: { 
-                        $expr: { $eq: ['$user', '$$userId'] },
-                        status: 'completed'
-                    }},
-                    { $group: { _id: null, total: { $sum: '$amount' } } }
-                ],
-                as: 'spentData'
-            }},
-            { $project: {
-                password: 0,
-                name: 1, email: 1, role: 1, balance: 1, commissionBalance: 1, referralBalance: 1,
-                phoneNumber: 1, isBlocked: 1, createdAt: 1,
-                totalSpent: { $ifNull: [{ $arrayElemAt: ['$spentData.total', 0] }, 0] }
-            }},
-            { $sort: { createdAt: -1 } }
+        // 1. Get total spent for all users in one go
+        const spentData = await Order.aggregate([
+            { $match: { status: 'completed' } },
+            { $group: { _id: '$user', total: { $sum: '$amount' } } }
         ]);
+
+        // Create a lookup map for faster processing
+        const spentMap = {};
+        spentData.forEach(item => {
+            if (item._id) spentMap[item._id.toString()] = item.total;
+        });
+
+        // 2. Fetch all users (excluding password)
+        const users = await User.find().select('-password').sort({ createdAt: -1 }).lean();
+
+        // 3. Merge stats
+        const usersWithStats = users.map(user => ({
+            ...user,
+            totalSpent: spentMap[user._id.toString()] || 0
+        }));
 
         res.json(usersWithStats);
     } catch (err) {
-        console.error(err);
+        console.error('Fetch Users Error:', err);
         res.status(500).json({ message: 'Error fetching users' });
     }
 });
