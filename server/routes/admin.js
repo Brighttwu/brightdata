@@ -91,8 +91,8 @@ router.get('/stats', adminAuth, async (req, res) => {
         ]);
         const refComms = referralCommissions[0]?.total || 0;
 
-        const totalAgentProfit = storeProfits + refComms;
-        const netAdminProfit = grossProfit - totalAgentProfit;
+        const totalAgentProfit = (storeProfits || 0) + (refComms || 0);
+        const netAdminProfit = (grossProfit || 0) - totalAgentProfit;
 
         // Calculate total funds currently available for withdrawal by agents (EXCLUDING ADMINS)
         const agentBalanceData = await User.aggregate([
@@ -138,8 +138,7 @@ router.get('/stats', adminAuth, async (req, res) => {
             console.error('API Balance fetch failed', e.message);
         }
 
-        const totalAgentProfit = (storeProfits || 0) + (refComms || 0);
-        const netAdminProfit = (grossProfit || 0) - totalAgentProfit;
+
 
         res.json({
             totalUsers: totalUsers || 0,
